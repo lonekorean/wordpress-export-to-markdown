@@ -1,0 +1,20 @@
+{
+	"name": "wp-to-gatsby-md",
+	"version": "1.0.0",
+	"private": true,
+	"description": "Converts a WordPress export XML file into Markdown files suitable for a GatsbyJS site.",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"author": "Will Boyd <will@codersblock.com> (https://codersblock.com)",
+	"license": "MIT",
+	"engines": {
+		"node" : ">= 10.12.0"
+	},
+	"dependencies": {
+		"luxon": "^1.4.3",
+		"minimist": "^1.2.0",
+		"xml2js": "^0.4.19"
+	}
+}
