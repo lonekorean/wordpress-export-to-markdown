@@ -2,6 +2,7 @@ const fs = require('fs');
 const luxon = require('luxon');
 const path = require('path');
 const minimist = require('minimist');
+const request = require('request');
 const xml2js = require('xml2js');
 
 // defaults
@@ -90,7 +91,7 @@ function mergeImagesIntoPosts(images, posts) {
 
 			if (image.id === post.meta.coverImageId) {
 				post.meta.coverImageUrl = image.url;
-				post.frontmatter.coverImageFilename = image.url.split('/').slice(-1)[0];
+				post.frontmatter.coverImageFilename = getFilenameFromPath(image.url);
 			}
 		}
 	});
@@ -103,7 +104,6 @@ function getItemsOfType(data, type) {
 function getCoverImageId(post) {
 	let postMeta = post.postmeta.find(postmeta => postmeta.meta_key[0] === '_thumbnail_id');
 	let result = postMeta ? postMeta.meta_value[0] : undefined;
-	console.log(result);
 	return result;
 }
 
@@ -123,6 +123,10 @@ function translateContent(value) {
 	return value.trim();
 }
 
+function getFilenameFromPath(path) {
+	return path.split('/').slice(-1)[0];
+}
+
 function writeMarkdownFiles(posts) {
 	posts.forEach(post => {
 		const dir = path.join(outputDir, post.frontmatter.slug);
@@ -133,8 +137,39 @@ function writeMarkdownFiles(posts) {
 		}
 
 		const content = createMarkdownContent(post);
-		fs.writeFileSync(path.join(dir, 'index.md'), content);
-	 });
+		const postPath = path.join(dir, 'index.md');
+		fs.writeFile(postPath, content, (err) => {
+			if (err) {
+				console.log('Unable to write file.')
+				console.log(err);
+			} else {
+				console.log('Wrote ' + postPath + '.');
+			}
+		});
+
+		if (post.meta.imageUrls) {
+			post.meta.imageUrls.forEach(imageUrl => {
+				let imagePath = path.join(dir, getFilenameFromPath(imageUrl));
+				let stream = fs.createWriteStream(imagePath);
+				stream.on('finish', () => {
+					console.log('Saved ' + imagePath + '.');
+				});
+
+				request
+					.get(imageUrl)
+					.on('response', response => {
+						if (response.statusCode !== 200) {
+							console.log('Response status code ' + response.statusCode + ' received for ' + imageUrl + '.');
+						}
+					})
+					.on('error', err => {
+						console.log('Unable to download image.');
+						console.log(err);
+					})
+					.pipe(stream);
+			});
+		}
+	});
 }
 
 function createMarkdownContent(post) {

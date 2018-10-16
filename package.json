@@ -10,11 +10,12 @@
 	"author": "Will Boyd <will@codersblock.com> (https://codersblock.com)",
 	"license": "MIT",
 	"engines": {
-		"node" : ">= 10.12.0"
+		"node": ">= 10.12.0"
 	},
 	"dependencies": {
 		"luxon": "^1.4.3",
 		"minimist": "^1.2.0",
+		"request": "^2.88.0",
 		"xml2js": "^0.4.19"
 	}
 }
