@@ -4,7 +4,7 @@ const path = require('path');
 const minimist = require('minimist');
 const xml2js = require('xml2js');
 
-// command line argument defaults
+// defaults
 let inputFile = 'export.xml';
 let outputDir = 'output';
 
@@ -32,36 +32,83 @@ function readFile(filename) {
 
 function parseFileContent(fileContent) {
 	const processors = { tagNameProcessors: [ xml2js.processors.stripPrefix ] };
-	xml2js.parseString(fileContent, processors, (err, result) => {
+	xml2js.parseString(fileContent, processors, (err, data) => {
 		if (err) {
 			console.log('Unable to parse file content.');
 			console.log(err);        
 		} else {
-			processPosts(result);
+			processData(data);
 		}
 	});
 }
 
-function processPosts(result) {
-	let posts = result.rss.channel[0].item
-		.filter(item => item.post_type.includes('post'))
+function processData(data) {
+	let images = collectImages(data);
+	let posts = collectPosts(data);
+	mergeImagesIntoPosts(images, posts);
+
+	writeMarkdownFiles(posts);
+}
+
+function collectImages(data) {
+	return getItemsOfType(data, 'attachment')
+		.filter(image => (/\.(gif|jpg|png)$/i).test(image.attachment_url[0]))
+		.map(attachment => ({
+			id: attachment.post_id[0],
+			postId: attachment.post_parent[0],
+			url: attachment.attachment_url[0]
+		}));	
+}
+
+function collectPosts(data, images) {
+	return getItemsOfType(data, 'post')
 		.map(post => ({
+			meta: {
+				id: post.post_id[0],
+				coverImageId: getCoverImageId(post)
+			},
 			frontmatter: {
-				slug: translateSlug(post.link[0]),
+				slug: translateSlug(post.post_name[0]),
 				title: translateTitle(post.title[0]),
 				date: translateDate(post.pubDate[0])
 			},
 			content: translateContent(post.encoded[0])
 		}));
+}
 
-		writeMarkdownFiles(posts);
+function mergeImagesIntoPosts(images, posts) {
+	let postsLookup = posts.reduce((lookup, post) => {
+		lookup[post.meta.id] = post;
+		return lookup;
+	}, {});
+
+	images.forEach(image => {
+		let post = postsLookup[image.postId];
+		if (post) {
+			post.meta.imageUrls = post.meta.imageUrls || [];
+			post.meta.imageUrls.push(image.url);
+
+			if (image.id === post.meta.coverImageId) {
+				post.meta.coverImageUrl = image.url;
+				post.frontmatter.coverImageFilename = image.url.split('/').slice(-1)[0];
+			}
+		}
+	});
+}
+
+function getItemsOfType(data, type) {
+	return data.rss.channel[0].item.filter(item => item.post_type[0] === type);
+}
+
+function getCoverImageId(post) {
+	let postMeta = post.postmeta.find(postmeta => postmeta.meta_key[0] === '_thumbnail_id');
+	let result = postMeta ? postMeta.meta_value[0] : undefined;
+	console.log(result);
+	return result;
 }
 
 function translateSlug(value) {
-	let url = new URL(value);
-	let trimmedPath = url.pathname.replace(/\/$/, '');
-	let pathPieces = trimmedPath.split('/');
-	return pathPieces.pop();
+	return value;
 }
 
 function translateTitle(value) {
