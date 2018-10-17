@@ -47,8 +47,7 @@ function processData(data) {
 	let images = collectImages(data);
 	let posts = collectPosts(data);
 	mergeImagesIntoPosts(images, posts);
-
-	writeMarkdownFiles(posts);
+	writeFiles(posts);
 }
 
 function collectImages(data) {
@@ -127,17 +126,21 @@ function getFilenameFromPath(path) {
 	return path.split('/').slice(-1)[0];
 }
 
-function writeMarkdownFiles(posts) {
+function createDir(path) {
+	try {
+		fs.accessSync(path, fs.constants.F_OK);
+	} catch (ex) {
+		fs.mkdirSync(path, { recursive: true });
+	}
+}
+
+function writeFiles(posts) {
 	posts.forEach(post => {
-		const dir = path.join(outputDir, post.frontmatter.slug);
-		try {
-			fs.accessSync(dir, fs.constants.F_OK);
-		} catch (ex) {
-			fs.mkdirSync(dir, { recursive: true });
-		}
+		const postDir = path.join(outputDir, post.frontmatter.slug);
+		createDir(postDir);
 
 		const content = createMarkdownContent(post);
-		const postPath = path.join(dir, 'index.md');
+		const postPath = path.join(postDir, 'index.md');
 		fs.writeFile(postPath, content, (err) => {
 			if (err) {
 				console.log('Unable to write file.')
@@ -149,7 +152,10 @@ function writeMarkdownFiles(posts) {
 
 		if (post.meta.imageUrls) {
 			post.meta.imageUrls.forEach(imageUrl => {
-				let imagePath = path.join(dir, getFilenameFromPath(imageUrl));
+				const postImagesDir = path.join(postDir, 'images');
+				createDir(postImagesDir);
+
+				let imagePath = path.join(postImagesDir, getFilenameFromPath(imageUrl));
 				let stream = fs.createWriteStream(imagePath);
 				stream.on('finish', () => {
 					console.log('Saved ' + imagePath + '.');
