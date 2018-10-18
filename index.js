@@ -52,7 +52,7 @@ function processData(data) {
 
 function collectImages(data) {
 	return getItemsOfType(data, 'attachment')
-		.filter(image => (/\.(gif|jpg|png)$/i).test(image.attachment_url[0]))
+		.filter(attachment => (/\.(gif|jpg|png)$/i).test(attachment.attachment_url[0]))
 		.map(attachment => ({
 			id: attachment.post_id[0],
 			postId: attachment.post_parent[0],
@@ -60,20 +60,50 @@ function collectImages(data) {
 		}));	
 }
 
-function collectPosts(data, images) {
+function collectPosts(data) {
 	return getItemsOfType(data, 'post')
 		.map(post => ({
 			meta: {
-				id: post.post_id[0],
-				coverImageId: getCoverImageId(post)
+				id: getPostId(post),
+				coverImageId: getPostCoverImageId(post)
 			},
 			frontmatter: {
-				slug: translateSlug(post.post_name[0]),
-				title: translateTitle(post.title[0]),
-				date: translateDate(post.pubDate[0])
+				slug: getPostSlug(post),
+				title: getPostTitle(post),
+				date: getPostDate(post)
 			},
-			content: translateContent(post.encoded[0])
+			content: getPostContent(post)
 		}));
+}
+
+function getItemsOfType(data, type) {
+	return data.rss.channel[0].item.filter(item => item.post_type[0] === type);
+}
+
+function getPostId(post) {
+	return post.post_id[0];
+}
+
+function getPostCoverImageId(post) {
+	let postmeta = post.postmeta.find(postmeta => postmeta.meta_key[0] === '_thumbnail_id');
+	let result = postmeta ? postmeta.meta_value[0] : undefined;
+	return result;
+}
+
+function getPostSlug(post) {
+	return post.post_name[0];
+}
+
+function getPostTitle(post) {
+	return post.title[0];
+}
+
+function getPostDate(post) {
+	return luxon.DateTime.fromRFC2822(post.pubDate[0], { zone: 'utc' }).toISO();
+}
+
+function getPostContent(post) {
+	return post.encoded[0].trim();
 }
 
 function mergeImagesIntoPosts(images, posts) {
@@ -96,42 +126,8 @@ function mergeImagesIntoPosts(images, posts) {
 	});
 }
 
-function getItemsOfType(data, type) {
-	return data.rss.channel[0].item.filter(item => item.post_type[0] === type);
-}
-
-function getCoverImageId(post) {
-	let postMeta = post.postmeta.find(postmeta => postmeta.meta_key[0] === '_thumbnail_id');
-	let result = postMeta ? postMeta.meta_value[0] : undefined;
-	return result;
-}
-
-function translateSlug(value) {
-	return value;
-}
-
-function translateTitle(value) {
-	return value;
-}
-
-function translateDate(value) {
-	return luxon.DateTime.fromRFC2822(value, { zone: 'utc' }).toISO();
-}
-
-function translateContent(value) {
-	return value.trim();
-}
-
 function getFilenameFromPath(path) {
 	return path.split('/').slice(-1)[0];
-}
-
-function createDir(path) {
-	try {
-		fs.accessSync(path, fs.constants.F_OK);
-	} catch (ex) {
-		fs.mkdirSync(path, { recursive: true });
-	}
 }
 
 function writeFiles(posts) {
@@ -139,16 +135,7 @@ function writeFiles(posts) {
 		const postDir = path.join(outputDir, post.frontmatter.slug);
 		createDir(postDir);
 
-		const content = createMarkdownContent(post);
-		const postPath = path.join(postDir, 'index.md');
-		fs.writeFile(postPath, content, (err) => {
-			if (err) {
-				console.log('Unable to write file.')
-				console.log(err);
-			} else {
-				console.log('Wrote ' + postPath + '.');
-			}
-		});
+		writeMarkdownFile(post, postDir);
 
 		if (post.meta.imageUrls) {
 			post.meta.imageUrls.forEach(imageUrl => {
@@ -174,6 +161,27 @@ function writeFiles(posts) {
 					})
 					.pipe(stream);
 			});
+		}
+	});
+}
+
+function createDir(path) {
+	try {
+		fs.accessSync(path, fs.constants.F_OK);
+	} catch (ex) {
+		fs.mkdirSync(path, { recursive: true });
+	}
+}
+
+function writeMarkdownFile(post, postDir) {
+	const content = createMarkdownContent(post);
+	const postPath = path.join(postDir, 'index.md');
+	fs.writeFile(postPath, content, (err) => {
+		if (err) {
+			console.log('Unable to write file.')
+			console.log(err);
+		} else {
+			console.log('Wrote ' + postPath + '.');
 		}
 	});
 }
