@@ -134,32 +134,13 @@ function writeFiles(posts) {
 	posts.forEach(post => {
 		const postDir = path.join(outputDir, post.frontmatter.slug);
 		createDir(postDir);
-
 		writeMarkdownFile(post, postDir);
 
 		if (post.meta.imageUrls) {
 			post.meta.imageUrls.forEach(imageUrl => {
-				const postImagesDir = path.join(postDir, 'images');
-				createDir(postImagesDir);
-
-				let imagePath = path.join(postImagesDir, getFilenameFromPath(imageUrl));
-				let stream = fs.createWriteStream(imagePath);
-				stream.on('finish', () => {
-					console.log('Saved ' + imagePath + '.');
-				});
-
-				request
-					.get(imageUrl)
-					.on('response', response => {
-						if (response.statusCode !== 200) {
-							console.log('Response status code ' + response.statusCode + ' received for ' + imageUrl + '.');
-						}
-					})
-					.on('error', err => {
-						console.log('Unable to download image.');
-						console.log(err);
-					})
-					.pipe(stream);
+				const imageDir = path.join(postDir, 'images');
+				createDir(imageDir);
+				writeImageFile(imageUrl, imageDir);
 			});
 		}
 	});
@@ -174,7 +155,12 @@ function createDir(path) {
 }
 
 function writeMarkdownFile(post, postDir) {
-	const content = createMarkdownContent(post);
+	const frontmatter = Object.entries(post.frontmatter)
+		.reduce((accumulator, pair) => {
+			return accumulator + pair[0] + ': "' + pair[1] + '"\n'
+		}, '');
+	const content = '---\n' + frontmatter + '---\n\n' + post.content + '\n';
+	
 	const postPath = path.join(postDir, 'index.md');
 	fs.writeFile(postPath, content, (err) => {
 		if (err) {
@@ -186,13 +172,25 @@ function writeMarkdownFile(post, postDir) {
 	});
 }
 
-function createMarkdownContent(post) {
-	const frontmatter = Object.entries(post.frontmatter)
-		.reduce((accumulator, pair) => {
-			return accumulator + pair[0] + ': "' + pair[1] + '"\n'
-		}, '');
-	
-	return '---\n' + frontmatter + '---\n\n' + post.content + '\n';
+function writeImageFile(imageUrl, imageDir) {
+	let imagePath = path.join(imageDir, getFilenameFromPath(imageUrl));
+		let stream = fs.createWriteStream(imagePath);
+		stream.on('finish', () => {
+			console.log('Saved ' + imagePath + '.');
+		});
+
+		request
+			.get(imageUrl)
+			.on('response', response => {
+				if (response.statusCode !== 200) {
+					console.log('Response status code ' + response.statusCode + ' received for ' + imageUrl + '.');
+				}
+			})
+			.on('error', err => {
+				console.log('Unable to download image.');
+				console.log(err);
+			})
+			.pipe(stream);
 }
 
 init();
