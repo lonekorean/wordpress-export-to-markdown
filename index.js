@@ -5,20 +5,21 @@ const minimist = require('minimist');
 const request = require('request');
 const xml2js = require('xml2js');
 
-// defaults
-let inputFile = 'export.xml';
-let outputDir = 'output';
+// incoming command line arguments
+let argv = [];
 
 function init() {
-	const argv = minimist(process.argv.slice(2));
-	if (typeof argv.inputfile === 'string') {
-		inputFile = argv.inputfile;
-	}
-	if (typeof argv.outputdir === 'string') {
-		outputDir = argv.outputdir;
-	}
+	argv = minimist(process.argv.slice(2), {
+		string: ['inputfile', 'outputdir'],
+		boolean: ['subfolders'],
+		default: {
+			inputfile: 'export.xml',
+			outputdir: 'output',
+			subfolders: true
+		}
+	});
 
-	let fileContent = readFile(inputFile);
+	let fileContent = readFile(argv.inputfile);
 	parseFileContent(fileContent);
 }
 
@@ -132,7 +133,7 @@ function getFilenameFromPath(path) {
 
 function writeFiles(posts) {
 	posts.forEach(post => {
-		const postDir = path.join(outputDir, post.frontmatter.slug);
+		const postDir = argv.subfolders ? path.join(argv.outputdir, post.frontmatter.slug) : argv.outputdir;
 		createDir(postDir);
 		writeMarkdownFile(post, postDir);
 
@@ -161,7 +162,7 @@ function writeMarkdownFile(post, postDir) {
 		}, '');
 	const content = '---\n' + frontmatter + '---\n\n' + post.content + '\n';
 	
-	const postPath = path.join(postDir, 'index.md');
+	const postPath = path.join(postDir, argv.subfolders ? 'index.md' : post.frontmatter.slug + '.md');
 	fs.writeFile(postPath, content, (err) => {
 		if (err) {
 			console.log('Unable to write file.')
