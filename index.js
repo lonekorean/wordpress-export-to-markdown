@@ -1,7 +1,7 @@
 const fs = require('fs');
 const luxon = require('luxon');
-const path = require('path');
 const minimist = require('minimist');
+const path = require('path');
 const request = require('request');
 const xml2js = require('xml2js');
 
@@ -10,31 +10,34 @@ let argv = [];
 
 function init() {
 	argv = minimist(process.argv.slice(2), {
-		string: ['inputfile', 'outputdir'],
-		boolean: ['subfolders'],
+		string: ['input', 'output'],
+		boolean: ['yearmonthfolders', 'yearfolders', 'postfolders', 'prefixdate'],
 		default: {
-			inputfile: 'export.xml',
-			outputdir: 'output',
-			subfolders: true
+			input: 'export.xml',
+			output: 'output',
+			yearmonthfolders: false,
+			yearfolders: false,
+			postfolders: true,
+			prefixdate: false
 		}
 	});
 
-	let fileContent = readFile(argv.inputfile);
-	parseFileContent(fileContent);
+	let content = readFile(argv.input);
+	parseFileContent(content);
 }
 
-function readFile(filename) {
+function readFile(path) {
 	try {
-		return fs.readFileSync(filename, 'utf8');
+		return fs.readFileSync(path, 'utf8');
 	} catch (ex) {
 		console.log('Unable to read file.');
 		console.log(ex.message);
 	}
 }
 
-function parseFileContent(fileContent) {
+function parseFileContent(content) {
 	const processors = { tagNameProcessors: [ xml2js.processors.stripPrefix ] };
-	xml2js.parseString(fileContent, processors, (err, data) => {
+	xml2js.parseString(content, processors, (err, data) => {
 		if (err) {
 			console.log('Unable to parse file content.');
 			console.log(err);        
@@ -87,8 +90,8 @@ function getPostId(post) {
 
 function getPostCoverImageId(post) {
 	let postmeta = post.postmeta.find(postmeta => postmeta.meta_key[0] === '_thumbnail_id');
-	let result = postmeta ? postmeta.meta_value[0] : undefined;
-	return result;
+	let id = postmeta ? postmeta.meta_value[0] : undefined;
+	return id;
 }
 
 function getPostSlug(post) {
@@ -121,19 +124,15 @@ function mergeImagesIntoPosts(images, posts) {
 
 			if (image.id === post.meta.coverImageId) {
 				post.meta.coverImageUrl = image.url;
-				post.frontmatter.coverImageFilename = getFilenameFromPath(image.url);
+				post.frontmatter.coverImage = getFilenameFromUrl(image.url);
 			}
 		}
 	});
 }
 
-function getFilenameFromPath(path) {
-	return path.split('/').slice(-1)[0];
-}
-
 function writeFiles(posts) {
 	posts.forEach(post => {
-		const postDir = argv.subfolders ? path.join(argv.outputdir, post.frontmatter.slug) : argv.outputdir;
+		const postDir = getPostDir(post);
 		createDir(postDir);
 		writeMarkdownFile(post, postDir);
 
@@ -147,14 +146,6 @@ function writeFiles(posts) {
 	});
 }
 
-function createDir(path) {
-	try {
-		fs.accessSync(path, fs.constants.F_OK);
-	} catch (ex) {
-		fs.mkdirSync(path, { recursive: true });
-	}
-}
-
 function writeMarkdownFile(post, postDir) {
 	const frontmatter = Object.entries(post.frontmatter)
 		.reduce((accumulator, pair) => {
@@ -162,7 +153,7 @@ function writeMarkdownFile(post, postDir) {
 		}, '');
 	const content = '---\n' + frontmatter + '---\n\n' + post.content + '\n';
 	
-	const postPath = path.join(postDir, argv.subfolders ? 'index.md' : post.frontmatter.slug + '.md');
+	const postPath = path.join(postDir, getPostFilename(post));
 	fs.writeFile(postPath, content, (err) => {
 		if (err) {
 			console.log('Unable to write file.')
@@ -174,7 +165,7 @@ function writeMarkdownFile(post, postDir) {
 }
 
 function writeImageFile(imageUrl, imageDir) {
-	let imagePath = path.join(imageDir, getFilenameFromPath(imageUrl));
+	let imagePath = path.join(imageDir, getFilenameFromUrl(imageUrl));
 		let stream = fs.createWriteStream(imagePath);
 		stream.on('finish', () => {
 			console.log('Saved ' + imagePath + '.');
@@ -192,6 +183,39 @@ function writeImageFile(imageUrl, imageDir) {
 				console.log(err);
 			})
 			.pipe(stream);
+}
+
+function getFilenameFromUrl(url) {
+	return url.split('/').slice(-1)[0];
+}
+
+function createDir(dir) {
+	try {
+		fs.accessSync(dir, fs.constants.F_OK);
+	} catch (ex) {
+		fs.mkdirSync(dir, { recursive: true });
+	}
+}
+
+function getPostDir(post) {
+	let dir = argv.output;
+	let dt = luxon.DateTime.fromISO(post.frontmatter.date);
+
+	if (argv.yearmonthfolders) {
+		dir = path.join(dir, dt.toFormat('yyyy'), dt.toFormat('LL'));
+	} else if (argv.yearfolders) {
+		dir = path.join(dir, dt.toFormat('yyyy'));
+	}
+
+	if (argv.postfolders) {
+		dir = path.join(dir, post.frontmatter.slug);
+	}
+
+	return dir;
+}
+
+function getPostFilename(post) {
+	return argv.postfolders ? 'index.md' : post.frontmatter.slug + '.md';
 }
 
 init();
