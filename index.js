@@ -208,14 +208,27 @@ function getPostDir(post) {
 	}
 
 	if (argv.postfolders) {
-		dir = path.join(dir, post.frontmatter.slug);
+		let folder = post.frontmatter.slug;
+		if (argv.prefixdate) {
+			folder = dt.toFormat('yyyy-LL-dd') + '-' + folder;
+		}
+		dir = path.join(dir, folder);
 	}
 
 	return dir;
 }
 
 function getPostFilename(post) {
-	return argv.postfolders ? 'index.md' : post.frontmatter.slug + '.md';
+	if (argv.postfolders) {
+		return 'index.md';
+	} else {
+		let filename = post.frontmatter.slug + '.md';
+		if (argv.prefixdate) {
+			let dt = luxon.DateTime.fromISO(post.frontmatter.date);
+			filename = dt.toFormat('yyyy-LL-dd') + '-' + filename;
+		}
+		return filename;
+	}
 }
 
 init();
