@@ -3,10 +3,10 @@ const luxon = require('luxon');
 const minimist = require('minimist');
 const path = require('path');
 const request = require('request');
+const turndown = require('turndown');
 const xml2js = require('xml2js');
 
-// incoming command line arguments
-let argv = [];
+let argv, turndownService;
 
 function init() {
 	argv = minimist(process.argv.slice(2), {
@@ -21,6 +21,13 @@ function init() {
 			prefixdate: false
 		}
 	});
+
+	turndownService = new turndown({
+		headingStyle: 'atx',
+		bulletListMarker: '-',
+		
+	});
+	turndownService.keep(['script']);
 
 	let content = readFile(argv.input);
 	parseFileContent(content);
@@ -140,7 +147,7 @@ function writeFiles(posts) {
 			post.meta.imageUrls.forEach(imageUrl => {
 				const imageDir = path.join(postDir, 'images');
 				createDir(imageDir);
-				writeImageFile(imageUrl, imageDir);
+				//writeImageFile(imageUrl, imageDir);
 			});
 		}
 	});
@@ -151,10 +158,15 @@ function writeMarkdownFile(post, postDir) {
 		.reduce((accumulator, pair) => {
 			return accumulator + pair[0] + ': "' + pair[1] + '"\n'
 		}, '');
-	const content = '---\n' + frontmatter + '---\n\n' + post.content + '\n';
+
+	const content = turndownService.turndown(post.content)
+		.replace(/-\s+/g, '- ')
+		.replace(/\s*(<script[^>]*>.*?<\/script>)\s*/g, '\n\n$1\n\n');
+	
+	const data = '---\n' + frontmatter + '---\n\n' + content + '\n';
 	
 	const postPath = path.join(postDir, getPostFilename(post));
-	fs.writeFile(postPath, content, (err) => {
+	fs.writeFile(postPath, data, (err) => {
 		if (err) {
 			console.log('Unable to write file.')
 			console.log(err);
