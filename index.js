@@ -11,21 +11,21 @@ let argv, turndownService;
 function init() {
 	argv = minimist(process.argv.slice(2), {
 		string: ['input', 'output'],
-		boolean: ['yearmonthfolders', 'yearfolders', 'postfolders', 'prefixdate'],
+		boolean: ['yearmonthfolders', 'yearfolders', 'postfolders', 'prefixdate', 'saveimages'],
 		default: {
 			input: 'export.xml',
 			output: 'output',
 			yearmonthfolders: false,
 			yearfolders: false,
 			postfolders: true,
-			prefixdate: false
+			prefixdate: false,
+			saveimages: true
 		}
 	});
 
 	turndownService = new turndown({
 		headingStyle: 'atx',
-		bulletListMarker: '-',
-		
+		bulletListMarker: '-'
 	});
 	turndownService.keep(['script']);
 
@@ -143,11 +143,11 @@ function writeFiles(posts) {
 		createDir(postDir);
 		writeMarkdownFile(post, postDir);
 
-		if (post.meta.imageUrls) {
+		if (argv.saveimages && post.meta.imageUrls) {
 			post.meta.imageUrls.forEach(imageUrl => {
 				const imageDir = path.join(postDir, 'images');
 				createDir(imageDir);
-				//writeImageFile(imageUrl, imageDir);
+				writeImageFile(imageUrl, imageDir);
 			});
 		}
 	});
