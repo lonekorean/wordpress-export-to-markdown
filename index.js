@@ -19,7 +19,8 @@ function init() {
 			'yearfolders',
 			'postfolders',
 			'prefixdate',
-			'saveimages'
+			'saveimages',
+			'addcontentimages'
 		],
 		default: {
 			input: 'export.xml',
@@ -28,7 +29,8 @@ function init() {
 			yearfolders: false,
 			postfolders: true,
 			prefixdate: false,
-			saveimages: true
+			saveimages: true,
+			addcontentimages: false
 		}
 	});
 
@@ -65,14 +67,50 @@ function processData(data) {
 }
 
 function collectImages(data) {
-	return getItemsOfType(data, 'attachment')
+	// start by collecting all attachment images
+	let images = getItemsOfType(data, 'attachment')
 		// filter to certain image file types
 		.filter(attachment => (/\.(gif|jpg|png)$/i).test(attachment.attachment_url[0]))
 		.map(attachment => ({
 			id: attachment.post_id[0],
 			postId: attachment.post_parent[0],
 			url: attachment.attachment_url[0]
-		}));	
+		}));
+
+	// optionally add images scraped from <img> tags in post content
+	if (argv.addcontentimages) {
+		addContentImages(data, images);
+	}
+
+	return images;
+}
+
+function addContentImages(data, images) {
+	// this regex isn't airtight, but seems to work well enough
+	let regex = (/src="(.+?\.(gif|jpg|png))"/gi);
+	getItemsOfType(data, 'post').forEach(post => {
+		let postId = post.post_id[0];
+		let postContent = post.encoded[0];
+		let postLink = post.link[0];
+
+		// reset lastIndex since we're reusing the same regex object
+		regex.lastIndex = 0;
+		let match;
+		while ((match = regex.exec(postContent)) !== null) {
+			// base the matched image URL relative to the post URL
+			let url = new URL(match[1], postLink).href;
+
+			// add image if it hasn't already been added for this post
+			let exists = images.some(image => image.postId === postId && image.url === url);
+			if (!exists) {
+				images.push({
+					id: -1,
+					postId: postId, 
+					url: url
+				});
+			}
+		}
+	});	
 }
 
 function collectPosts(data) {
