@@ -6,12 +6,21 @@ const request = require('request');
 const turndown = require('turndown');
 const xml2js = require('xml2js');
 
-let argv, turndownService;
+let argv;
 
 function init() {
 	argv = minimist(process.argv.slice(2), {
-		string: ['input', 'output'],
-		boolean: ['yearmonthfolders', 'yearfolders', 'postfolders', 'prefixdate', 'saveimages'],
+		string: [
+			'input',
+			'output'
+		],
+		boolean: [
+			'yearmonthfolders',
+			'yearfolders',
+			'postfolders',
+			'prefixdate',
+			'saveimages'
+		],
 		default: {
 			input: 'export.xml',
 			output: 'output',
@@ -22,12 +31,6 @@ function init() {
 			saveimages: true
 		}
 	});
-
-	turndownService = new turndown({
-		headingStyle: 'atx',
-		bulletListMarker: '-'
-	});
-	turndownService.keep(['script']);
 
 	let content = readFile(argv.input);
 	parseFileContent(content);
@@ -63,6 +66,7 @@ function processData(data) {
 
 function collectImages(data) {
 	return getItemsOfType(data, 'attachment')
+		// filter to certain image file types
 		.filter(attachment => (/\.(gif|jpg|png)$/i).test(attachment.attachment_url[0]))
 		.map(attachment => ({
 			id: attachment.post_id[0],
@@ -72,8 +76,12 @@ function collectImages(data) {
 }
 
 function collectPosts(data) {
+	// this is given to getPostContent() to do the markdown conversion
+	turndownService = initTurndownService();
+
 	return getItemsOfType(data, 'post')
 		.map(post => ({
+			// meta data isn't output, but is used to help with other things
 			meta: {
 				id: getPostId(post),
 				coverImageId: getPostCoverImageId(post)
@@ -83,8 +91,36 @@ function collectPosts(data) {
 				title: getPostTitle(post),
 				date: getPostDate(post)
 			},
-			content: getPostContent(post)
+			content: getPostContent(post, turndownService)
 		}));
+}
+
+function initTurndownService() {
+	let turndownService = new turndown({
+		headingStyle: 'atx',
+		bulletListMarker: '-'
+	});
+
+	// preserve embedded scripts (for gists, codepens, etc.)
+	turndownService.addRule('script', {
+		filter: 'script',
+		replacement: function(content, node) {
+			let html = node.outerHTML.replace('async=""', 'async')
+			return '\n\n' + html + '\n\n';
+		}
+	});
+
+	// preserve embedded codepens
+	turndownService.addRule('p', {
+		filter: function(node) {
+			return node.nodeName === 'P' && node.attributes['data-pen-title'];
+		},
+		replacement: function(content, node) {
+			return '\n\n' + node.outerHTML + '\n\n';
+		}
+	});
+
+	return turndownService;
 }
 
 function getItemsOfType(data, type) {
@@ -113,11 +149,16 @@ function getPostDate(post) {
 	return luxon.DateTime.fromRFC2822(post.pubDate[0], { zone: 'utc' }).toISO();
 }
 
-function getPostContent(post) {
-	return post.encoded[0].trim();
+function getPostContent(post, turndownService) {
+	let encoded = post.encoded[0].trim();
+	content = turndownService.turndown(encoded)
+		.replace(/-\s+/g, '- '); // clean up extra spaces
+
+	return content;
 }
 
 function mergeImagesIntoPosts(images, posts) {
+	// create lookup table for quicker traversal
 	let postsLookup = posts.reduce((lookup, post) => {
 		lookup[post.meta.id] = post;
 		return lookup;
@@ -126,11 +167,12 @@ function mergeImagesIntoPosts(images, posts) {
 	images.forEach(image => {
 		let post = postsLookup[image.postId];
 		if (post) {
+			// save full image URLs for downloading later
 			post.meta.imageUrls = post.meta.imageUrls || [];
 			post.meta.imageUrls.push(image.url);
 
 			if (image.id === post.meta.coverImageId) {
-				post.meta.coverImageUrl = image.url;
+				// add cover image to frontmatter for output
 				post.frontmatter.coverImage = getFilenameFromUrl(image.url);
 			}
 		}
@@ -158,12 +200,7 @@ function writeMarkdownFile(post, postDir) {
 		.reduce((accumulator, pair) => {
 			return accumulator + pair[0] + ': "' + pair[1] + '"\n'
 		}, '');
-
-	const content = turndownService.turndown(post.content)
-		.replace(/-\s+/g, '- ')
-		.replace(/\s*(<script[^>]*>.*?<\/script>)\s*/g, '\n\n$1\n\n');
-	
-	const data = '---\n' + frontmatter + '---\n\n' + content + '\n';
+	const data = '---\n' + frontmatter + '---\n\n' + post.content + '\n';
 	
 	const postPath = path.join(postDir, getPostFilename(post));
 	fs.writeFile(postPath, data, (err) => {
@@ -232,6 +269,7 @@ function getPostDir(post) {
 
 function getPostFilename(post) {
 	if (argv.postfolders) {
+		// the containing folder name will be unique, just use index.md here
 		return 'index.md';
 	} else {
 		let filename = post.frontmatter.slug + '.md';
@@ -243,4 +281,5 @@ function getPostFilename(post) {
 	}
 }
 
+// it's go time!
 init();
