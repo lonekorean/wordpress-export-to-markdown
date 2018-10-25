@@ -6,6 +6,7 @@ const request = require('request');
 const turndown = require('turndown');
 const xml2js = require('xml2js');
 
+// global so various functions can access arguments
 let argv;
 
 function init() {
@@ -88,6 +89,8 @@ function collectImages(data) {
 function addContentImages(data, images) {
 	// this regex isn't airtight, but seems to work well enough
 	let regex = (/src="(.+?\.(gif|jpg|png))"/gi);
+	let match;
+
 	getItemsOfType(data, 'post').forEach(post => {
 		let postId = post.post_id[0];
 		let postContent = post.encoded[0];
@@ -95,7 +98,6 @@ function addContentImages(data, images) {
 
 		// reset lastIndex since we're reusing the same regex object
 		regex.lastIndex = 0;
-		let match;
 		while ((match = regex.exec(postContent)) !== null) {
 			// base the matched image URL relative to the post URL
 			let url = new URL(match[1], postLink).href;
@@ -105,21 +107,22 @@ function addContentImages(data, images) {
 			if (!exists) {
 				images.push({
 					id: -1,
-					postId: postId, 
+					postId: postId,
 					url: url
 				});
+				console.log('Scraped ' + url + '.');
 			}
 		}
 	});	
 }
 
 function collectPosts(data) {
-	// this is given to getPostContent() to do the markdown conversion
+	// this is passed into getPostContent() for the markdown conversion
 	turndownService = initTurndownService();
 
 	return getItemsOfType(data, 'post')
 		.map(post => ({
-			// meta data isn't output, but is used to help with other things
+			// meta data isn't written to file, but is used to help with other things
 			meta: {
 				id: getPostId(post),
 				coverImageId: getPostCoverImageId(post)
@@ -142,7 +145,7 @@ function initTurndownService() {
 	// preserve embedded scripts (for gists, codepens, etc.)
 	turndownService.addRule('script', {
 		filter: 'script',
-		replacement: function(content, node) {
+		replacement: (content, node) => {
 			let html = node.outerHTML.replace('async=""', 'async')
 			return '\n\n' + html + '\n\n';
 		}
@@ -150,12 +153,8 @@ function initTurndownService() {
 
 	// preserve embedded codepens
 	turndownService.addRule('p', {
-		filter: function(node) {
-			return node.nodeName === 'P' && node.attributes['data-pen-title'];
-		},
-		replacement: function(content, node) {
-			return '\n\n' + node.outerHTML + '\n\n';
-		}
+		filter: node => node.nodeName === 'P' && node.attributes['data-pen-title'],
+		replacement: (content, node) => '\n\n' + node.outerHTML + '\n\n'
 	});
 
 	return turndownService;
@@ -210,7 +209,7 @@ function mergeImagesIntoPosts(images, posts) {
 			post.meta.imageUrls.push(image.url);
 
 			if (image.id === post.meta.coverImageId) {
-				// add cover image to frontmatter for output
+				// save cover image filename to frontmatter
 				post.frontmatter.coverImage = getFilenameFromUrl(image.url);
 			}
 		}

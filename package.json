@@ -2,7 +2,7 @@
 	"name": "wp-to-gatsby-md",
 	"version": "1.0.0",
 	"private": true,
-	"description": "Converts a WordPress export XML file into Markdown files suitable for a GatsbyJS site.",
+	"description": "Converts a WordPress export XML file into Markdown files.",
 	"main": "index.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1"
