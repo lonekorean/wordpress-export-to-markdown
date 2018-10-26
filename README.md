@@ -2,16 +2,14 @@
 
 Converts a WordPress export XML file into Markdown files.
 
-Saves each post as a separate file with appropriate frontmatter. Also saves attached images and (optionally) any additional images found in post body content. Posts and images can be saved into a variety of folder structures.
-
-## Why?
-
 This is useful if you want to migrate from WordPress to a static site generator such as [Gatsby](https://www.gatsbyjs.org/) or [Hugo](https://gohugo.io/), among others.
+
+Saves each post as a separate file with appropriate frontmatter. Also saves attached images and (optionally) any additional images found in post body content. Posts and images can be saved into a variety of folder structures.
 
 ## Quick Start
 
 You just need two things to get started:
-- Node v10.12 or later
+- [Node.js](https://nodejs.org/) v10.12 or later
 - Your WordPress export file
   - Log into your WordPress admin site and go to Tools &gt; Export &gt; Download Export File
   - Save the file as `export.xml` inside this package's directory
