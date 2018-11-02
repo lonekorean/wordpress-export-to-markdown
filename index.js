@@ -125,10 +125,10 @@ function collectPosts(data) {
 			// meta data isn't written to file, but is used to help with other things
 			meta: {
 				id: getPostId(post),
+				slug: getPostSlug(post),
 				coverImageId: getPostCoverImageId(post)
 			},
 			frontmatter: {
-				slug: getPostSlug(post),
 				title: getPostTitle(post),
 				date: getPostDate(post)
 			},
@@ -294,7 +294,7 @@ function getPostDir(post) {
 	}
 
 	if (argv.postfolders) {
-		let folder = post.frontmatter.slug;
+		let folder = post.meta.slug;
 		if (argv.prefixdate) {
 			folder = dt.toFormat('yyyy-LL-dd') + '-' + folder;
 		}
@@ -309,7 +309,7 @@ function getPostFilename(post) {
 		// the containing folder name will be unique, just use index.md here
 		return 'index.md';
 	} else {
-		let filename = post.frontmatter.slug + '.md';
+		let filename = post.meta.slug + '.md';
 		if (argv.prefixdate) {
 			let dt = luxon.DateTime.fromISO(post.frontmatter.date);
 			filename = dt.toFormat('yyyy-LL-dd') + '-' + filename;
