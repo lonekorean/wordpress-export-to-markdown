@@ -187,8 +187,15 @@ function getPostDate(post) {
 }
 
 function getPostContent(post, turndownService) {
-	let encoded = post.encoded[0].trim();
-	content = turndownService.turndown(encoded)
+	let content = post.encoded[0].trim();
+
+	if (argv.addcontentimages) {
+		// writeImageFile() will save all content images to a relative /images folder
+		// so update references in post content to match
+		content = content.replace(/src=".*?([^\/"]+\.(gif|jpg|png))"/gi, 'src="images/$1"');
+	}
+
+	content = turndownService.turndown(content)
 		.replace(/-\s+/g, '- '); // clean up extra spaces
 
 	return content;
