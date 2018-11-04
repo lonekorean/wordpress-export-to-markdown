@@ -130,4 +130,4 @@ Whether or not to download and save images attached to posts. Generally speaking
 - Type: Boolean
 - Default: `false`
 
-Whether or not to also include images scraped from &lt;img&gt; tags in post body content. These images are downloaded and saved along with other images as dictated by `--saveimages`.
+Whether or not to also include images scraped from &lt;img&gt; tags in post body content. These images are downloaded and saved along with other images as dictated by `--saveimages`. The &lt;img&gt; tags are updated to point to where the images are saved.
