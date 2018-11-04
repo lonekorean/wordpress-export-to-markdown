@@ -14,7 +14,7 @@ You just need two things to get started:
   - Log into your WordPress admin site and go to Tools &gt; Export &gt; Download Export File
   - Save the file as `export.xml` inside this package's directory
 
-Now open your terminal to this package's directory and run `node index.js`.
+Now open your terminal to this package's directory. Run `npm install`. Then run `node index.js`.
 
 This will use default options to create an `/output` folder filled with your posts and images.
 
