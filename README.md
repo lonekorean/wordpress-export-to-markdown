@@ -23,7 +23,7 @@ This will use default options to create an `/output` folder filled with your pos
 You can use command line arguments to control options for how the script runs. For example, this will give you [Jekyll](https://jekyllrb.com/)-style output in terms of folder structure and filenames:
 
 ```
-node index.js --postfolders false --prefixdate true
+node index.js --postfolders=false --prefixdate=true
 ```
 
 ### --input
