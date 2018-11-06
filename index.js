@@ -139,14 +139,15 @@ function collectPosts(data) {
 function initTurndownService() {
 	let turndownService = new turndown({
 		headingStyle: 'atx',
-		bulletListMarker: '-'
+		bulletListMarker: '-',
+		codeBlockStyle: 'fenced'
 	});
 
 	// preserve embedded scripts (for gists, codepens, etc.)
 	turndownService.addRule('script', {
 		filter: 'script',
 		replacement: (content, node) => {
-			let html = node.outerHTML.replace('async=""', 'async')
+			let html = node.outerHTML.replace('async=""', 'async');
 			return '\n\n' + html + '\n\n';
 		}
 	});
