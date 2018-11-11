@@ -87,8 +87,7 @@ function collectImages(data) {
 }
 
 function addContentImages(data, images) {
-	// this regex isn't airtight, but seems to work well enough
-	let regex = (/src="(.+?\.(gif|jpg|png))"/gi);
+	let regex = (/<img[^>]*src="(.+?\.(?:gif|jpg|png))"[^>]*>/gi);
 	let match;
 
 	getItemsOfType(data, 'post').forEach(post => {
@@ -193,7 +192,7 @@ function getPostContent(post, turndownService) {
 	if (argv.addcontentimages) {
 		// writeImageFile() will save all content images to a relative /images folder
 		// so update references in post content to match
-		content = content.replace(/src=".*?([^\/"]+\.(gif|jpg|png))"/gi, 'src="images/$1"');
+		content = content.replace(/<img([^>]*)src=".*?([^\/"]+\.(?:gif|jpg|png))"([^>]*)>/gi, '<img$1src="images/$2"$3>');
 	}
 
 	content = turndownService.turndown(content)
@@ -225,6 +224,7 @@ function mergeImagesIntoPosts(images, posts) {
 }
 
 function writeFiles(posts) {
+	let delay = 0;
 	posts.forEach(post => {
 		const postDir = getPostDir(post);
 		createDir(postDir);
@@ -234,7 +234,8 @@ function writeFiles(posts) {
 			post.meta.imageUrls.forEach(imageUrl => {
 				const imageDir = path.join(postDir, 'images');
 				createDir(imageDir);
-				writeImageFile(imageUrl, imageDir);
+				writeImageFile(imageUrl, imageDir, delay);
+				delay += 25;
 			});
 		}
 	});
@@ -258,13 +259,15 @@ function writeMarkdownFile(post, postDir) {
 	});
 }
 
-function writeImageFile(imageUrl, imageDir) {
+function writeImageFile(imageUrl, imageDir, delay) {
 	let imagePath = path.join(imageDir, getFilenameFromUrl(imageUrl));
-		let stream = fs.createWriteStream(imagePath);
-		stream.on('finish', () => {
-			console.log('Saved ' + imagePath + '.');
-		});
+	let stream = fs.createWriteStream(imagePath);
+	stream.on('finish', () => {
+		console.log('Saved ' + imagePath + '.');
+	});
 
+	// stagger image requests so we don't piss off hosts
+	setTimeout(() => {
 		request
 			.get(imageUrl)
 			.on('response', response => {
@@ -277,6 +280,7 @@ function writeImageFile(imageUrl, imageDir) {
 				console.log(err);
 			})
 			.pipe(stream);
+	}, delay);
 }
 
 function getFilenameFromUrl(url) {
