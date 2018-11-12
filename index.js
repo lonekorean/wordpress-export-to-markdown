@@ -157,6 +157,21 @@ function initTurndownService() {
 		replacement: (content, node) => '\n\n' + node.outerHTML + '\n\n'
 	});
 
+	// preserve iframes (common for embedded audio/video)
+	// other solutions via blankRule() and keep() did not work for me
+	// that's why getPostContent() adds a "." to make <iframe> non-empty
+	// allowing this rule to take effect (and then clean up the ".")
+	turndownService.addRule('iframe', {
+		filter: 'iframe',
+		replacement: (content, node) => {
+			let html = node.outerHTML
+				.replace('allowfullscreen=""', 'allowfullscreen')
+				.replace('.</iframe>', '</iframe>');
+			return '\n\n' + html + '\n\n';
+		}
+	});
+
+	
 	return turndownService;
 }
 
@@ -189,10 +204,13 @@ function getPostDate(post) {
 function getPostContent(post, turndownService) {
 	let content = post.encoded[0].trim();
 
+	// this is for a workaround/hack in initTurndownService()
+	content = content.replace(/<\/iframe>/gi, '.$&');
+
 	if (argv.addcontentimages) {
 		// writeImageFile() will save all content images to a relative /images folder
 		// so update references in post content to match
-		content = content.replace(/<img([^>]*)src=".*?([^\/"]+\.(?:gif|jpg|png))"([^>]*)>/gi, '<img$1src="images/$2"$3>');
+		content = content.replace(/(<img[^>]*src=").*?([^\/"]+\.(?:gif|jpg|png))("[^>]*>)/gi, '$1images/$2$3');
 	}
 
 	content = turndownService.turndown(content)
