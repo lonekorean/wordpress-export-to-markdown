@@ -158,15 +158,11 @@ function initTurndownService() {
 	});
 
 	// preserve iframes (common for embedded audio/video)
-	// other solutions via blankRule() and keep() did not work for me
-	// that's why getPostContent() adds a "." to make <iframe> non-empty
-	// allowing this rule to take effect (and then clean up the ".")
 	turndownService.addRule('iframe', {
 		filter: 'iframe',
 		replacement: (content, node) => {
 			let html = node.outerHTML
-				.replace('allowfullscreen=""', 'allowfullscreen')
-				.replace('.</iframe>', '</iframe>');
+				.replace('allowfullscreen=""', 'allowfullscreen');
 			return '\n\n' + html + '\n\n';
 		}
 	});
@@ -204,17 +200,22 @@ function getPostDate(post) {
 function getPostContent(post, turndownService) {
 	let content = post.encoded[0].trim();
 
-	// this is for a workaround/hack in initTurndownService()
-	content = content.replace(/<\/iframe>/gi, '.$&');
-
 	if (argv.addcontentimages) {
 		// writeImageFile() will save all content images to a relative /images folder
 		// so update references in post content to match
 		content = content.replace(/(<img[^>]*src=").*?([^\/"]+\.(?:gif|jpg|png))("[^>]*>)/gi, '$1images/$2$3');
 	}
 
+	// this is a hack to make <iframe> nodes non-empty by inserting a "." which
+	// allows the iframe rule declared in initTurndownService() to take effect
+	// (using turndown's blankRule() and keep() solution did not work for me)
+	content = content.replace(/(<\/iframe>)/gi, '.$1');
+
 	content = turndownService.turndown(content)
 		.replace(/-\s+/g, '- '); // clean up extra spaces
+
+	// clean up the "." from the hack above
+	content = content.replace(/\.(<\/iframe>)/gi, '$1');
 
 	return content;
 }
