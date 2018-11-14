@@ -142,19 +142,32 @@ function initTurndownService() {
 		codeBlockStyle: 'fenced'
 	});
 
+	// preserve embedded codepens
+	turndownService.addRule('codepen', {
+		filter: node => {
+			// codepen embed snippets have changed over the years
+			// but this series of checks should find the commonalities
+			return (
+				['P', 'DIV'].includes(node.nodeName) &&
+				node.attributes['data-slug-hash'] && 
+				node.getAttribute('class') === 'codepen'
+			);
+		},
+		replacement: (content, node) => '\n\n' + node.outerHTML
+	});
+	
 	// preserve embedded scripts (for gists, codepens, etc.)
 	turndownService.addRule('script', {
 		filter: 'script',
 		replacement: (content, node) => {
+			let before = '\n\n';
+			if (node.getAttribute('src').endsWith('codepen.io/assets/embed/ei.js')) {
+				// keep codepen <script> tags snug with the codepen <p> tags before them
+				before = '\n';
+			}
 			let html = node.outerHTML.replace('async=""', 'async');
-			return '\n\n' + html + '\n\n';
+			return before + html + '\n\n';
 		}
-	});
-
-	// preserve embedded codepens
-	turndownService.addRule('p', {
-		filter: node => node.nodeName === 'P' && node.attributes['data-pen-title'],
-		replacement: (content, node) => '\n\n' + node.outerHTML + '\n\n'
 	});
 
 	// preserve iframes (common for embedded audio/video)
