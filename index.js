@@ -142,6 +142,12 @@ function initTurndownService() {
 		codeBlockStyle: 'fenced'
 	});
 
+	// preserve embedded tweets
+	turndownService.addRule('tweet', {
+		filter: node => node.nodeName === 'BLOCKQUOTE' && node.getAttribute('class') === 'twitter-tweet',
+		replacement: (content, node) => '\n\n' + node.outerHTML
+	});
+
 	// preserve embedded codepens
 	turndownService.addRule('codepen', {
 		filter: node => {
@@ -155,14 +161,15 @@ function initTurndownService() {
 		},
 		replacement: (content, node) => '\n\n' + node.outerHTML
 	});
-	
-	// preserve embedded scripts (for gists, codepens, etc.)
+		
+	// preserve embedded scripts (for tweets, codepens, gists, etc.)
 	turndownService.addRule('script', {
 		filter: 'script',
 		replacement: (content, node) => {
 			let before = '\n\n';
-			if (node.getAttribute('src').endsWith('codepen.io/assets/embed/ei.js')) {
-				// keep codepen <script> tags snug with the codepen <p> tags before them
+			let src = node.getAttribute('src');
+			if (src.endsWith('twitter.com/widgets.js') || src.endsWith('codepen.io/assets/embed/ei.js')) {
+				// keep twitter and codepen <script> tags snug with the element above them
 				before = '\n';
 			}
 			let html = node.outerHTML.replace('async=""', 'async');
