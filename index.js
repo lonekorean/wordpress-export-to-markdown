@@ -168,7 +168,7 @@ function initTurndownService() {
 		replacement: (content, node) => {
 			let before = '\n\n';
 			let src = node.getAttribute('src');
-			if (src.endsWith('twitter.com/widgets.js') || src.endsWith('codepen.io/assets/embed/ei.js')) {
+			if (node.previousSibling && node.previousSibling.nodeName !== '#text') {
 				// keep twitter and codepen <script> tags snug with the element above them
 				before = '\n';
 			}
