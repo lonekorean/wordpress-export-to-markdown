@@ -239,7 +239,7 @@ function getPostContent(post, turndownService) {
 	content = turndownService.turndown(content);
 
 	// clean up extra spaces in list items
-	content = content.replace(/- +/g, '- ');
+	content = content.replace(/(-|\d+\.) +/g, '$1 ');
 
 	// clean up the "." from the iframe hack above
 	content = content.replace(/\.(<\/iframe>)/gi, '$1');
