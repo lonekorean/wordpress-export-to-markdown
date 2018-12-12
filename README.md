@@ -10,13 +10,11 @@ Saves each post as a separate file with appropriate frontmatter. Also saves atta
 
 You'll need:
 - [Node.js](https://nodejs.org/) v10.12 or later
-- Your WordPress export file
-  - Log into your WordPress admin site and go to Tools &gt; Export &gt; Download Export File
-  - Save the file as `export.xml` inside this package's directory
+- Your [WordPress export file](https://codex.wordpress.org/Tools_Export_Screen)
 
 Open your terminal to this package's directory. Run `npm install` and then `node index.js`.
 
-This will use default options to create an `/output` folder filled with your posts and images. Done!
+This will create an `/output` folder filled with your posts and images.
 
 ## Customization
 
