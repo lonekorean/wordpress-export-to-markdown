@@ -1,5 +1,5 @@
 {
-	"name": "wp-to-gatsby-md",
+	"name": "wordpress-export-to-markdown",
 	"version": "1.0.0",
 	"description": "Converts a WordPress export XML file into Markdown files.",
 	"main": "index.js",
