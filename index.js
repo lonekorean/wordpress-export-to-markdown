@@ -128,11 +128,17 @@ function collectPosts(data) {
 				coverImageId: getPostCoverImageId(post)
 			},
 			frontmatter: {
-				title: getPostTitle(post),
-				date: getPostDate(post)
+				title: enquote(getPostTitle(post)),
+				date: enquote(getPostDate(post)),
+				tags: getTags(post),
+				category: getCategory(post)
 			},
 			content: getPostContent(post, turndownService)
 		}));
+}
+
+function enquote(str) {
+	return '"' + str + '"';
 }
 
 function initTurndownService() {
@@ -216,6 +222,16 @@ function getPostDate(post) {
 	return luxon.DateTime.fromRFC2822(post.pubDate[0], { zone: 'utc' }).toISODate();
 }
 
+function getTags(post) {
+	let tags = post.category.filter(cat => ['post_tag'].includes(cat.$.domain)).map(tag => tag.$.nicename);
+	return '[' + tags.join(", ") + ']';
+}
+
+function getCategory(post) {
+	let categories = post.category.filter(cat => ['category'].includes(cat.$.domain)).map(tag => tag.$.nicename);
+	return '[' + tagStr + ']';
+}
+
 function getPostContent(post, turndownService) {
 	let content = post.encoded[0].trim();
 
@@ -290,7 +306,7 @@ function writeFiles(posts) {
 function writeMarkdownFile(post, postDir) {
 	const frontmatter = Object.entries(post.frontmatter)
 		.reduce((accumulator, pair) => {
-			return accumulator + pair[0] + ': "' + pair[1] + '"\n'
+			return accumulator + pair[0] + ': ' + pair[1] + '\n'
 		}, '');
 	const data = '---\n' + frontmatter + '---\n\n' + post.content + '\n';
 	
