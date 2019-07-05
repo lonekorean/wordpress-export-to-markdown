@@ -55,7 +55,7 @@ function parseFileContent(content) {
 	xml2js.parseString(content, processors, (err, data) => {
 		if (err) {
 			console.log('Unable to parse file content.');
-			console.log(err);        
+			console.log(err);
 		} else {
 			processData(data);
 		}
@@ -114,7 +114,7 @@ function addContentImages(data, images) {
 				console.log('Scraped ' + url + '.');
 			}
 		}
-	});	
+	});
 }
 
 function collectPosts(data) {
@@ -163,13 +163,13 @@ function initTurndownService() {
 			// but this series of checks should find the commonalities
 			return (
 				['P', 'DIV'].includes(node.nodeName) &&
-				node.attributes['data-slug-hash'] && 
+				node.attributes['data-slug-hash'] &&
 				node.getAttribute('class') === 'codepen'
 			);
 		},
 		replacement: (content, node) => '\n\n' + node.outerHTML
 	});
-		
+
 	// preserve embedded scripts (for tweets, codepens, gists, etc.)
 	turndownService.addRule('script', {
 		filter: 'script',
@@ -323,7 +323,7 @@ function writeMarkdownFile(post, postDir) {
 			return accumulator + pair[0] + ': ' + pair[1] + '\n'
 		}, '');
 	const data = '---\n' + frontmatter + '---\n\n' + post.content + '\n';
-	
+
 	const postPath = path.join(postDir, getPostFilename(post));
 	fs.writeFile(postPath, data, (err) => {
 		if (err) {
