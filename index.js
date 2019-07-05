@@ -223,13 +223,18 @@ function getPostDate(post) {
 }
 
 function getTags(post) {
-	let tags = post.category.filter(cat => ['post_tag'].includes(cat.$.domain)).map(tag => tag.$.nicename);
+	if (typeof post.category === 'undefined' || post.category === null) {
+		return '[]';
+	}
 	return '[' + tags.join(", ") + ']';
 }
 
 function getCategory(post) {
+	if (typeof post.category === 'undefined' || post.category === null) {
+		return '[]';
+	}
 	let categories = post.category.filter(cat => ['category'].includes(cat.$.domain)).map(tag => tag.$.nicename);
-	return '[' + tagStr + ']';
+	return '[' + categories.join(", ") + ']';
 }
 
 function getPostContent(post, turndownService) {
