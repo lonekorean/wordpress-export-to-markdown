@@ -21,7 +21,8 @@ function init() {
 			'postfolders',
 			'prefixdate',
 			'saveimages',
-			'addcontentimages'
+			'addcontentimages',
+			'categoriestotags'
 		],
 		default: {
 			input: 'export.xml',
@@ -31,7 +32,8 @@ function init() {
 			postfolders: true,
 			prefixdate: false,
 			saveimages: true,
-			addcontentimages: false
+			addcontentimages: false,
+			categoriestotags: false
 		}
 	});
 
@@ -226,10 +228,17 @@ function getTags(post) {
 	if (typeof post.category === 'undefined' || post.category === null) {
 		return '[]';
 	}
+	let tagDomains = argv.categoriestotags
+		? ['post_tag']
+		: ['post_tag', 'category'];
+	let tags = post.category.filter(cat => tagDomains.includes(cat.$.domain)).map(tag => tag.$.nicename);
 	return '[' + tags.join(", ") + ']';
 }
 
 function getCategory(post) {
+	if (argv.categoriestotags) {
+		return '[]';
+	}
 	if (typeof post.category === 'undefined' || post.category === null) {
 		return '[]';
 	}
