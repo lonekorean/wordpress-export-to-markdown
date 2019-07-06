@@ -199,6 +199,7 @@ function getPostId(post) {
 }
 
 function getPostCoverImageId(post) {
+	if (post.postmeta === undefined) return;
 	let postmeta = post.postmeta.find(postmeta => postmeta.meta_key[0] === '_thumbnail_id');
 	let id = postmeta ? postmeta.meta_value[0] : undefined;
 	return id;
