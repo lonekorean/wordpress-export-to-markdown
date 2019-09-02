@@ -278,7 +278,8 @@ function writeFiles(posts) {
 		writeMarkdownFile(post, postDir);
 
 		if (argv.saveimages && post.meta.imageUrls) {
-			post.meta.imageUrls.forEach(imageUrl => {
+			post.meta.imageUrls.forEach(imgUrl => {
+ 				const imageUrl = encodeURI(imgUrl);
 				const imageDir = path.join(postDir, 'images');
 				createDir(imageDir);
 				writeImageFile(imageUrl, imageDir, delay);
@@ -331,7 +332,7 @@ function writeImageFile(imageUrl, imageDir, delay) {
 }
 
 function getFilenameFromUrl(url) {
-	return url.split('/').slice(-1)[0];
+	return decodeURI(url.split('/').slice(-1)[0]);
 }
 
 function createDir(dir) {
@@ -353,7 +354,7 @@ function getPostDir(post) {
 	}
 
 	if (argv.postfolders) {
-		let folder = post.meta.slug;
+		let folder = decodeURI(post.meta.slug);
 		if (argv.prefixdate) {
 			folder = dt.toFormat('yyyy-LL-dd') + '-' + folder;
 		}
