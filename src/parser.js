@@ -13,7 +13,8 @@ async function parseFilePromise(config) {
 		tagNameProcessors: [xml2js.processors.stripPrefix]
 	});
 
-	const posts = collectPosts(data, config);
+	const authors = collectAuthors(data);
+	const posts = collectPosts(data, config, authors);
 
 	const images = [];
 	if (config.saveAttachedImages) {
@@ -32,7 +33,7 @@ function getItemsOfType(data, type) {
 	return data.rss.channel[0].item.filter(item => item.post_type[0] === type);
 }
 
-function collectPosts(data, config) {
+function collectPosts(data, config, authors) {
 	// this is passed into getPostContent() for the markdown conversion
 	const turndownService = translator.initTurndownService();
 
@@ -47,6 +48,7 @@ function collectPosts(data, config) {
 				imageUrls: []
 			},
 			frontmatter: {
+				author: getAuthorName(authors, getPostAuthor(post)),
 				title: getPostTitle(post),
 				date: getPostDate(post)
 			},
@@ -55,6 +57,21 @@ function collectPosts(data, config) {
 
 	console.log(posts.length + ' posts found.');
 	return posts;
+}
+
+function collectAuthors(data) {
+	return data.rss.channel[0].author.map(item => ({
+		id: item.author_login[0],
+		name: item.author_display_name[0]
+	}));
+}
+
+function getAuthorName(authors, id) {
+	return authors.find(item => item.id == id).name;
+}
+
+function getPostAuthor(post) {
+	return post.creator[0];
 }
 
 function getPostId(post) {
@@ -135,7 +152,7 @@ function mergeImagesIntoPosts(images, posts) {
 				// save cover image filename to frontmatter
 				post.frontmatter.coverImage = shared.getFilenameFromUrl(image.url);
 			}
-			
+
 			// save (unique) full image URLs for downloading later
 			if (!post.meta.imageUrls.includes(image.url)) {
 				post.meta.imageUrls.push(image.url);
