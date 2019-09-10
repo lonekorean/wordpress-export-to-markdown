@@ -62,7 +62,8 @@ function parseFileContent(content) {
 
 function processData(data) {
 	let images = collectImages(data);
-	let posts = collectPosts(data);
+	let authors = collectAuthors(data);
+	let posts = collectPosts(data, authors);
 	mergeImagesIntoPosts(images, posts);
 	writeFiles(posts);
 }
@@ -115,7 +116,7 @@ function addContentImages(data, images) {
 	});	
 }
 
-function collectPosts(data) {
+function collectPosts(data, authors) {
 	// this is passed into getPostContent() for the markdown conversion
 	turndownService = initTurndownService();
 
@@ -128,12 +129,21 @@ function collectPosts(data) {
 				coverImageId: getPostCoverImageId(post)
 			},
 			frontmatter: {
+				author: getAuthorName(authors, getPostAuthor(post)),
 				title: getPostTitle(post),
 				date: getPostDate(post)
 			},
 			content: getPostContent(post, turndownService)
 		}));
 }
+
+function collectAuthors(data) {
+	return data.rss.channel[0].author.map(item => ({
+		id: item.author_login[0],
+		name: item.author_display_name[0]
+	}));
+}
+
 
 function initTurndownService() {
 	let turndownService = new turndown({
@@ -194,6 +204,10 @@ function getItemsOfType(data, type) {
 	return data.rss.channel[0].item.filter(item => item.post_type[0] === type);
 }
 
+function getAuthorName(authors, id) {
+	return authors.find(item => item.id == id).name;
+}
+
 function getPostId(post) {
 	return post.post_id[0];
 }
@@ -203,6 +217,10 @@ function getPostCoverImageId(post) {
 	let postmeta = post.postmeta.find(postmeta => postmeta.meta_key[0] === '_thumbnail_id');
 	let id = postmeta ? postmeta.meta_value[0] : undefined;
 	return id;
+}
+
+function getPostAuthor(post) {
+	return post.creator[0];
 }
 
 function getPostSlug(post) {
