@@ -60,9 +60,19 @@ function parseFileContent(content) {
 	});
 }
 
+
+function collectAuthors(data) {
+	return data.rss.channel[0].author.map(item => ({
+		id: item.author_login[0],
+		name: item.author_display_name[0]
+	}));
+}
+
+
 function processData(data) {
 	let images = collectImages(data);
-	let posts = collectPosts(data);
+	let authors = collectAuthors(data);
+	let posts = collectPosts(data, authors);
 	mergeImagesIntoPosts(images, posts);
 	writeFiles(posts);
 }
@@ -115,7 +125,7 @@ function addContentImages(data, images) {
 	});
 }
 
-function collectPosts(data) {
+function collectPosts(data, authors) {
 	// this is passed into getPostContent() for the markdown conversion
 	turndownService = initTurndownService();
 
@@ -129,6 +139,7 @@ function collectPosts(data) {
 			},
 			frontmatter: {
 				title: getPostTitle(post),
+				author: getAuthorName(authors, getPostAuthor(post)),
 				date: getPostDate(post),
 				categories: getCategories(post),
 				tags: getTags(post)
@@ -136,6 +147,7 @@ function collectPosts(data) {
 			content: getPostContent(post, turndownService)
 		}));
 }
+
 
 function initTurndownService() {
 	let turndownService = new turndown({
@@ -196,6 +208,13 @@ function getItemsOfType(data, type) {
 	return data.rss.channel[0].item.filter(item => item.post_type[0] === type);
 }
 
+function getAuthorName(authors, id) {
+	return authors.find(item => item.id == id).name;
+}
+
+function getPostAuthor(post) {
+	return post.creator[0];
+}
 function getCategories(post) {
 	let categories = [];
 	post.category.forEach(c => {
