@@ -49,11 +49,11 @@ function readFile(path) {
 }
 
 function parseFileContent(content) {
-	const processors = { tagNameProcessors: [ xml2js.processors.stripPrefix ] };
+	const processors = { tagNameProcessors: [xml2js.processors.stripPrefix] };
 	xml2js.parseString(content, processors, (err, data) => {
 		if (err) {
 			console.log('Unable to parse file content.');
-			console.log(err);        
+			console.log(err);
 		} else {
 			processData(data);
 		}
@@ -112,7 +112,7 @@ function addContentImages(data, images) {
 				console.log('Scraped ' + url + '.');
 			}
 		}
-	});	
+	});
 }
 
 function collectPosts(data) {
@@ -125,11 +125,13 @@ function collectPosts(data) {
 			meta: {
 				id: getPostId(post),
 				slug: getPostSlug(post),
-				coverImageId: getPostCoverImageId(post)
+				coverImageId: getPostCoverImageId(post),
 			},
 			frontmatter: {
 				title: getPostTitle(post),
-				date: getPostDate(post)
+				date: getPostDate(post),
+				categories: getCategories(post),
+				tags: getTags(post)
 			},
 			content: getPostContent(post, turndownService)
 		}));
@@ -155,13 +157,13 @@ function initTurndownService() {
 			// but this series of checks should find the commonalities
 			return (
 				['P', 'DIV'].includes(node.nodeName) &&
-				node.attributes['data-slug-hash'] && 
+				node.attributes['data-slug-hash'] &&
 				node.getAttribute('class') === 'codepen'
 			);
 		},
 		replacement: (content, node) => '\n\n' + node.outerHTML
 	});
-		
+
 	// preserve embedded scripts (for tweets, codepens, gists, etc.)
 	turndownService.addRule('script', {
 		filter: 'script',
@@ -192,6 +194,26 @@ function initTurndownService() {
 
 function getItemsOfType(data, type) {
 	return data.rss.channel[0].item.filter(item => item.post_type[0] === type);
+}
+
+function getCategories(post) {
+	let categories = [];
+	post.category.forEach(c => {
+		if (c.$.domain == "category") {
+			categories.push(c._.toLowerCase().trim());
+		}
+	})
+	return categories.join(",");
+}
+
+function getTags(post) {
+	let tags = [];
+	post.category.forEach(c => {
+		if (c.$.domain == "post_tag") {
+			tags.push(c._.toLowerCase().trim());
+		}
+	})
+	return tags;
 }
 
 function getPostId(post) {
@@ -294,7 +316,7 @@ function writeMarkdownFile(post, postDir) {
 			return accumulator + pair[0] + ': "' + pair[1] + '"\n'
 		}, '');
 	const data = '---\n' + frontmatter + '---\n\n' + post.content + '\n';
-	
+
 	const postPath = path.join(postDir, getPostFilename(post));
 	fs.writeFile(postPath, data, (err) => {
 		if (err) {
