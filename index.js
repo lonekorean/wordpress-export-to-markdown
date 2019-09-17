@@ -81,7 +81,7 @@ function collectImages(data) {
 	// start by collecting all attachment images
 	let images = getItemsOfType(data, 'attachment')
 		// filter to certain image file types
-		.filter(attachment => (/\.(gif|jpg|png)$/i).test(attachment.attachment_url[0]))
+		.filter(attachment => (/\.(gif|jpg|jpeg|png)$/i).test(attachment.attachment_url[0]))
 		.map(attachment => ({
 			id: attachment.post_id[0],
 			postId: attachment.post_parent[0],
@@ -97,7 +97,7 @@ function collectImages(data) {
 }
 
 function addContentImages(data, images) {
-	let regex = (/<img[^>]*src="(.+?\.(?:gif|jpg|png))"[^>]*>/gi);
+	let regex = (/<img[^>]*src="(.+?\.(?:gif|jpg|jpeg|png))"[^>]*>/gi);
 	let match;
 
 	getItemsOfType(data, 'post').forEach(post => {
@@ -269,7 +269,7 @@ function getPostContent(post, turndownService) {
 	if (argv.addcontentimages) {
 		// writeImageFile() will save all content images to a relative /images
 		// folder so update references in post content to match
-		content = content.replace(/(<img[^>]*src=").*?([^\/"]+\.(?:gif|jpg|png))("[^>]*>)/gi, '$1images/$2$3');
+		content = content.replace(/(<img[^>]*src=").*?([^\/"]+\.(?:gif|jpg|jpeg|png))("[^>]*>)/gi, '$1images/$2$3');
 	}
 
 	// this is a hack to make <iframe> nodes non-empty by inserting a "." which
@@ -297,7 +297,13 @@ function mergeImagesIntoPosts(images, posts) {
 	}, {});
 
 	images.forEach(image => {
-		let post = postsLookup[image.postId];
+		let post;
+		if (image.postId == 0) {
+			//sometime the cover image post id could be 0
+			post = posts.filter(o => o.meta.coverImageId == image.id)[0];
+		} else {
+			post = postsLookup[image.postId];
+		} 
 		if (post) {
 			// save full image URLs for downloading later
 			post.meta.imageUrls = post.meta.imageUrls || [];
@@ -305,7 +311,7 @@ function mergeImagesIntoPosts(images, posts) {
 
 			if (image.id === post.meta.coverImageId) {
 				// save cover image filename to frontmatter
-				post.frontmatter.coverImage = getFilenameFromUrl(image.url);
+				post.frontmatter.coverImage = "images/" + getFilenameFromUrl(image.url);
 			}
 		}
 	});
@@ -353,18 +359,17 @@ function writeImageFile(imageUrl, imageDir, delay) {
 	stream.on('finish', () => {
 		console.log('Saved ' + imagePath + '.');
 	});
-
 	// stagger image requests so we don't piss off hosts
 	setTimeout(() => {
 		request
-			.get(imageUrl)
+			.get(encodeURI(imageUrl))
 			.on('response', response => {
 				if (response.statusCode !== 200) {
 					console.log('Response status code ' + response.statusCode + ' received for ' + imageUrl + '.');
 				}
 			})
 			.on('error', err => {
-				console.log('Unable to download image.');
+				console.log('Unable to download image.',imageUrl);
 				console.log(err);
 			})
 			.pipe(stream);
