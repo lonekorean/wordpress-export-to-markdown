@@ -298,12 +298,12 @@ function mergeImagesIntoPosts(images, posts) {
 
 	images.forEach(image => {
 		let post;
-		if (image.postId == 0) {
-			//sometime the cover image post id could be 0
-			post = posts.filter(o => o.meta.coverImageId == image.id)[0];
-		} else {
+		//get post through thumbnail ID first
+		post = posts.filter(o => o.meta.coverImageId == image.id)[0];
+		if (!post){
+			//include other images with post id as parent id as well
 			post = postsLookup[image.postId];
-		} 
+		}
 		if (post) {
 			// save full image URLs for downloading later
 			post.meta.imageUrls = post.meta.imageUrls || [];
@@ -369,7 +369,7 @@ function writeImageFile(imageUrl, imageDir, delay) {
 				}
 			})
 			.on('error', err => {
-				console.log('Unable to download image.',imageUrl);
+				console.log('Unable to download image.', imageUrl);
 				console.log(err);
 			})
 			.pipe(stream);
