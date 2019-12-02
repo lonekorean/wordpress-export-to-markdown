@@ -53,16 +53,26 @@ function parseFileContent(content) {
 	xml2js.parseString(content, processors, (err, data) => {
 		if (err) {
 			console.log('Unable to parse file content.');
-			console.log(err);        
+			console.log(err);
 		} else {
 			processData(data);
 		}
 	});
 }
 
+
+function collectAuthors(data) {
+	return data.rss.channel[0].author.map(item => ({
+		id: item.author_login[0],
+		name: item.author_display_name[0]
+	}));
+}
+
+
 function processData(data) {
 	let images = collectImages(data);
-	let posts = collectPosts(data);
+	let authors = collectAuthors(data);
+	let posts = collectPosts(data, authors);
 	mergeImagesIntoPosts(images, posts);
 	writeFiles(posts);
 }
@@ -70,8 +80,8 @@ function processData(data) {
 function collectImages(data) {
 	// start by collecting all attachment images
 	let images = getItemsOfType(data, 'attachment')
-		// filter to certain image file types
-		.filter(attachment => (/\.(gif|jpg|png)$/i).test(attachment.attachment_url[0]))
+	// filter to certain image file types
+		.filter(attachment => (/\.(gif|jpg|jpeg|png)$/i).test(attachment.attachment_url[0]))
 		.map(attachment => ({
 			id: attachment.post_id[0],
 			postId: attachment.post_parent[0],
@@ -87,7 +97,7 @@ function collectImages(data) {
 }
 
 function addContentImages(data, images) {
-	let regex = (/<img[^>]*src="(.+?\.(?:gif|jpg|png))"[^>]*>/gi);
+	let regex = (/<img[^>]*src="(.+?\.(?:gif|jpg|jpeg|png))"[^>]*>/gi);
 	let match;
 
 	getItemsOfType(data, 'post').forEach(post => {
@@ -112,10 +122,10 @@ function addContentImages(data, images) {
 				console.log('Scraped ' + url + '.');
 			}
 		}
-	});	
+	});
 }
 
-function collectPosts(data) {
+function collectPosts(data, authors) {
 	// this is passed into getPostContent() for the markdown conversion
 	turndownService = initTurndownService();
 
@@ -125,11 +135,14 @@ function collectPosts(data) {
 			meta: {
 				id: getPostId(post),
 				slug: getPostSlug(post),
-				coverImageId: getPostCoverImageId(post)
+				coverImageId: getPostCoverImageId(post),
 			},
 			frontmatter: {
 				title: getPostTitle(post),
-				date: getPostDate(post)
+				author: getAuthorName(authors, getPostAuthor(post)),
+				date: getPostDate(post),
+				categories: getCategories(post),
+				tags: getTags(post)
 			},
 			content: getPostContent(post, turndownService)
 		}));
@@ -155,13 +168,13 @@ function initTurndownService() {
 			// but this series of checks should find the commonalities
 			return (
 				['P', 'DIV'].includes(node.nodeName) &&
-				node.attributes['data-slug-hash'] && 
+				node.attributes['data-slug-hash'] &&
 				node.getAttribute('class') === 'codepen'
 			);
 		},
 		replacement: (content, node) => '\n\n' + node.outerHTML
 	});
-		
+
 	// preserve embedded scripts (for tweets, codepens, gists, etc.)
 	turndownService.addRule('script', {
 		filter: 'script',
@@ -192,6 +205,33 @@ function initTurndownService() {
 
 function getItemsOfType(data, type) {
 	return data.rss.channel[0].item.filter(item => item.post_type[0] === type);
+}
+
+function getAuthorName(authors, id) {
+	return authors.find(item => item.id == id).name;
+}
+
+function getPostAuthor(post) {
+	return post.creator[0];
+}
+function getCategories(post) {
+	let categories = [];
+	post.category.forEach(c => {
+		if (c.$.domain == "category") {
+			categories.push(c.$.nicename);
+		}
+	})
+	return categories.join(",");
+}
+
+function getTags(post) {
+	let tags = [];
+	post.category.forEach(c => {
+		if (c.$.domain == "post_tag") {
+			tags.push(c.$.nicename);
+		}
+	})
+	return tags;
 }
 
 function getPostId(post) {
@@ -228,7 +268,7 @@ function getPostContent(post, turndownService) {
 	if (argv.addcontentimages) {
 		// writeImageFile() will save all content images to a relative /images
 		// folder so update references in post content to match
-		content = content.replace(/(<img[^>]*src=").*?([^\/"]+\.(?:gif|jpg|png))("[^>]*>)/gi, '$1images/$2$3');
+		content = content.replace(/(<img[^>]*src=").*?([^\/"]+\.(?:gif|jpg|jpeg|png))("[^>]*>)/gi, '$1images/$2$3');
 	}
 
 	// this is a hack to make <iframe> nodes non-empty by inserting a "." which
@@ -256,7 +296,13 @@ function mergeImagesIntoPosts(images, posts) {
 	}, {});
 
 	images.forEach(image => {
-		let post = postsLookup[image.postId];
+		let post;
+		//get post through thumbnail ID first
+		post = posts.filter(o => o.meta.coverImageId == image.id)[0];
+		if (!post){
+			//include other images with post id as parent id as well
+			post = postsLookup[image.postId];
+		}
 		if (post) {
 			// save full image URLs for downloading later
 			post.meta.imageUrls = post.meta.imageUrls || [];
@@ -264,7 +310,7 @@ function mergeImagesIntoPosts(images, posts) {
 
 			if (image.id === post.meta.coverImageId) {
 				// save cover image filename to frontmatter
-				post.frontmatter.coverImage = getFilenameFromUrl(image.url);
+				post.frontmatter.coverImage = "images/" + getFilenameFromUrl(image.url);
 			}
 		}
 	});
@@ -294,7 +340,7 @@ function writeMarkdownFile(post, postDir) {
 			return accumulator + pair[0] + ': "' + pair[1] + '"\n'
 		}, '');
 	const data = '---\n' + frontmatter + '---\n\n' + post.content + '\n';
-	
+
 	const postPath = path.join(postDir, getPostFilename(post));
 	fs.writeFile(postPath, data, (err) => {
 		if (err) {
@@ -312,18 +358,17 @@ function writeImageFile(imageUrl, imageDir, delay) {
 	stream.on('finish', () => {
 		console.log('Saved ' + imagePath + '.');
 	});
-
 	// stagger image requests so we don't piss off hosts
 	setTimeout(() => {
 		request
-			.get(imageUrl)
+			.get(encodeURI(imageUrl))
 			.on('response', response => {
 				if (response.statusCode !== 200) {
 					console.log('Response status code ' + response.statusCode + ' received for ' + imageUrl + '.');
 				}
 			})
 			.on('error', err => {
-				console.log('Unable to download image.');
+				console.log('Unable to download image.', imageUrl);
 				console.log(err);
 			})
 			.pipe(stream);
