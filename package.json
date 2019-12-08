@@ -18,10 +18,10 @@
 		"node": ">= 10.12.0"
 	},
 	"dependencies": {
-		"luxon": "^1.4.3",
+		"luxon": "^1.21.3",
 		"minimist": "^1.2.0",
 		"request": "^2.88.0",
-		"turndown": "^5.0.1",
-		"xml2js": "^0.4.19"
+		"turndown": "^5.0.3",
+		"xml2js": "^0.4.22"
 	}
 }
