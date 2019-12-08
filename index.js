@@ -210,7 +210,7 @@ function getPostSlug(post) {
 }
 
 function getPostTitle(post) {
-	return post.title[0].trim();
+	return post.title[0].trim().replace(/"/g, '\\"');
 }
 
 function getPostDate(post) {
