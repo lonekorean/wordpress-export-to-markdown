@@ -5,16 +5,12 @@ const request = require('request');
 
 const shared = require('./shared');
 
-let config;
-
-function writeFiles(posts, configIn) {
-    config = configIn;
-    
+function writeFiles(posts, config) {
     let delay = 0;
 	posts.forEach(post => {
-		const postDir = getPostDir(post);
+		const postDir = getPostDir(post, config);
 		createDir(postDir);
-		writeMarkdownFile(post, postDir);
+		writeMarkdownFile(post, postDir, config);
 
 		if (config.saveimages && post.meta.imageUrls) {
 			post.meta.imageUrls.forEach(imageUrl => {
@@ -27,14 +23,14 @@ function writeFiles(posts, configIn) {
 	});
 }
 
-function writeMarkdownFile(post, postDir) {
+function writeMarkdownFile(post, postDir, config) {
 	const frontmatter = Object.entries(post.frontmatter)
 		.reduce((accumulator, pair) => {
 			return accumulator + pair[0] + ': "' + pair[1] + '"\n'
 		}, '');
 	const data = '---\n' + frontmatter + '---\n\n' + post.content + '\n';
 	
-	const postPath = path.join(postDir, getPostFilename(post));
+	const postPath = path.join(postDir, getPostFilename(post, config));
 	fs.writeFile(postPath, data, (err) => {
 		if (err) {
 			console.log('Unable to write file.')
@@ -77,7 +73,7 @@ function createDir(dir) {
 	}
 }
 
-function getPostDir(post) {
+function getPostDir(post, config) {
 	let dir = config.output;
 	let dt = luxon.DateTime.fromISO(post.frontmatter.date);
 
@@ -98,7 +94,7 @@ function getPostDir(post) {
 	return dir;
 }
 
-function getPostFilename(post) {
+function getPostFilename(post, config) {
 	if (config.postfolders) {
 		// the containing folder name will be unique, just use index.md here
 		return 'index.md';

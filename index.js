@@ -2,9 +2,6 @@ const wizard = require('./src/wizard');
 const parser = require('./src/parser');
 const writer = require('./src/writer');
 
-// global so various functions can access arguments
-let config;
-
 async function init() {
 	try {
 		config = wizard.getConfig();
@@ -16,5 +13,4 @@ async function init() {
 	}
 }
 
-// it's go time!
 init();

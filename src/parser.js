@@ -5,28 +5,20 @@ const xml2js = require('xml2js');
 const shared = require('./shared');
 const translator = require('./translator');
 
-let config;
-
-async function parseFilePromise(configIn) {
-	const content = fs.readFileSync(configIn.input, 'utf8');
+async function parseFilePromise(config) {
+	const content = fs.readFileSync(config.input, 'utf8');
 
 	const processors = { tagNameProcessors: [xml2js.processors.stripPrefix] };
 	const data = await xml2js.parseStringPromise(content, processors);
 
-	config = configIn;
+	let images = collectImages(data, config);
+	let posts = collectPosts(data);
+	mergeImagesIntoPosts(images, posts);
 
-	let posts = processData(data);
 	return Promise.resolve(posts);
 }
 
-function processData(data) {
-	let images = collectImages(data);
-	let posts = collectPosts(data);
-	mergeImagesIntoPosts(images, posts);
-	return posts;
-}
-
-function collectImages(data) {
+function collectImages(data, config) {
 	// start by collecting all attachment images
 	let images = getItemsOfType(data, 'attachment')
 		// filter to certain image file types
