@@ -56,7 +56,7 @@ function initTurndownService() {
 }
 
 function getPostContent(post, turndownService, config) {
-	let content = post.encoded[0].trim();
+	let content = post.encoded[0];
 
 	// insert an empty div element between double line breaks
 	// this nifty trick causes turndown to keep adjacent paragraphs separated

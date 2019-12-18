@@ -8,8 +8,10 @@ const translator = require('./translator');
 async function parseFilePromise(config) {
 	const content = fs.readFileSync(config.input, 'utf8');
 
-	const processors = { tagNameProcessors: [xml2js.processors.stripPrefix] };
-	const data = await xml2js.parseStringPromise(content, processors);
+	const data = await xml2js.parseStringPromise(content, {
+		trim: true,
+		tagNameProcessors: [xml2js.processors.stripPrefix]
+	});
 
 	let images = collectImages(data, config);
 	let posts = collectPosts(data);
@@ -106,7 +108,7 @@ function getPostSlug(post) {
 }
 
 function getPostTitle(post) {
-	return post.title[0].trim().replace(/"/g, '\\"');
+	return post.title[0].replace(/"/g, '\\"');
 }
 
 function getPostDate(post) {
