@@ -1,7 +1,5 @@
 const turndown = require('turndown');
 
-const shared = require('./shared');
-
 function initTurndownService() {
 	let turndownService = new turndown({
 		headingStyle: 'atx',
@@ -47,8 +45,7 @@ function initTurndownService() {
 	turndownService.addRule('iframe', {
 		filter: 'iframe',
 		replacement: (content, node) => {
-			let html = node.outerHTML
-				.replace('allowfullscreen=""', 'allowfullscreen');
+			let html = node.outerHTML.replace('allowfullscreen=""', 'allowfullscreen');
 			return '\n\n' + html + '\n\n';
 		}
 	});

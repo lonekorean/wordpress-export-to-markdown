@@ -13,6 +13,8 @@ async function parseFilePromise(config) {
 		tagNameProcessors: [xml2js.processors.stripPrefix]
 	});
 
+	let posts = collectPosts(data);
+
 	let images = [];
 	if (config.saveattachedimages) {
 		images.push(...collectAttachedImages(data));
@@ -21,55 +23,20 @@ async function parseFilePromise(config) {
 		images.push(...collectScrapedImages(data));
 	}
 
-	let posts = collectPosts(data);
 	mergeImagesIntoPosts(images, posts);
 
 	return Promise.resolve(posts);
 }
 
-function collectAttachedImages(data) {
-	let images = getItemsOfType(data, 'attachment')
-		// filter to certain image file types
-		.filter(attachment => (/\.(gif|jpe?g|png)$/i).test(attachment.attachment_url[0]))
-		.map(attachment => ({
-			id: attachment.post_id[0],
-			postId: attachment.post_parent[0],
-			url: attachment.attachment_url[0]
-		}));
-
-	return images;
-}
-
-function collectScrapedImages(data) {
-	let images = [];
-
-	getItemsOfType(data, 'post').forEach(post => {
-		let postId = post.post_id[0];
-		let postContent = post.encoded[0];
-		let postLink = post.link[0];
-
-		let matches = [...postContent.matchAll(/<img[^>]*src="(.+?\.(?:gif|jpe?g|png))"[^>]*>/gi)];
-		matches.forEach(match => {
-			// base the matched image URL relative to the post URL
-			let url = new URL(match[1], postLink).href;
-
-			images.push({
-				id: -1,
-				postId: postId,
-				url: url
-			});
-			console.log('Scraped ' + url + '.');
-		});
-	});
-
-	return images;
+function getItemsOfType(data, type) {
+	return data.rss.channel[0].item.filter(item => item.post_type[0] === type);
 }
 
 function collectPosts(data) {
 	// this is passed into getPostContent() for the markdown conversion
 	turndownService = translator.initTurndownService();
 
-	return getItemsOfType(data, 'post')
+	let posts = getItemsOfType(data, 'post')
 		.map(post => ({
 			// meta data isn't written to file, but is used to help with other things
 			meta: {
@@ -84,10 +51,9 @@ function collectPosts(data) {
 			},
 			content: translator.getPostContent(post, turndownService, config)
 		}));
-}
 
-function getItemsOfType(data, type) {
-	return data.rss.channel[0].item.filter(item => item.post_type[0] === type);
+	console.log(posts.length + ' posts found.');
+	return posts;
 }
 
 function getPostId(post) {
@@ -111,6 +77,44 @@ function getPostTitle(post) {
 
 function getPostDate(post) {
 	return luxon.DateTime.fromRFC2822(post.pubDate[0], { zone: 'utc' }).toISODate();
+}
+
+function collectAttachedImages(data) {
+	let images = getItemsOfType(data, 'attachment')
+		// filter to certain image file types
+		.filter(attachment => (/\.(gif|jpe?g|png)$/i).test(attachment.attachment_url[0]))
+		.map(attachment => ({
+			id: attachment.post_id[0],
+			postId: attachment.post_parent[0],
+			url: attachment.attachment_url[0]
+		}));
+
+	console.log(images.length + ' attached images found.');
+	return images;
+}
+
+function collectScrapedImages(data) {
+	let images = [];
+	getItemsOfType(data, 'post').forEach(post => {
+		let postId = post.post_id[0];
+		let postContent = post.encoded[0];
+		let postLink = post.link[0];
+
+		let matches = [...postContent.matchAll(/<img[^>]*src="(.+?\.(?:gif|jpe?g|png))"[^>]*>/gi)];
+		matches.forEach(match => {
+			// base the matched image URL relative to the post URL
+			let url = new URL(match[1], postLink).href;
+
+			images.push({
+				id: -1,
+				postId: postId,
+				url: url
+			});
+		});
+	});
+
+	console.log(images.length + ' images scraped from post body content.');
+	return images;
 }
 
 function mergeImagesIntoPosts(images, posts) {
