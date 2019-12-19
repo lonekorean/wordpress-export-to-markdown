@@ -15,7 +15,7 @@
 	"author": "Will Boyd <will@codersblock.com> (https://codersblock.com)",
 	"license": "MIT",
 	"engines": {
-		"node": ">= 10.12.0"
+		"node": ">= 12.14.0"
 	},
 	"dependencies": {
 		"luxon": "^1.21.3",
