@@ -12,14 +12,12 @@ function writeFiles(posts, config) {
 		createDir(postDir);
 		writeMarkdownFile(post, postDir, config);
 
-		if (config.saveimages && post.meta.imageUrls) {
-			post.meta.imageUrls.forEach(imageUrl => {
-				const imageDir = path.join(postDir, 'images');
-				createDir(imageDir);
-				writeImageFile(imageUrl, imageDir, delay);
-				delay += 25;
-			});
-		}
+        post.meta.imageUrls.forEach(imageUrl => {
+            const imageDir = path.join(postDir, 'images');
+            createDir(imageDir);
+            writeImageFile(imageUrl, imageDir, delay);
+            delay += 25;
+        });
 	});
 }
 

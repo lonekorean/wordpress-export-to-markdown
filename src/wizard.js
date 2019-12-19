@@ -13,8 +13,8 @@ function getConfig() {
 			'yearfolders',
 			'postfolders',
 			'prefixdate',
-			'saveimages',
-			'addcontentimages'
+			'saveattachedimages',
+			'savescrapedimages'
 		],
 		default: {
 			input: 'export.xml',
@@ -23,8 +23,8 @@ function getConfig() {
 			yearfolders: false,
 			postfolders: true,
 			prefixdate: false,
-			saveimages: true,
-			addcontentimages: false
+			saveattachedimages: true,
+			savescrapedimages: true
 		}
 	});
 

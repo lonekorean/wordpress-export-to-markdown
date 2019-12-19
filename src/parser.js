@@ -13,59 +13,56 @@ async function parseFilePromise(config) {
 		tagNameProcessors: [xml2js.processors.stripPrefix]
 	});
 
-	let images = collectImages(data, config);
+	let images = [];
+	if (config.saveattachedimages) {
+		images.push(...collectAttachedImages(data));
+	}
+	if (config.savescrapedimages) {
+		images.push(...collectScrapedImages(data));
+	}
+
 	let posts = collectPosts(data);
 	mergeImagesIntoPosts(images, posts);
 
 	return Promise.resolve(posts);
 }
 
-function collectImages(data, config) {
-	// start by collecting all attachment images
+function collectAttachedImages(data) {
 	let images = getItemsOfType(data, 'attachment')
 		// filter to certain image file types
-		.filter(attachment => (/\.(gif|jpg|png)$/i).test(attachment.attachment_url[0]))
+		.filter(attachment => (/\.(gif|jpe?g|png)$/i).test(attachment.attachment_url[0]))
 		.map(attachment => ({
 			id: attachment.post_id[0],
 			postId: attachment.post_parent[0],
 			url: attachment.attachment_url[0]
 		}));
 
-	// optionally add images scraped from <img> tags in post content
-	if (config.addcontentimages) {
-		addContentImages(data, images);
-	}
-
 	return images;
 }
 
-function addContentImages(data, images) {
-	let regex = (/<img[^>]*src="(.+?\.(?:gif|jpg|png))"[^>]*>/gi);
-	let match;
+function collectScrapedImages(data) {
+	let images = [];
 
 	getItemsOfType(data, 'post').forEach(post => {
 		let postId = post.post_id[0];
 		let postContent = post.encoded[0];
 		let postLink = post.link[0];
 
-		// reset lastIndex since we're reusing the same regex object
-		regex.lastIndex = 0;
-		while ((match = regex.exec(postContent)) !== null) {
+		let matches = [...postContent.matchAll(/<img[^>]*src="(.+?\.(?:gif|jpe?g|png))"[^>]*>/gi)];
+		matches.forEach(match => {
 			// base the matched image URL relative to the post URL
 			let url = new URL(match[1], postLink).href;
 
-			// add image if it hasn't already been added for this post
-			let exists = images.some(image => image.postId === postId && image.url === url);
-			if (!exists) {
-				images.push({
-					id: -1,
-					postId: postId,
-					url: url
-				});
-				console.log('Scraped ' + url + '.');
-			}
-		}
-	});	
+			images.push({
+				id: -1,
+				postId: postId,
+				url: url
+			});
+			console.log('Scraped ' + url + '.');
+		});
+	});
+
+	return images;
 }
 
 function collectPosts(data) {
@@ -78,7 +75,8 @@ function collectPosts(data) {
 			meta: {
 				id: getPostId(post),
 				slug: getPostSlug(post),
-				coverImageId: getPostCoverImageId(post)
+				coverImageId: getPostCoverImageId(post),
+				imageUrls: []
 			},
 			frontmatter: {
 				title: getPostTitle(post),
@@ -125,13 +123,14 @@ function mergeImagesIntoPosts(images, posts) {
 	images.forEach(image => {
 		let post = postsLookup[image.postId];
 		if (post) {
-			// save full image URLs for downloading later
-			post.meta.imageUrls = post.meta.imageUrls || [];
-			post.meta.imageUrls.push(image.url);
-
 			if (image.id === post.meta.coverImageId) {
 				// save cover image filename to frontmatter
 				post.frontmatter.coverImage = shared.getFilenameFromUrl(image.url);
+			}
+			
+			// save (unique) full image URLs for downloading later
+			if (!post.meta.imageUrls.includes(image.url)) {
+				post.meta.imageUrls.push(image.url);
 			}
 		}
 	});

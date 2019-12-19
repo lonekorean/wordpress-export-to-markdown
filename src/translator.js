@@ -1,5 +1,7 @@
 const turndown = require('turndown');
 
+const shared = require('./shared');
+
 function initTurndownService() {
 	let turndownService = new turndown({
 		headingStyle: 'atx',
@@ -32,7 +34,6 @@ function initTurndownService() {
 		filter: 'script',
 		replacement: (content, node) => {
 			let before = '\n\n';
-			let src = node.getAttribute('src');
 			if (node.previousSibling && node.previousSibling.nodeName !== '#text') {
 				// keep twitter and codepen <script> tags snug with the element above them
 				before = '\n';
@@ -63,10 +64,10 @@ function getPostContent(post, turndownService, config) {
 	// without mucking up content inside of other elemnts (like <code> blocks)
 	content = content.replace(/(\r?\n){2}/g, '\n<div></div>\n');
 
-	if (config.addcontentimages) {
+	if (config.savescrapedimages) {
 		// writeImageFile() will save all content images to a relative /images
-		// folder so update references in post content to match
-		content = content.replace(/(<img[^>]*src=").*?([^\/"]+\.(?:gif|jpg|png))("[^>]*>)/gi, '$1images/$2$3');
+        // folder so update references in post content to match
+		content = content.replace(/(<img[^>]*src=").*?([^\/"]+\.(?:gif|jpe?g|png))("[^>]*>)/gi, '$1images/$2$3');
 	}
 
 	// this is a hack to make <iframe> nodes non-empty by inserting a "." which
