@@ -6,8 +6,7 @@ const shared = require('./shared');
 const translator = require('./translator');
 
 async function parseFilePromise(config) {
-	const content = fs.readFileSync(config.input, 'utf8');
-
+	const content = await fs.promises.readFile(config.input, 'utf8');
 	const data = await xml2js.parseStringPromise(content, {
 		trim: true,
 		tagNameProcessors: [xml2js.processors.stripPrefix]
@@ -25,7 +24,7 @@ async function parseFilePromise(config) {
 
 	mergeImagesIntoPosts(images, posts);
 
-	return Promise.resolve(posts);
+	return posts;
 }
 
 function getItemsOfType(data, type) {
@@ -72,7 +71,7 @@ function getPostSlug(post) {
 }
 
 function getPostTitle(post) {
-	return post.title[0].replace(/"/g, '\\"');
+	return post.title[0];
 }
 
 function getPostDate(post) {

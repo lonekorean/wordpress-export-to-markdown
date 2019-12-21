@@ -6,7 +6,7 @@ async function init() {
 	try {
 		config = wizard.getConfig();
 		let posts = await parser.parseFilePromise(config)
-		writer.writeFiles(posts, config);
+		await writer.writeFilesPromise(posts, config);
 	} catch (ex) {
 		// appease the UnhandledPromiseRejectionWarning
 		console.error(ex);

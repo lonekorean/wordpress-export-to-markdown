@@ -1,74 +1,97 @@
 const fs = require('fs');
 const luxon = require('luxon');
 const path = require('path');
-const request = require('request');
+const requestPromiseNative = require('request-promise-native');
 
 const shared = require('./shared');
 
-function writeFiles(posts, config) {
+async function writeFilesPromise(posts, config) {
+    await writeMarkdownFilesPromise(posts);
+    await writeImageFilesPromise(posts, config);
+}
+
+async function writeMarkdownFilesPromise(posts) {
+    const promises = posts.map(writeMardownFilePromise);
+    const result = await Promise.allSettled(promises);
+}
+
+async function writeMardownFilePromise(post) {
+    const postDir = getPostDir(post, config);
+    await createDirPromise(postDir);
+
+    let output = '---\n';
+    Object.entries(post.frontmatter).forEach(pair => {
+        const key = pair[0];
+        const value = pair[1].replace(/"/g, '\\"');
+        output += key + ': "' + value + '"\n';
+    });
+    output += '---\n\n' + post.content + '\n';
+    
+    const postPath = path.join(postDir, getPostFilename(post, config));
+    await fs.promises.writeFile(postPath, output);
+}
+
+async function writeImageFilesPromise(posts, config) {
+    // collect image data from all posts into a single flattened array
     let delay = 0;
-	posts.forEach(post => {
-		const postDir = getPostDir(post, config);
-		createDir(postDir);
-		writeMarkdownFile(post, postDir, config);
+    let images = posts.flatMap(post => {
+        const postDir = getPostDir(post, config);
+        return post.meta.imageUrls.map(imageUrl => ({
+            postDir,
+            url: imageUrl,
+            delay: delay += 25
+        }));
+    });
 
-        post.meta.imageUrls.forEach(imageUrl => {
-            const imageDir = path.join(postDir, 'images');
-            createDir(imageDir);
-            writeImageFile(imageUrl, imageDir, delay);
-            delay += 25;
+    let progress = {
+        current: 0,
+        total: images.length
+    };
+
+    const promises = images.map(writeImageFileDelayPromise.bind(this, progress));
+    const result = await Promise.allSettled(promises);
+}
+
+async function writeImageFileDelayPromise(progress, image) {
+    await new Promise((resolve, reject) => {
+        setTimeout(async () => {
+            await writeImageFilePromise(progress, image);
+            resolve();
+        }, image.delay);
+    });
+}
+
+async function writeImageFilePromise(progress, image) {
+    const imageDir = path.join(image.postDir, 'images');
+    await createDirPromise(imageDir);
+
+    const imagePath = path.join(imageDir, shared.getFilenameFromUrl(image.url));
+	const stream = fs.createWriteStream(imagePath);
+
+    try {
+        const buffer = await requestPromiseNative.get({
+            url: image.url,
+            encoding: null // preserves binary encoding
         });
-	});
+        stream.write(buffer);
+    } catch(ex) {
+        if (ex.statusCode !== undefined && ex.statusCode !== 200) {
+            process.stdout.clearLine();
+            process.stdout.cursorTo(0);
+            process.stdout.write('Response status code ' + ex.statusCode + ' received for ' + image.url + '.\n');
+        } else {
+            console.log(ex);
+        }
+    } finally {
+        progress.current++;
+        process.stdout.clearLine();
+        process.stdout.cursorTo(0);
+        process.stdout.write('Saving images: ' + progress.current + ' / ' + progress.total);
+    }
 }
 
-function writeMarkdownFile(post, postDir, config) {
-	const frontmatter = Object.entries(post.frontmatter)
-		.reduce((accumulator, pair) => {
-			return accumulator + pair[0] + ': "' + pair[1] + '"\n'
-		}, '');
-	const data = '---\n' + frontmatter + '---\n\n' + post.content + '\n';
-	
-	const postPath = path.join(postDir, getPostFilename(post, config));
-	fs.writeFile(postPath, data, (err) => {
-		if (err) {
-			console.log('Unable to write file.')
-			console.log(err);
-		} else {
-			console.log('Wrote ' + postPath + '.');
-		}
-	});
-}
-
-function writeImageFile(imageUrl, imageDir, delay) {
-	let imagePath = path.join(imageDir, shared.getFilenameFromUrl(imageUrl));
-	let stream = fs.createWriteStream(imagePath);
-	stream.on('finish', () => {
-		console.log('Saved ' + imagePath + '.');
-	});
-
-	// stagger image requests so we don't piss off hosts
-	setTimeout(() => {
-		request
-			.get(imageUrl)
-			.on('response', response => {
-				if (response.statusCode !== 200) {
-					console.log('Response status code ' + response.statusCode + ' received for ' + imageUrl + '.');
-				}
-			})
-			.on('error', err => {
-				console.log('Unable to download image.');
-				console.log(err);
-			})
-			.pipe(stream);
-	}, delay);
-}
-
-function createDir(dir) {
-	try {
-		fs.accessSync(dir, fs.constants.F_OK);
-	} catch (ex) {
-		fs.mkdirSync(dir, { recursive: true });
-	}
+async function createDirPromise(dir) {
+	return fs.promises.mkdir(dir, { recursive: true });
 }
 
 function getPostDir(post, config) {
@@ -106,4 +129,4 @@ function getPostFilename(post, config) {
 	}
 }
 
-exports.writeFiles = writeFiles;
+exports.writeFilesPromise = writeFilesPromise;
