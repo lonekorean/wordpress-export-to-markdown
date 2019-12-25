@@ -18,6 +18,7 @@
 		"node": ">= 12.14.0"
 	},
 	"dependencies": {
+		"chalk": "^3.0.0",
 		"luxon": "^1.21.3",
 		"minimist": "^1.2.0",
 		"request": "^2.88.0",

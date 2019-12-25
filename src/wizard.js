@@ -40,7 +40,7 @@ function getConfig() {
 function checkFileExists(path) {
 	try {
 		return fs.existsSync(path);
-	} catch(ex) {
+	} catch (ex) {
 		return false;
 	}
 }

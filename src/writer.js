@@ -1,3 +1,4 @@
+const chalk = require('chalk');
 const fs = require('fs');
 const luxon = require('luxon');
 const path = require('path');
@@ -11,8 +12,15 @@ async function writeFilesPromise(posts, config) {
 }
 
 async function writeMarkdownFilesPromise(posts) {
+	console.log('\nSaving posts...');
     const promises = posts.map(writeMardownFilePromise);
-    const result = await Promise.allSettled(promises);
+	const result = await Promise.allSettled(promises);
+	const failedCount = results.filter(result => result.status === 'rejected').length;
+	if (failedCount === 0) {
+		console.log('Done, got them all!');
+	} else {
+		console.log('Done, but with ' + chalk.red(failedCount + ' failed') + '.');
+	}
 }
 
 async function writeMardownFilePromise(post) {
@@ -32,62 +40,73 @@ async function writeMardownFilePromise(post) {
 }
 
 async function writeImageFilesPromise(posts, config) {
-    // collect image data from all posts into a single flattened array
+	// collect image data from all posts into a single flattened array
     let delay = 0;
     let images = posts.flatMap(post => {
         const postDir = getPostDir(post, config);
         return post.meta.imageUrls.map(imageUrl => ({
             postDir,
-            url: imageUrl,
+			url: imageUrl,
+			filename: shared.getFilenameFromUrl(imageUrl),
             delay: delay += 25
         }));
     });
 
     let progress = {
-        current: 0,
+        current: 1,
         total: images.length
     };
 
+	console.log('\nSaving images...');
     const promises = images.map(writeImageFileDelayPromise.bind(this, progress));
-    const result = await Promise.allSettled(promises);
+	const results = await Promise.allSettled(promises);
+	const failedCount = results.filter(result => result.status === 'rejected').length;
+	if (failedCount === 0) {
+		console.log('Done, got them all!');
+	} else {
+		console.log('Done, but with ' + chalk.red(failedCount + ' failed') + '.');
+	}
 }
 
 async function writeImageFileDelayPromise(progress, image) {
     await new Promise((resolve, reject) => {
         setTimeout(async () => {
-            await writeImageFilePromise(progress, image);
-            resolve();
+			try {
+				await writeImageFilePromise(image);
+				console.log(chalk.green('[OK]') + ' ' + image.filename);
+				resolve();
+			} catch (ex) {
+				console.error(chalk.red('[FAILED]') + ' ' + image.filename + ' ' + chalk.red('(' + ex.toString() + ')'));
+				reject();
+			} finally {
+				progress.current++;
+			}
         }, image.delay);
     });
 }
 
-async function writeImageFilePromise(progress, image) {
-    const imageDir = path.join(image.postDir, 'images');
-    await createDirPromise(imageDir);
+async function writeImageFilePromise(image) {
+	const imageDir = path.join(image.postDir, 'images');
+	await createDirPromise(imageDir);
 
-    const imagePath = path.join(imageDir, shared.getFilenameFromUrl(image.url));
+	const imagePath = path.join(imageDir, image.filename);
 	const stream = fs.createWriteStream(imagePath);
 
-    try {
-        const buffer = await requestPromiseNative.get({
-            url: image.url,
-            encoding: null // preserves binary encoding
-        });
-        stream.write(buffer);
-    } catch(ex) {
-        if (ex.statusCode !== undefined && ex.statusCode !== 200) {
-            process.stdout.clearLine();
-            process.stdout.cursorTo(0);
-            process.stdout.write('Response status code ' + ex.statusCode + ' received for ' + image.url + '.\n');
-        } else {
-            console.log(ex);
-        }
-    } finally {
-        progress.current++;
-        process.stdout.clearLine();
-        process.stdout.cursorTo(0);
-        process.stdout.write('Saving images: ' + progress.current + ' / ' + progress.total);
-    }
+	let buffer;
+	try {
+		buffer = await requestPromiseNative.get({
+			url: image.url,
+			encoding: null // preserves binary encoding
+		});
+	} catch (ex) {
+		if (ex.name === 'StatusCodeError') {
+			// these errors contain a lot of noise, simplify to just the status code
+			ex.message = ex.statusCode;
+		}
+		throw ex;
+	}
+	
+	stream.write(buffer);
 }
 
 async function createDirPromise(dir) {
