@@ -12,18 +12,32 @@ async function writeFilesPromise(posts, config) {
 }
 
 async function writeMarkdownFilesPromise(posts) {
+	let delay = 0;
+	posts.forEach(post => {
+		post.meta.delay = delay += 100
+	});
+
 	console.log('\nSaving posts...');
-    const promises = posts.map(writeMardownFilePromise);
-	const result = await Promise.allSettled(promises);
-	const failedCount = results.filter(result => result.status === 'rejected').length;
-	if (failedCount === 0) {
-		console.log('Done, got them all!');
-	} else {
-		console.log('Done, but with ' + chalk.red(failedCount + ' failed') + '.');
-	}
+    const promises = posts.map(writeMarkdownFileWrapperPromise);
+	await runPromises(promises);
 }
 
-async function writeMardownFilePromise(post) {
+async function writeMarkdownFileWrapperPromise(post) {
+    await new Promise((resolve, reject) => {
+        setTimeout(async () => {
+			try {
+				await writeMarkdownFilePromise(post);
+				console.log(chalk.green('[OK]') + ' ' + post.meta.slug);
+				resolve();
+			} catch (ex) {
+				console.error(chalk.red('[FAILED]') + ' ' + post.meta.slug + ' ' + chalk.red('(' + ex.toString() + ')'));
+				reject();
+			}
+        }, post.meta.delay);
+    });
+}
+
+async function writeMarkdownFilePromise(post) {
     const postDir = getPostDir(post, config);
     await createDirPromise(postDir);
 
@@ -33,8 +47,8 @@ async function writeMardownFilePromise(post) {
         const value = pair[1].replace(/"/g, '\\"');
         output += key + ': "' + value + '"\n';
     });
-    output += '---\n\n' + post.content + '\n';
-    
+	output += '---\n\n' + post.content + '\n';
+	
     const postPath = path.join(postDir, getPostFilename(post, config));
     await fs.promises.writeFile(postPath, output);
 }
@@ -48,27 +62,16 @@ async function writeImageFilesPromise(posts, config) {
             postDir,
 			url: imageUrl,
 			filename: shared.getFilenameFromUrl(imageUrl),
-            delay: delay += 25
+            delay: delay += 100
         }));
     });
 
-    let progress = {
-        current: 1,
-        total: images.length
-    };
-
 	console.log('\nSaving images...');
-    const promises = images.map(writeImageFileDelayPromise.bind(this, progress));
-	const results = await Promise.allSettled(promises);
-	const failedCount = results.filter(result => result.status === 'rejected').length;
-	if (failedCount === 0) {
-		console.log('Done, got them all!');
-	} else {
-		console.log('Done, but with ' + chalk.red(failedCount + ' failed') + '.');
-	}
+    const promises = images.map(writeImageFileWrapperPromise);
+	await runPromises(promises);
 }
 
-async function writeImageFileDelayPromise(progress, image) {
+async function writeImageFileWrapperPromise(image) {
     await new Promise((resolve, reject) => {
         setTimeout(async () => {
 			try {
@@ -78,8 +81,6 @@ async function writeImageFileDelayPromise(progress, image) {
 			} catch (ex) {
 				console.error(chalk.red('[FAILED]') + ' ' + image.filename + ' ' + chalk.red('(' + ex.toString() + ')'));
 				reject();
-			} finally {
-				progress.current++;
 			}
         }, image.delay);
     });
@@ -107,6 +108,16 @@ async function writeImageFilePromise(image) {
 	}
 	
 	stream.write(buffer);
+}
+
+async function runPromises(promises) {
+	const results = await Promise.allSettled(promises);
+	const failedCount = results.filter(result => result.status === 'rejected').length;
+	if (failedCount === 0) {
+		console.log('Done, got them all!');
+	} else {
+		console.log('Done, but with ' + chalk.red(failedCount + ' failed') + '.');
+	}
 }
 
 async function createDirPromise(dir) {
