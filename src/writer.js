@@ -7,40 +7,46 @@ const requestPromiseNative = require('request-promise-native');
 const shared = require('./shared');
 
 async function writeFilesPromise(posts, config) {
-    await writeMarkdownFilesPromise(posts);
+    await writeMarkdownFilesPromise(posts, config);
     await writeImageFilesPromise(posts, config);
 }
 
-async function writeMarkdownFilesPromise(posts) {
-	let delay = 0;
-	posts.forEach(post => {
-		post.meta.delay = delay += 100
-	});
-
-	console.log('\nSaving posts...');
-    const promises = posts.map(writeMarkdownFileWrapperPromise);
-	await runPromises(promises);
-}
-
-async function writeMarkdownFileWrapperPromise(post) {
-    await new Promise((resolve, reject) => {
+async function processPayloadsPromise(payloads, writeFunc, config) {
+	const promises = payloads.map(payload => new Promise((resolve, reject) => {
         setTimeout(async () => {
 			try {
-				await writeMarkdownFilePromise(post);
-				console.log(chalk.green('[OK]') + ' ' + post.meta.slug);
+				await writeFunc(payload.item, config);
+				console.log(chalk.green('[OK]') + ' ' + payload.name);
 				resolve();
 			} catch (ex) {
-				console.error(chalk.red('[FAILED]') + ' ' + post.meta.slug + ' ' + chalk.red('(' + ex.toString() + ')'));
+				console.error(chalk.red('[FAILED]') + ' ' + payload.name + ' ' + chalk.red('(' + ex.toString() + ')'));
 				reject();
 			}
-        }, post.meta.delay);
-    });
+        }, payload.delay);
+	}));
+	
+	const results = await Promise.allSettled(promises);
+	const failedCount = results.filter(result => result.status === 'rejected').length;
+	if (failedCount === 0) {
+		console.log('Done, got them all!');
+	} else {
+		console.log('Done, but with ' + chalk.red(failedCount + ' failed') + '.');
+	}
 }
 
-async function writeMarkdownFilePromise(post) {
-    const postDir = getPostDir(post, config);
-    await createDirPromise(postDir);
+async function writeMarkdownFilesPromise(posts,config ) {
+	// package up posts into payloads
+	const payloads = posts.map((post, index) => ({
+		item: post,
+		name: post.meta.slug,
+		delay: index * 25
+	}));
 
+	console.log('\nSaving posts...');
+	await processPayloadsPromise(payloads, writeMarkdownFilePromise, config);
+}
+
+async function writeMarkdownFilePromise(post, config) {
     let output = '---\n';
     Object.entries(post.frontmatter).forEach(pair => {
         const key = pair[0];
@@ -48,51 +54,36 @@ async function writeMarkdownFilePromise(post) {
         output += key + ': "' + value + '"\n';
     });
 	output += '---\n\n' + post.content + '\n';
-	
+
+    const postDir = getPostDir(post, config);
+	await createDirPromise(postDir);
     const postPath = path.join(postDir, getPostFilename(post, config));
     await fs.promises.writeFile(postPath, output);
 }
 
 async function writeImageFilesPromise(posts, config) {
 	// collect image data from all posts into a single flattened array
-    let delay = 0;
     let images = posts.flatMap(post => {
         const postDir = getPostDir(post, config);
         return post.meta.imageUrls.map(imageUrl => ({
             postDir,
 			url: imageUrl,
-			filename: shared.getFilenameFromUrl(imageUrl),
-            delay: delay += 100
+			filename: shared.getFilenameFromUrl(imageUrl)
         }));
-    });
+	});
+	
+	// package up images into payloads
+	const payloads = images.map((image, index) => ({
+		item: image,
+		name: image.filename,
+		delay: index * 100
+	}));
 
 	console.log('\nSaving images...');
-    const promises = images.map(writeImageFileWrapperPromise);
-	await runPromises(promises);
-}
-
-async function writeImageFileWrapperPromise(image) {
-    await new Promise((resolve, reject) => {
-        setTimeout(async () => {
-			try {
-				await writeImageFilePromise(image);
-				console.log(chalk.green('[OK]') + ' ' + image.filename);
-				resolve();
-			} catch (ex) {
-				console.error(chalk.red('[FAILED]') + ' ' + image.filename + ' ' + chalk.red('(' + ex.toString() + ')'));
-				reject();
-			}
-        }, image.delay);
-    });
+	await processPayloadsPromise(payloads, writeImageFilePromise);
 }
 
 async function writeImageFilePromise(image) {
-	const imageDir = path.join(image.postDir, 'images');
-	await createDirPromise(imageDir);
-
-	const imagePath = path.join(imageDir, image.filename);
-	const stream = fs.createWriteStream(imagePath);
-
 	let buffer;
 	try {
 		buffer = await requestPromiseNative.get({
@@ -106,18 +97,13 @@ async function writeImageFilePromise(image) {
 		}
 		throw ex;
 	}
-	
-	stream.write(buffer);
-}
 
-async function runPromises(promises) {
-	const results = await Promise.allSettled(promises);
-	const failedCount = results.filter(result => result.status === 'rejected').length;
-	if (failedCount === 0) {
-		console.log('Done, got them all!');
-	} else {
-		console.log('Done, but with ' + chalk.red(failedCount + ' failed') + '.');
-	}
+	const imageDir = path.join(image.postDir, 'images');
+	await createDirPromise(imageDir);
+
+	const imagePath = path.join(imageDir, image.filename);
+	const stream = fs.createWriteStream(imagePath);
+	stream.write(buffer);
 }
 
 async function createDirPromise(dir) {
