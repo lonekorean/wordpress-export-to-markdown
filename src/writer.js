@@ -7,13 +7,13 @@ const requestPromiseNative = require('request-promise-native');
 const shared = require('./shared');
 
 async function writeFilesPromise(posts, config) {
-    await writeMarkdownFilesPromise(posts, config);
-    await writeImageFilesPromise(posts, config);
+	await writeMarkdownFilesPromise(posts, config);
+	await writeImageFilesPromise(posts, config);
 }
 
 async function processPayloadsPromise(payloads, writeFunc, config) {
 	const promises = payloads.map(payload => new Promise((resolve, reject) => {
-        setTimeout(async () => {
+		setTimeout(async () => {
 			try {
 				await writeFunc(payload.item, config);
 				console.log(chalk.green('[OK]') + ' ' + payload.name);
@@ -22,7 +22,7 @@ async function processPayloadsPromise(payloads, writeFunc, config) {
 				console.error(chalk.red('[FAILED]') + ' ' + payload.name + ' ' + chalk.red('(' + ex.toString() + ')'));
 				reject();
 			}
-        }, payload.delay);
+		}, payload.delay);
 	}));
 	
 	const results = await Promise.allSettled(promises);
@@ -47,29 +47,29 @@ async function writeMarkdownFilesPromise(posts,config ) {
 }
 
 async function writeMarkdownFilePromise(post, config) {
-    let output = '---\n';
-    Object.entries(post.frontmatter).forEach(pair => {
-        const key = pair[0];
-        const value = pair[1].replace(/"/g, '\\"');
-        output += key + ': "' + value + '"\n';
-    });
+	let output = '---\n';
+	Object.entries(post.frontmatter).forEach(pair => {
+		const key = pair[0];
+		const value = pair[1].replace(/"/g, '\\"');
+		output += key + ': "' + value + '"\n';
+	});
 	output += '---\n\n' + post.content + '\n';
 
-    const postDir = getPostDir(post, config);
+	const postDir = getPostDir(post, config);
 	await createDirPromise(postDir);
-    const postPath = path.join(postDir, getPostFilename(post, config));
-    await fs.promises.writeFile(postPath, output);
+	const postPath = path.join(postDir, getPostFilename(post, config));
+	await fs.promises.writeFile(postPath, output);
 }
 
 async function writeImageFilesPromise(posts, config) {
 	// collect image data from all posts into a single flattened array
-    let images = posts.flatMap(post => {
-        const postDir = getPostDir(post, config);
-        return post.meta.imageUrls.map(imageUrl => ({
-            postDir,
+	let images = posts.flatMap(post => {
+		const postDir = getPostDir(post, config);
+		return post.meta.imageUrls.map(imageUrl => ({
+			postDir,
 			url: imageUrl,
 			filename: shared.getFilenameFromUrl(imageUrl)
-        }));
+		}));
 	});
 	
 	// package up images into payloads
