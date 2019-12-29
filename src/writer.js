@@ -11,11 +11,12 @@ async function writeFilesPromise(posts, config) {
 	await writeImageFilesPromise(posts, config);
 }
 
-async function processPayloadsPromise(payloads, writeFunc, config) {
+async function processPayloadsPromise(payloads, loadFunc, config) {
 	const promises = payloads.map(payload => new Promise((resolve, reject) => {
 		setTimeout(async () => {
 			try {
-				await writeFunc(payload.item, config);
+				const data = await loadFunc(payload.item, config);
+				await writeFile(payload.dir, payload.filename, data);
 				console.log(chalk.green('[OK]') + ' ' + payload.name);
 				resolve();
 			} catch (ex) {
@@ -34,19 +35,26 @@ async function processPayloadsPromise(payloads, writeFunc, config) {
 	}
 }
 
-async function writeMarkdownFilesPromise(posts,config ) {
+async function writeFile(dir, filename, data) {
+	await fs.promises.mkdir(dir, { recursive: true });
+	await fs.promises.writeFile(path.join(dir, filename), data);
+}
+
+async function writeMarkdownFilesPromise(posts, config ) {
 	// package up posts into payloads
 	const payloads = posts.map((post, index) => ({
 		item: post,
 		name: post.meta.slug,
+		dir:  getPostDir(post, config),
+		filename: getPostFilename(post, config),
 		delay: index * 25
 	}));
 
 	console.log('\nSaving posts...');
-	await processPayloadsPromise(payloads, writeMarkdownFilePromise, config);
+	await processPayloadsPromise(payloads, loadMarkdownFilePromise, config);
 }
 
-async function writeMarkdownFilePromise(post, config) {
+async function loadMarkdownFilePromise(post) {
 	let output = '---\n';
 	Object.entries(post.frontmatter).forEach(pair => {
 		const key = pair[0];
@@ -54,40 +62,37 @@ async function writeMarkdownFilePromise(post, config) {
 		output += key + ': "' + value + '"\n';
 	});
 	output += '---\n\n' + post.content + '\n';
-
-	const postDir = getPostDir(post, config);
-	await createDirPromise(postDir);
-	const postPath = path.join(postDir, getPostFilename(post, config));
-	await fs.promises.writeFile(postPath, output);
+	return output;
 }
 
 async function writeImageFilesPromise(posts, config) {
-	// collect image data from all posts into a single flattened array
-	let images = posts.flatMap(post => {
+	// collect image data from all posts into a single flattened array of payloads
+	let delay = 0;
+	const payloads = posts.flatMap(post => {
 		const postDir = getPostDir(post, config);
-		return post.meta.imageUrls.map(imageUrl => ({
-			postDir,
-			url: imageUrl,
-			filename: shared.getFilenameFromUrl(imageUrl)
-		}));
+		return post.meta.imageUrls.map(imageUrl => {
+			const filename = shared.getFilenameFromUrl(imageUrl)
+			const payload = {
+				item: imageUrl,
+				name: filename,
+				dir: path.join(postDir, 'image'),
+				filename,
+				delay
+			};
+			delay += 100;
+			return payload;
+		});
 	});
-	
-	// package up images into payloads
-	const payloads = images.map((image, index) => ({
-		item: image,
-		name: image.filename,
-		delay: index * 100
-	}));
 
 	console.log('\nSaving images...');
-	await processPayloadsPromise(payloads, writeImageFilePromise);
+	await processPayloadsPromise(payloads, loadImageFilePromise);
 }
 
-async function writeImageFilePromise(image) {
+async function loadImageFilePromise(imageUrl) {
 	let buffer;
 	try {
 		buffer = await requestPromiseNative.get({
-			url: image.url,
+			url: imageUrl,
 			encoding: null // preserves binary encoding
 		});
 	} catch (ex) {
@@ -97,17 +102,7 @@ async function writeImageFilePromise(image) {
 		}
 		throw ex;
 	}
-
-	const imageDir = path.join(image.postDir, 'images');
-	await createDirPromise(imageDir);
-
-	const imagePath = path.join(imageDir, image.filename);
-	const stream = fs.createWriteStream(imagePath);
-	stream.write(buffer);
-}
-
-async function createDirPromise(dir) {
-	return fs.promises.mkdir(dir, { recursive: true });
+	return buffer;
 }
 
 function getPostDir(post, config) {
