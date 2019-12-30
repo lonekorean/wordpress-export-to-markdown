@@ -16,7 +16,7 @@ async function processPayloadsPromise(payloads, loadFunc, config) {
 		setTimeout(async () => {
 			try {
 				const data = await loadFunc(payload.item, config);
-				await writeFile(payload.dir, payload.filename, data);
+				await writeFile(payload.destinationPath, data);
 				console.log(chalk.green('[OK]') + ' ' + payload.name);
 				resolve();
 			} catch (ex) {
@@ -35,9 +35,9 @@ async function processPayloadsPromise(payloads, loadFunc, config) {
 	}
 }
 
-async function writeFile(dir, filename, data) {
-	await fs.promises.mkdir(dir, { recursive: true });
-	await fs.promises.writeFile(path.join(dir, filename), data);
+async function writeFile(destinationPath, data) {
+	await fs.promises.mkdir(path.dirname(destinationPath), { recursive: true });
+	await fs.promises.writeFile(destinationPath, data);
 }
 
 async function writeMarkdownFilesPromise(posts, config ) {
@@ -45,8 +45,7 @@ async function writeMarkdownFilesPromise(posts, config ) {
 	const payloads = posts.map((post, index) => ({
 		item: post,
 		name: post.meta.slug,
-		dir:  getPostDir(post, config),
-		filename: getPostFilename(post, config),
+		destinationPath: getPostPath(post, config),
 		delay: index * 25
 	}));
 
@@ -69,14 +68,14 @@ async function writeImageFilesPromise(posts, config) {
 	// collect image data from all posts into a single flattened array of payloads
 	let delay = 0;
 	const payloads = posts.flatMap(post => {
-		const postDir = getPostDir(post, config);
+		const postPath = getPostPath(post, config);
+		const imagesDir = path.join(path.dirname(postPath), 'images');
 		return post.meta.imageUrls.map(imageUrl => {
-			const filename = shared.getFilenameFromUrl(imageUrl)
+			const filename = shared.getFilenameFromUrl(imageUrl);
 			const payload = {
 				item: imageUrl,
 				name: filename,
-				dir: path.join(postDir, 'image'),
-				filename,
+				destinationPath: path.join(imagesDir, filename),
 				delay
 			};
 			delay += 100;
@@ -105,39 +104,35 @@ async function loadImageFilePromise(imageUrl) {
 	return buffer;
 }
 
-function getPostDir(post, config) {
-	let dir = config.output;
+function getPostPath(post, config) {
 	let dt = luxon.DateTime.fromISO(post.frontmatter.date);
 
-	if (config.yearmonthfolders) {
-		dir = path.join(dir, dt.toFormat('yyyy'), dt.toFormat('LL'));
-	} else if (config.yearfolders) {
-		dir = path.join(dir, dt.toFormat('yyyy'));
-	}
+	// start with base output dir
+	let pathSegments = [config.output];
 
-	if (config.postfolders) {
-		let folder = post.meta.slug;
-		if (config.prefixdate) {
-			folder = dt.toFormat('yyyy-LL-dd') + '-' + folder;
+	// add year/month dirs as specified
+	if (config.yearfolders || config.yearmonthfolders) {
+		pathSegments.push(dt.toFormat('yyyy'));
+
+		if (config.yearmonthfolders) {
+			pathSegments.push(dt.toFormat('LL'));
 		}
-		dir = path.join(dir, folder);
 	}
 
-	return dir;
-}
+	// create slug fragment, possibly date prefixed
+	let slugFragment = post.meta.slug;
+	if (config.prefixdate) {
+		slugFragment = dt.toFormat('yyyy-LL-dd') + '-' + slugFragment;
+	}
 
-function getPostFilename(post, config) {
+	// use slug fragment as folder or filename as specified
 	if (config.postfolders) {
-		// the containing folder name will be unique, just use index.md here
-		return 'index.md';
+		pathSegments.push(slugFragment, 'index.md');
 	} else {
-		let filename = post.meta.slug + '.md';
-		if (config.prefixdate) {
-			let dt = luxon.DateTime.fromISO(post.frontmatter.date);
-			filename = dt.toFormat('yyyy-LL-dd') + '-' + filename;
-		}
-		return filename;
+		pathSegments.push(slugFragment + '.md');
 	}
+
+	return path.join(...pathSegments);
 }
 
 exports.writeFilesPromise = writeFilesPromise;
