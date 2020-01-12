@@ -13,13 +13,13 @@ async function parseFilePromise(config) {
 		tagNameProcessors: [xml2js.processors.stripPrefix]
 	});
 
-	let posts = collectPosts(data);
+	let posts = collectPosts(data, config);
 
 	let images = [];
-	if (config.saveattachedimages) {
+	if (config.saveAttachedImages) {
 		images.push(...collectAttachedImages(data));
 	}
-	if (config.savescrapedimages) {
+	if (config.saveScrapedImages) {
 		images.push(...collectScrapedImages(data));
 	}
 
@@ -32,7 +32,7 @@ function getItemsOfType(data, type) {
 	return data.rss.channel[0].item.filter(item => item.post_type[0] === type);
 }
 
-function collectPosts(data) {
+function collectPosts(data, config) {
 	// this is passed into getPostContent() for the markdown conversion
 	turndownService = translator.initTurndownService();
 

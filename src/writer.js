@@ -110,23 +110,22 @@ function getPostPath(post, config) {
 	// start with base output dir
 	let pathSegments = [config.output];
 
-	// add year/month dirs as specified
-	if (config.yearfolders || config.yearmonthfolders) {
+	if (config.yearFolders) {
 		pathSegments.push(dt.toFormat('yyyy'));
+	}
 
-		if (config.yearmonthfolders) {
-			pathSegments.push(dt.toFormat('LL'));
-		}
+	if (config.monthFolders) {
+		pathSegments.push(dt.toFormat('LL'));
 	}
 
 	// create slug fragment, possibly date prefixed
 	let slugFragment = post.meta.slug;
-	if (config.prefixdate) {
+	if (config.prefixDate) {
 		slugFragment = dt.toFormat('yyyy-LL-dd') + '-' + slugFragment;
 	}
 
 	// use slug fragment as folder or filename as specified
-	if (config.postfolders) {
+	if (config.postFolders) {
 		pathSegments.push(slugFragment, 'index.md');
 	} else {
 		pathSegments.push(slugFragment + '.md');
