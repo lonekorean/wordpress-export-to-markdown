@@ -6,6 +6,7 @@ const writer = require('./src/writer');
 	let config = await wizard.getConfig();
 	let posts = await parser.parseFilePromise(config)
 	await writer.writeFilesPromise(posts, config);
+	wizard.displayCommand(config);
 })().catch(ex => {
 	console.error(ex);
 });

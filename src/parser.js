@@ -60,15 +60,18 @@ function getPostId(post) {
 	return post.post_id[0];
 }
 
+function getPostSlug(post) {
+	return post.post_name[0];
+}
+
 function getPostCoverImageId(post) {
-	if (post.postmeta === undefined) return;
+	if (post.postmeta === undefined) {
+		return undefined;
+	}
+
 	let postmeta = post.postmeta.find(postmeta => postmeta.meta_key[0] === '_thumbnail_id');
 	let id = postmeta ? postmeta.meta_value[0] : undefined;
 	return id;
-}
-
-function getPostSlug(post) {
-	return post.post_name[0];
 }
 
 function getPostTitle(post) {

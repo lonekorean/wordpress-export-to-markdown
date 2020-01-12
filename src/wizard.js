@@ -68,18 +68,25 @@ async function getConfig() {
 	extendOptionsData();
 	const program = parseCommandLine(process.argv);
 
-	let questions = options.map(option => ({
-		when: option.name !== 'wizard' && program.wizard && !option.isProvided,
-		name: camelcase(option.name),
-		type: option.prompt,
-		message: option.description + '?',
-		default: option.default,
-
-		// these are not used for all option types and that's fine
-		filter: option.coerce,
-		validate: option.validate
-	}));
-	let answers = await inquirer.prompt(questions);
+	let answers;
+	if (program.wizard) {
+		console.log('\nStarting wizard...');
+		let questions = options.map(option => ({
+			when: option.name !== 'wizard' && !option.isProvided,
+			name: camelcase(option.name),
+			type: option.prompt,
+			message: option.description + '?',
+			default: option.default,
+	
+			// these are not used for all option types and that's fine
+			filter: option.coerce,
+			validate: option.validate
+		}));
+		answers = await inquirer.prompt(questions);
+	} else {
+		console.log('\nSkipping wizard...');
+		answers = {};
+	}
 
 	const config = { ...program.opts(), ...answers };
 	return config;
@@ -114,8 +121,8 @@ function parseCommandLine(argv) {
 		.name('node index.js')
 		.helpOption('-h, --help', 'See the thing you\'re looking at right now')
 		.on('--help', () => {
-			console.log('\nMore documentation at https://github.com/lonekorean/wordpress-export-to-markdown');
-		})
+			console.log('\nMore documentation is at https://github.com/lonekorean/wordpress-export-to-markdown');
+		});
 
 	options.forEach(input => {
 		const flag = '--' + input.name + ' <' + input.type + '>';
@@ -150,4 +157,19 @@ function validateFile(value) {
 	return isValid ? true : 'Unable to find file: ' + path.resolve(value);
 }
 
+function displayCommand(config) {
+	let command = 'node index.js --wizard=false';
+	options.forEach(option => {
+		if (option.name !== 'wizard') {
+			let configKey = camelcase(option.name);
+			let configValue = config[configKey];
+			if (configValue !== option.default) {
+				command += ' --' + option.name + '=' + configValue;
+			}
+		}
+	});
+	console.log('\nTo skip the wizard and rerun with the same options, run this:\n' + command);
+}
+
 exports.getConfig = getConfig;
+exports.displayCommand = displayCommand;
