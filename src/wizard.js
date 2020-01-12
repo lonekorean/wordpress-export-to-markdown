@@ -5,8 +5,8 @@ const fs = require('fs');
 const inquirer = require('inquirer');
 const path = require('path');
 
-// expected user inputs are declard here
-const inputs = [
+// all user options for command line and wizard are declard here
+const options = [
 	// wizard must always be first
 	{
 		name: 'wizard',
@@ -65,19 +65,19 @@ const inputs = [
 ];
 
 async function getConfig() {
-	extendInputsData();
+	extendOptionsData();
 	const program = parseCommandLine(process.argv);
 
-	let questions = inputs.map(input => ({
-		when: input.name !== 'wizard' && program.wizard && !input.isProvided,
-		name: camelcase(input.name),
-		type: input.prompt,
-		message: input.description + '?',
-		default: input.default,
+	let questions = options.map(option => ({
+		when: option.name !== 'wizard' && program.wizard && !option.isProvided,
+		name: camelcase(option.name),
+		type: option.prompt,
+		message: option.description + '?',
+		default: option.default,
 
-		// boolean inputs don't use filter or validate, which is fine
-		filter: input.coerce,
-		validate: input.validate
+		// these are not used for all option types and that's fine
+		filter: option.coerce,
+		validate: option.validate
 	}));
 	let answers = await inquirer.prompt(questions);
 
@@ -85,8 +85,8 @@ async function getConfig() {
 	return config;
 }
 
-function extendInputsData() {
-	// based on each input's type, add more data that will be used later
+function extendOptionsData() {
+	// add more data to each option based on its type
 	const map = {
 		boolean: {
 			prompt: 'confirm',
@@ -99,13 +99,12 @@ function extendInputsData() {
 		},
 		folder: {
 			prompt: 'input',
-			coerce: coercePath,
-			validate: validateFolder
+			coerce: coercePath
 		}
 	};
 
-	inputs.forEach(input => {
-		Object.assign(input, map[input.type]);
+	options.forEach(option => {
+		Object.assign(option, map[option.type]);
 	});
 }
 
@@ -118,11 +117,11 @@ function parseCommandLine(argv) {
 			console.log('\nMore documentation at https://github.com/lonekorean/wordpress-export-to-markdown');
 		})
 
-	inputs.forEach(input => {
+	options.forEach(input => {
 		const flag = '--' + input.name + ' <' + input.type + '>';
 		const coerce = (value) => {
-			// commander only calls coerce when an input is present on the command line, which
-			// provides an easy way to flag (for later) if it should be excluded from the wizard
+			// commander only calls coerce when an input is provided on the command line, which
+			// makes for an easy way to flag (for later) if it should be excluded from the wizard
 			input.isProvided = true;
 			return input.coerce(value);
 		};
@@ -141,24 +140,14 @@ function coercePath(value) {
 }
 
 function validateFile(value) {
-	if (checkFileExists(value)) {
-		return true;
-	} else {
-		return 'Unable to find file: ' + path.resolve(value);
-	}
-}
-
-function validateFolder(value) {
-	// TODO: implement
-	return true;
-}
-
-function checkFileExists(path) {
+	let isValid;
 	try {
-		return fs.existsSync(path);
+		isValid = fs.existsSync(value) && fs.statSync(value).isFile();
 	} catch (ex) {
-		return false;
+		isValid = false;
 	}
+
+	return isValid ? true : 'Unable to find file: ' + path.resolve(value);
 }
 
 exports.getConfig = getConfig;
