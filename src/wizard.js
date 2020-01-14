@@ -5,6 +5,8 @@ const fs = require('fs');
 const inquirer = require('inquirer');
 const path = require('path');
 
+const package = require('../package.json');
+
 // all user options for command line and wizard are declard here
 const options = [
 	// wizard must always be first
@@ -119,6 +121,7 @@ function parseCommandLine(argv) {
 	// setup for help output
 	commander
 		.name('node index.js')
+		.version('v' + package.version, '-v, --version', 'Display version number')
 		.helpOption('-h, --help', 'See the thing you\'re looking at right now')
 		.on('--help', () => {
 			console.log('\nMore documentation is at https://github.com/lonekorean/wordpress-export-to-markdown');
@@ -157,7 +160,7 @@ function validateFile(value) {
 	return isValid ? true : 'Unable to find file: ' + path.resolve(value);
 }
 
-function displayCommand(config) {
+function getCommand(config) {
 	let command = 'node index.js --wizard=false';
 	options.forEach(option => {
 		if (option.name !== 'wizard') {
@@ -168,8 +171,8 @@ function displayCommand(config) {
 			}
 		}
 	});
-	console.log('\nTo skip the wizard and rerun with the same options, run this:\n' + command);
+	return command;
 }
 
 exports.getConfig = getConfig;
-exports.displayCommand = displayCommand;
+exports.getCommand = getCommand;

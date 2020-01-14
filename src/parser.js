@@ -6,7 +6,7 @@ const shared = require('./shared');
 const translator = require('./translator');
 
 async function parseFilePromise(config) {
-	console.log('\nParsing export file...');
+	console.log('\nParsing...');
 	const content = await fs.promises.readFile(config.input, 'utf8');
 	const data = await xml2js.parseStringPromise(content, {
 		trim: true,

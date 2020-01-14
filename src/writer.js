@@ -83,8 +83,12 @@ async function writeImageFilesPromise(posts, config) {
 		});
 	});
 
-	console.log('\nSaving images...');
-	await processPayloadsPromise(payloads, loadImageFilePromise);
+	if (payloads.length > 0) {
+		console.log('\nDownloading and saving images...');
+		await processPayloadsPromise(payloads, loadImageFilePromise);
+	} else {
+		console.log('\nNo images to download and save...');
+	}
 }
 
 async function loadImageFilePromise(imageUrl) {
