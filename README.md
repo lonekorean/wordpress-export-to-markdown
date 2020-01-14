@@ -10,7 +10,7 @@ You'll need:
 - [Node.js](https://nodejs.org/) v12.14 or later
 - Your [WordPress export file](https://codex.wordpress.org/Tools_Export_Screen)
 
-Open your terminal to this package's directory. Run `npm install` and then `node index.js`. This will start the wizard. Answers the prompts and off you go!
+Open your terminal to this package's directory. Run `npm install` and then `node index.js`. This will start the wizard. Answer the prompts and off you go!
 
 ## Command Line
 
@@ -19,13 +19,13 @@ The wizard makes it easy to configure your options, but you can also do so via t
 For example, this will give you [Jekyll](https://jekyllrb.com/)-style output in terms of folder structure and filenames:
 
 ```
-node index.js --postfolders=false --prefixdate=true
+node index.js --post-folders=false --prefix-date=true
 ```
 
 The wizard will still prompt you for any options not specifed on the command line. To skip the wizard entirely and use default values for unspecified options, use `--wizard=false`, like this:
 
 ```
-node index.js --wizard=false --postfolders=false --prefixdate=true
+node index.js --wizard=false --post-folders=false --prefix-date=true
 ```
 
 You can see available command line arguments by running:
@@ -50,7 +50,7 @@ Enable to have the script prompt you for each option. Disable to skip the wizard
 - Type: `file` (as a path string)
 - Default: `export.xml`
 
-The file to parse. This should be the WordPress export XML file that you downloaded.
+The path for the file to parse. This should be the WordPress export XML file that you downloaded. The easiest thing to do is drop your `export.xml` file into the script's directory and use the default value for this option.
 
 ### Path to output folder?
 
@@ -58,7 +58,7 @@ The file to parse. This should be the WordPress export XML file that you downloa
 - Type: `folder` (as a path string)
 - Default: `output`
 
-The output directory where Markdown and image files will be saved. If it does not exist, it will be created for you.
+The path for the output directory where Markdown and image files will be saved. If it does not exist, it will be created for you.
 
 ### Create year folders?
 
