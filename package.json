@@ -25,6 +25,6 @@
 		"xml2js": "^0.4.22"
 	},
 	"bin": {
-		"w2m": "./index.js"
+		"wordpress-export-to-markdown": "./index.js"
 	}
 }

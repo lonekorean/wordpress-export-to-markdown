@@ -14,8 +14,8 @@ You'll need:
 
 There are a few ways you can run the package:
 
-1. use npx example: `npx w2m --input=wordpress_export_file.xml`
-2. install it via npm: `npm i wordpress-export-to-markdown` then run `w2m --input=wordpress_export_file.xml`
+1. use npx example: `npx wordpress-export-to-markdown --input=wordpress_export_file.xml`
+2. install it via npm: `npm i wordpress-export-to-markdown` then run `wordpress-export-to-markdown --input=wordpress_export_file.xml`
 3. Clone this repository, open your terminal then run `npm install` and then `node index.js`.
 
 This will create an `/output` folder filled with your posts and images.
