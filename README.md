@@ -12,11 +12,11 @@ You'll need:
 - [Node.js](https://nodejs.org/) v10.12 or later
 - Your [WordPress export file](https://codex.wordpress.org/Tools_Export_Screen)
 
-There are a few ways you can run the package:
+There are a few ways you can use this package:
 
-1. use npx example: `npx wordpress-export-to-markdown --input=wordpress_export_file.xml`
-2. install it via npm: `npm i wordpress-export-to-markdown` then run `wordpress-export-to-markdown --input=wordpress_export_file.xml`
-3. Clone this repository, open your terminal then run `npm install` and then `node index.js`.
+1. To run via `npx`, run `npx wordpress-export-to-markdown`
+2. To add to an existing repo, run `npm i wordpress-export-to-markdown` and then `wordpress-export-to-markdown`
+3. Clone this repo, open your terminal to this package's directory, then run `npm install` and then `node index.js`
 
 This will create an `/output` folder filled with your posts and images.
 
