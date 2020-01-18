@@ -1,8 +1,8 @@
 # wordpress-export-to-markdown
 
-Converts a WordPress export XML file into Markdown files. Useful if you want to migrate from WordPress to a static site generator ([Gatsby](https://www.gatsbyjs.org/), [Hugo](https://gohugo.io/), [Jekyll](https://jekyllrb.com/), etc.).
+A script that converts a WordPress export XML file into Markdown files. Useful if you want to migrate from WordPress to a static site generator ([Gatsby](https://www.gatsbyjs.org/), [Hugo](https://gohugo.io/), [Jekyll](https://jekyllrb.com/), etc.).
 
-Saves each post as a separate file with appropriate frontmatter. Also downloads and saves images. There are several options for controlling the folder structure of the output.
+Each post is saved as a separate Markdown file with appropriate frontmatter. Images are also downloaded and saved. Embedded content from YouTube, Twitter, CodePen, etc. is carefully preserved.
 
 ## Quick Start
 
@@ -10,29 +10,40 @@ You'll need:
 - [Node.js](https://nodejs.org/) v12.14 or later
 - Your [WordPress export file](https://codex.wordpress.org/Tools_Export_Screen)
 
-Open your terminal to this package's directory. Run `npm install` and then `node index.js`. This will start the wizard. Answer the prompts and off you go!
+You can run this script immediately in your terminal with `npx`:
+
+```
+npx wordpress-export-to-markdown
+```
+
+Or you can clone and run (this makes repeated runs faster and allows you to tinker with the code). After cloning this repo, open your terminal to the package's directory and run:
+
+```
+npm install
+node index.js
+```
+
+Either way you run it, the script will start the wizard. Answer the prompts and off you go!
 
 ## Command Line
 
 The wizard makes it easy to configure your options, but you can also do so via the command line if you want.
 
-For example, this will give you [Jekyll](https://jekyllrb.com/)-style output in terms of folder structure and filenames:
+For example, the following will give you [Jekyll](https://jekyllrb.com/)-style output in terms of folder structure and filenames.
+
+Using `npx`:
+
+```
+npx wordpress-export-to-markdown --post-folders=false --prefix-date=true
+```
+
+Using a locally cloned repo:
 
 ```
 node index.js --post-folders=false --prefix-date=true
 ```
 
-The wizard will still prompt you for any options not specifed on the command line. To skip the wizard entirely and use default values for unspecified options, use `--wizard=false`, like this:
-
-```
-node index.js --wizard=false --post-folders=false --prefix-date=true
-```
-
-You can see available command line arguments by running:
-
-```
-node index.js -h
-```
+The wizard will still prompt you for any options not specifed on the command line. To skip the wizard entirely and use default values for unspecified options, add `--wizard=false`.
 
 ## Options
 
