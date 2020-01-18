@@ -23,5 +23,8 @@
 		"request": "^2.88.0",
 		"turndown": "^5.0.3",
 		"xml2js": "^0.4.22"
+	},
+	"bin": {
+		"wordpress-export-to-markdown": "./index.js"
 	}
 }
