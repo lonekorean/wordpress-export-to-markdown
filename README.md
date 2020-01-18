@@ -8,7 +8,9 @@ Each post is saved as a separate Markdown file with appropriate frontmatter. Ima
 
 You'll need:
 - [Node.js](https://nodejs.org/) v12.14 or later
-- Your [WordPress export file](https://codex.wordpress.org/Tools_Export_Screen)
+- Your [WordPress export file](https://wordpress.org/support/article/tools-export-screen/)
+
+It is recommended that you drop your WordPress export file into the same directory that you run this script from so it's easy to find.
 
 You can run this script immediately in your terminal with `npx`:
 
@@ -19,11 +21,10 @@ npx wordpress-export-to-markdown
 Or you can clone and run (this makes repeated runs faster and allows you to tinker with the code). After cloning this repo, open your terminal to the package's directory and run:
 
 ```
-npm install
-node index.js
+npm install && node index.js
 ```
 
-Either way you run it, the script will start the wizard. Answer the prompts and off you go!
+Either way you run it, the script will start the wizard. Answer the questions and off you go!
 
 ## Command Line
 
@@ -43,7 +44,7 @@ Using a locally cloned repo:
 node index.js --post-folders=false --prefix-date=true
 ```
 
-The wizard will still prompt you for any options not specifed on the command line. To skip the wizard entirely and use default values for unspecified options, add `--wizard=false`.
+The wizard will still ask you about any options not specifed on the command line. To skip the wizard entirely and use default values for unspecified options, add `--wizard=false`.
 
 ## Options
 
@@ -55,13 +56,13 @@ The wizard will still prompt you for any options not specifed on the command lin
 
 Enable to have the script prompt you for each option. Disable to skip the wizard entirely and use default values for any options not specified via the command line.
 
-### Path to input file?
+### Path to WordPress export file?
 
 - Argument: `--input`
 - Type: `file` (as a path string)
 - Default: `export.xml`
 
-The path for the file to parse. This should be the WordPress export XML file that you downloaded. The easiest thing to do is drop your `export.xml` file into the script's directory and use the default value for this option.
+The path for the WordPress export file that you want to parse. It is recommended that you drop your WordPress export file into the same directory that you run this script from so it's easy to find.
 
 ### Path to output folder?
 
@@ -144,7 +145,7 @@ If `--post-folders` is `false`, this affects the file.
 - Type: `boolean`
 - Default: `true`
 
-Whether or not to download and save images attached to posts. Generally speaking, these are images that were added by dragging/dropping or clicking **Add Media** or **Set Featured Image** when editing a post in WordPress. Images are saved into `/images`.
+Whether or not to download and save images attached to posts. Generally speaking, these are images that were uploaded by using **Add Media** or **Set Featured Image** when editing a post in WordPress. Images are saved into `/images`.
 
 ### Save images scraped from post body content?
 

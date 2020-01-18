@@ -19,7 +19,7 @@ const options = [
 	{
 		name: 'input',
 		type: 'file',
-		description: 'Path to input file',
+		description: 'Path to WordPress export file',
 		default: 'export.xml'
 	},
 	{
