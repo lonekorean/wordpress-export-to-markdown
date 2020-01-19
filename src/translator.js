@@ -1,7 +1,7 @@
 const turndown = require('turndown');
 
 function initTurndownService() {
-	let turndownService = new turndown({
+	const turndownService = new turndown({
 		headingStyle: 'atx',
 		bulletListMarker: '-',
 		codeBlockStyle: 'fenced'
@@ -20,13 +20,13 @@ function initTurndownService() {
 			// but this series of checks should find the commonalities
 			return (
 				['P', 'DIV'].includes(node.nodeName) &&
-				node.attributes['data-slug-hash'] && 
+				node.attributes['data-slug-hash'] &&
 				node.getAttribute('class') === 'codepen'
 			);
 		},
 		replacement: (content, node) => '\n\n' + node.outerHTML
 	});
-		
+
 	// preserve embedded scripts (for tweets, codepens, gists, etc.)
 	turndownService.addRule('script', {
 		filter: 'script',
@@ -36,7 +36,7 @@ function initTurndownService() {
 				// keep twitter and codepen <script> tags snug with the element above them
 				before = '\n';
 			}
-			let html = node.outerHTML.replace('async=""', 'async');
+			const html = node.outerHTML.replace('async=""', 'async');
 			return before + html + '\n\n';
 		}
 	});
@@ -45,7 +45,7 @@ function initTurndownService() {
 	turndownService.addRule('iframe', {
 		filter: 'iframe',
 		replacement: (content, node) => {
-			let html = node.outerHTML.replace('allowfullscreen=""', 'allowfullscreen');
+			const html = node.outerHTML.replace('allowfullscreen=""', 'allowfullscreen');
 			return '\n\n' + html + '\n\n';
 		}
 	});
@@ -64,7 +64,7 @@ function getPostContent(post, turndownService, config) {
 	if (config.saveScrapedImages) {
 		// writeImageFile() will save all content images to a relative /images
         // folder so update references in post content to match
-		content = content.replace(/(<img[^>]*src=").*?([^\/"]+\.(?:gif|jpe?g|png))("[^>]*>)/gi, '$1images/$2$3');
+		content = content.replace(/(<img[^>]*src=").*?([^/"]+\.(?:gif|jpe?g|png))("[^>]*>)/gi, '$1images/$2$3');
 	}
 
 	// this is a hack to make <iframe> nodes non-empty by inserting a "." which

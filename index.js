@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const path = require('path');
+const process = require('process');
 
 const wizard = require('./src/wizard');
 const parser = require('./src/parser');
@@ -8,10 +9,10 @@ const writer = require('./src/writer');
 
 (async () => {
 	// parse any command line arguments and run wizard
-	let config = await wizard.getConfig();
+	const config = await wizard.getConfig(process.argv);
 
 	// parse data from XML and do Markdown translations
-	let posts = await parser.parseFilePromise(config)
+	const posts = await parser.parseFilePromise(config)
 
 	// write files, downloading images as needed
 	await writer.writeFilesPromise(posts, config);

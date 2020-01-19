@@ -13,9 +13,9 @@ async function parseFilePromise(config) {
 		tagNameProcessors: [xml2js.processors.stripPrefix]
 	});
 
-	let posts = collectPosts(data, config);
+	const posts = collectPosts(data, config);
 
-	let images = [];
+	const images = [];
 	if (config.saveAttachedImages) {
 		images.push(...collectAttachedImages(data));
 	}
@@ -34,9 +34,9 @@ function getItemsOfType(data, type) {
 
 function collectPosts(data, config) {
 	// this is passed into getPostContent() for the markdown conversion
-	turndownService = translator.initTurndownService();
+	const turndownService = translator.initTurndownService();
 
-	let posts = getItemsOfType(data, 'post')
+	const posts = getItemsOfType(data, 'post')
 		.map(post => ({
 			// meta data isn't written to file, but is used to help with other things
 			meta: {
@@ -69,8 +69,8 @@ function getPostCoverImageId(post) {
 		return undefined;
 	}
 
-	let postmeta = post.postmeta.find(postmeta => postmeta.meta_key[0] === '_thumbnail_id');
-	let id = postmeta ? postmeta.meta_value[0] : undefined;
+	const postmeta = post.postmeta.find(postmeta => postmeta.meta_key[0] === '_thumbnail_id');
+	const id = postmeta ? postmeta.meta_value[0] : undefined;
 	return id;
 }
 
@@ -83,7 +83,7 @@ function getPostDate(post) {
 }
 
 function collectAttachedImages(data) {
-	let images = getItemsOfType(data, 'attachment')
+	const images = getItemsOfType(data, 'attachment')
 		// filter to certain image file types
 		.filter(attachment => (/\.(gif|jpe?g|png)$/i).test(attachment.attachment_url[0]))
 		.map(attachment => ({
@@ -97,16 +97,16 @@ function collectAttachedImages(data) {
 }
 
 function collectScrapedImages(data) {
-	let images = [];
+	const images = [];
 	getItemsOfType(data, 'post').forEach(post => {
-		let postId = post.post_id[0];
-		let postContent = post.encoded[0];
-		let postLink = post.link[0];
+		const postId = post.post_id[0];
+		const postContent = post.encoded[0];
+		const postLink = post.link[0];
 
-		let matches = [...postContent.matchAll(/<img[^>]*src="(.+?\.(?:gif|jpe?g|png))"[^>]*>/gi)];
+		const matches = [...postContent.matchAll(/<img[^>]*src="(.+?\.(?:gif|jpe?g|png))"[^>]*>/gi)];
 		matches.forEach(match => {
 			// base the matched image URL relative to the post URL
-			let url = new URL(match[1], postLink).href;
+			const url = new URL(match[1], postLink).href;
 
 			images.push({
 				id: -1,
@@ -122,13 +122,13 @@ function collectScrapedImages(data) {
 
 function mergeImagesIntoPosts(images, posts) {
 	// create lookup table for quicker traversal
-	let postsLookup = posts.reduce((lookup, post) => {
+	const postsLookup = posts.reduce((lookup, post) => {
 		lookup[post.meta.id] = post;
 		return lookup;
 	}, {});
 
 	images.forEach(image => {
-		let post = postsLookup[image.postId];
+		const post = postsLookup[image.postId];
 		if (post) {
 			if (image.id === post.meta.coverImageId) {
 				// save cover image filename to frontmatter

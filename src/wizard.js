@@ -1,5 +1,4 @@
 const camelcase = require('camelcase');
-const chalk = require('chalk');
 const commander = require('commander');
 const fs = require('fs');
 const inquirer = require('inquirer');
@@ -66,14 +65,14 @@ const options = [
 	}
 ];
 
-async function getConfig() {
+async function getConfig(argv) {
 	extendOptionsData();
-	const program = parseCommandLine(process.argv);
+	const program = parseCommandLine(argv);
 
 	let answers;
 	if (program.wizard) {
 		console.log('\nStarting wizard...');
-		let questions = options.map(option => ({
+		const questions = options.map(option => ({
 			when: option.name !== 'wizard' && !option.isProvided,
 			name: camelcase(option.name),
 			type: option.prompt,
@@ -160,19 +159,4 @@ function validateFile(value) {
 	return isValid ? true : 'Unable to find file: ' + path.resolve(value);
 }
 
-function getCommand(config) {
-	let command = 'node index.js --wizard=false';
-	options.forEach(option => {
-		if (option.name !== 'wizard') {
-			let configKey = camelcase(option.name);
-			let configValue = config[configKey];
-			if (configValue !== option.default) {
-				command += ' --' + option.name + '=' + configValue;
-			}
-		}
-	});
-	return command;
-}
-
 exports.getConfig = getConfig;
-exports.getCommand = getCommand;

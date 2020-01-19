@@ -28,9 +28,7 @@ Either way you run it, the script will start the wizard. Answer the questions an
 
 ## Command Line
 
-The wizard makes it easy to configure your options, but you can also do so via the command line if you want.
-
-For example, the following will give you [Jekyll](https://jekyllrb.com/)-style output in terms of folder structure and filenames.
+The wizard makes it easy to configure your options, but you can also do so via the command line if you want. For example, the following will give you [Jekyll](https://jekyllrb.com/)-style output in terms of folder structure and filenames.
 
 Using `npx`:
 
@@ -54,7 +52,7 @@ The wizard will still ask you about any options not specifed on the command line
 - Type: `boolean`
 - Default: `true`
 
-Enable to have the script prompt you for each option. Disable to skip the wizard entirely and use default values for any options not specified via the command line.
+Enable to have the script prompt you for each option. Disable to skip the wizard and use default values for any options not specified via the command line.
 
 ### Path to WordPress export file?
 

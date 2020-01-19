@@ -5,9 +5,11 @@
 	"main": "index.js",
 	"repository": "https://github.com/lonekorean/wordpress-export-to-markdown.git",
 	"keywords": [
-		"wordpress",
+		"blog",
+		"convert",
+		"export",
 		"markdown",
-		"export"
+		"wordpress"
 	],
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1"
@@ -27,6 +29,9 @@
 		"request-promise-native": "^1.0.8",
 		"turndown": "^5.0.3",
 		"xml2js": "^0.4.22"
+	},
+	"devDependencies": {
+		"eslint": "^6.8.0"
 	},
 	"bin": {
 		"wordpress-export-to-markdown": "./index.js"

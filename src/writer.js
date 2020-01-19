@@ -109,10 +109,10 @@ async function loadImageFilePromise(imageUrl) {
 }
 
 function getPostPath(post, config) {
-	let dt = luxon.DateTime.fromISO(post.frontmatter.date);
+	const dt = luxon.DateTime.fromISO(post.frontmatter.date);
 
 	// start with base output dir
-	let pathSegments = [config.output];
+	const pathSegments = [config.output];
 
 	if (config.yearFolders) {
 		pathSegments.push(dt.toFormat('yyyy'));
