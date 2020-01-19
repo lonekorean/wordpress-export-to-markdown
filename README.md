@@ -1,6 +1,6 @@
 # wordpress-export-to-markdown
 
-A script that converts a WordPress export XML file into Markdown files. Useful if you want to migrate from WordPress to a static site generator ([Gatsby](https://www.gatsbyjs.org/), [Hugo](https://gohugo.io/), [Jekyll](https://jekyllrb.com/), etc.).
+A script that converts a WordPress export XML file into Markdown files suitable for a static site generator ([Gatsby](https://www.gatsbyjs.org/), [Hugo](https://gohugo.io/), [Jekyll](https://jekyllrb.com/), etc.).
 
 Each post is saved as a separate Markdown file with appropriate frontmatter. Images are also downloaded and saved. Embedded content from YouTube, Twitter, CodePen, etc. is carefully preserved.
 
@@ -62,7 +62,7 @@ Enable to have the script prompt you for each option. Disable to skip the wizard
 - Type: `file` (as a path string)
 - Default: `export.xml`
 
-The path for the WordPress export file that you want to parse. It is recommended that you drop your WordPress export file into the same directory that you run this script from so it's easy to find.
+The path to the WordPress export file that you want to parse. It is recommended that you drop your WordPress export file into the same directory that you run this script from so it's easy to find.
 
 ### Path to output folder?
 
@@ -70,7 +70,7 @@ The path for the WordPress export file that you want to parse. It is recommended
 - Type: `folder` (as a path string)
 - Default: `output`
 
-The path for the output directory where Markdown and image files will be saved. If it does not exist, it will be created for you.
+The path to the output directory where Markdown and image files will be saved. If it does not exist, it will be created for you.
 
 ### Create year folders?
 
