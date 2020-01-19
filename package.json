@@ -5,9 +5,11 @@
 	"main": "index.js",
 	"repository": "https://github.com/lonekorean/wordpress-export-to-markdown.git",
 	"keywords": [
-		"wordpress",
+		"blog",
+		"convert",
+		"export",
 		"markdown",
-		"export"
+		"wordpress"
 	],
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1"
@@ -15,14 +17,21 @@
 	"author": "Will Boyd <will@codersblock.com> (https://codersblock.com)",
 	"license": "MIT",
 	"engines": {
-		"node": ">= 10.12.0"
+		"node": ">= 12.14.0"
 	},
 	"dependencies": {
+		"camelcase": "^5.3.1",
+		"chalk": "^3.0.0",
+		"commander": "^4.0.1",
+		"inquirer": "^7.0.3",
 		"luxon": "^1.21.3",
-		"minimist": "^1.2.0",
 		"request": "^2.88.0",
+		"request-promise-native": "^1.0.8",
 		"turndown": "^5.0.3",
 		"xml2js": "^0.4.22"
+	},
+	"devDependencies": {
+		"eslint": "^6.8.0"
 	},
 	"bin": {
 		"wordpress-export-to-markdown": "./index.js"

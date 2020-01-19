@@ -1,135 +1,156 @@
 # wordpress-export-to-markdown
 
-Converts a WordPress export XML file into Markdown files.
+A script that converts a WordPress export XML file into Markdown files suitable for a static site generator ([Gatsby](https://www.gatsbyjs.org/), [Hugo](https://gohugo.io/), [Jekyll](https://jekyllrb.com/), etc.).
 
-Useful if you want to migrate from WordPress to a static site generator ([Gatsby](https://www.gatsbyjs.org/), [Hugo](https://gohugo.io/), [Jekyll](https://jekyllrb.com/), etc.).
+Each post is saved as a separate Markdown file with appropriate frontmatter. Images are also downloaded and saved. Embedded content from YouTube, Twitter, CodePen, etc. is carefully preserved.
 
-Saves each post as a separate file with appropriate frontmatter. Also saves attached images and (optionally) any additional images found in post body content. Posts and images can be saved into a variety of folder structures.
+![wordpress-export-to-markdown running in a terminal](https://user-images.githubusercontent.com/1245573/72686026-3aa04280-3abe-11ea-92c1-d756a24657dd.gif)
 
 ## Quick Start
 
 You'll need:
-- [Node.js](https://nodejs.org/) v10.12 or later
-- Your [WordPress export file](https://codex.wordpress.org/Tools_Export_Screen)
+- [Node.js](https://nodejs.org/) v12.14 or later
+- Your [WordPress export file](https://wordpress.org/support/article/tools-export-screen/)
 
-There are a few ways you can use this package:
+It is recommended that you drop your WordPress export file into the same directory that you run this script from so it's easy to find.
 
-1. To run via `npx`, run `npx wordpress-export-to-markdown`
-2. To add to an existing repo, run `npm i wordpress-export-to-markdown` and then `wordpress-export-to-markdown`
-3. Clone this repo, open your terminal to this package's directory, then run `npm install` and then `node index.js`
-
-This will create an `/output` folder filled with your posts and images.
-
-## Customization
-
-You can use command line arguments to control options for how the script runs. For example, this will give you [Jekyll](https://jekyllrb.com/)-style output in terms of folder structure and filenames:
+You can run this script immediately in your terminal with `npx`:
 
 ```
-node index.js --postfolders=false --prefixdate=true
+npx wordpress-export-to-markdown
 ```
 
-### --input
+Or you can clone and run (this makes repeated runs faster and allows you to tinker with the code). After cloning this repo, open your terminal to the package's directory and run:
 
-- Type: String
+```
+npm install && node index.js
+```
+
+Either way you run it, the script will start the wizard. Answer the questions and off you go!
+
+## Command Line
+
+The wizard makes it easy to configure your options, but you can also do so via the command line if you want. For example, the following will give you [Jekyll](https://jekyllrb.com/)-style output in terms of folder structure and filenames.
+
+Using `npx`:
+
+```
+npx wordpress-export-to-markdown --post-folders=false --prefix-date=true
+```
+
+Using a locally cloned repo:
+
+```
+node index.js --post-folders=false --prefix-date=true
+```
+
+The wizard will still ask you about any options not specifed on the command line. To skip the wizard entirely and use default values for unspecified options, add `--wizard=false`.
+
+## Options
+
+### Use wizard?
+
+- Argument: `--wizard`
+- Type: `boolean`
+- Default: `true`
+
+Enable to have the script prompt you for each option. Disable to skip the wizard and use default values for any options not specified via the command line.
+
+### Path to WordPress export file?
+
+- Argument: `--input`
+- Type: `file` (as a path string)
 - Default: `export.xml`
 
-The file to parse. This should be the WordPress export XML file that you downloaded.
+The path to the WordPress export file that you want to parse. It is recommended that you drop your WordPress export file into the same directory that you run this script from so it's easy to find.
 
-### --output
+### Path to output folder?
 
-- Type: String
+- Argument: `--output`
+- Type: `folder` (as a path string)
 - Default: `output`
 
-The output directory where Markdown and image files will be saved.
+The path to the output directory where Markdown and image files will be saved. If it does not exist, it will be created for you.
 
-### --yearmonthfolders
+### Create year folders?
 
-- Type: Boolean
+- Argument: `--year-folders`
+- Type: `boolean`
 - Default: `false`
 
-Whether or not to organize output files into year and month folders.
+Whether or not to organize output files into folders by year.
 
-    /output
-        /2017
-            /01
-            /02
-        /2018
-            /01
+### Create month folders?
 
-### --yearfolders
-
-- Type: Boolean
+- Argument: `--month-folders`
+- Type: `boolean`
 - Default: `false`
 
-Whether or not to organize output files into year folders.
+Whether or not to organize output files into folders by month. You'll probably want to combine this with `--year-folders` to organize files by year then month.
 
-    /output
-        /2017
-        /2018
+### Create a folder for each post?
 
-### --postfolders
-
-- Type: Boolean
+- Argument: `--post-folders`
+- Type: `boolean`
 - Default: `true`
 
 Whether or not to save files and images into post folders.
 
 If `true`, the post slug is used for the folder name and the post's Markdown file is named `index.md`. Each post folder will have its own `/images` folder.
 
-    /output
-        /first-post
-            /images
-                potato.png
-            index.md
-        /oh-look-another-post
-            /images
-                cat1.gif
-                cat2.gif
-            index.md
+    /first-post
+        /images
+            potato.png
+        index.md
+    /second-post
+        /images
+            carrot.jpg
+            celery.jpg
+        index.md
 
 If `false`, the post slug is used to name the post's Markdown file. These files will be side-by-side and images will go into a shared `/images` folder.
 
-    /output
-        /images
-            cat1.gif
-            cat2.gif
-            potato.png
-        first-post.md
-        oh-look-another-post.md
+    /images
+        carrot.jpg
+        celery.jpg
+        potato.png
+    first-post.md
+    second-post.md
 
-Either way, this can be combined with with `--yearmonthfolderes` and `--yearfolders`, in which case the above output will be organized under the appropriate year and month folders.
+Either way, this can be combined with with `--year-folders` and `--month-folders`, in which case the above output will be organized under the appropriate year and month folders.
 
-### --prefixdate
+### Prefix post folders/files with date?
 
-- Type: Boolean
+- Argument: `--prefix-date`
+- Type: `boolean`
 - Default: `false`
 
 Whether or not to prepend the post date to the post slug when naming a post's folder or file.
 
-If `--postfolders` is `true`, this affects the folder.
+If `--post-folders` is `true`, this affects the folder.
 
-    /output
-        /2017-01-14-first-post
-            index.md
-        /2017-01-23-oh-look-another-post
-            index.md
+    /2019-10-14-first-post
+        index.md
+    /2019-10-23-second-post
+        index.md
 
-If `--postfolders` is `false`, this affects the file.
+If `--post-folders` is `false`, this affects the file.
 
-    /output
-        2017-01-14-first-post.md
-        2017-01-23-oh-look-another-post.md
+    2019-10-14-first-post.md
+    2019-10-23-second-post.md
 
-### --saveimages
+### Save images attached to posts?
 
-- Type: Boolean
+- Argument: `--save-attached-images`
+- Type: `boolean`
 - Default: `true`
 
-Whether or not to download and save images attached to posts. Generally speaking, these are images that were added by dragging/dropping or clicking **Add Media** or **Set Featured Image** when editing a post in WordPress. Images are saved into `/images`. See `--postfolders` for more details.
+Whether or not to download and save images attached to posts. Generally speaking, these are images that were uploaded by using **Add Media** or **Set Featured Image** when editing a post in WordPress. Images are saved into `/images`.
 
-### --addcontentimages
+### Save images scraped from post body content?
 
-- Type: Boolean
-- Default: `false`
+- Argument: `--save-scraped-images`
+- Type: `boolean`
+- Default: `true`
 
-Whether or not to also include images scraped from &lt;img&gt; tags in post body content. These images are downloaded and saved along with other images as dictated by `--saveimages`. The &lt;img&gt; tags are updated to point to where the images are saved.
+Whether or not to download and save images scraped from &lt;img&gt; tags in post body content. Images are saved into `/images`. The &lt;img&gt; tags are updated to point to where the images are saved.
