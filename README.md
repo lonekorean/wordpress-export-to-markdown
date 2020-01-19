@@ -4,6 +4,8 @@ A script that converts a WordPress export XML file into Markdown files suitable 
 
 Each post is saved as a separate Markdown file with appropriate frontmatter. Images are also downloaded and saved. Embedded content from YouTube, Twitter, CodePen, etc. is carefully preserved.
 
+![wordpress-export-to-markdown running in a terminal](https://user-images.githubusercontent.com/1245573/72686026-3aa04280-3abe-11ea-92c1-d756a24657dd.gif)
+
 ## Quick Start
 
 You'll need:
