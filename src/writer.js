@@ -57,7 +57,7 @@ async function loadMarkdownFilePromise(post) {
 	let output = '---\n';
 	Object.entries(post.frontmatter).forEach(pair => {
 		const key = pair[0];
-		const value = pair[1].replace(/"/g, '\\"');
+		const value = (pair[1] || '').replace(/"/g, '\\"');
 		output += key + ': "' + value + '"\n';
 	});
 	output += '---\n\n' + post.content + '\n';
