@@ -20,7 +20,7 @@ async function processPayloadsPromise(payloads, loadFunc, config) {
 				console.log(chalk.green('[OK]') + ' ' + payload.name);
 				resolve();
 			} catch (ex) {
-				console.error(chalk.red('[FAILED]') + ' ' + payload.name + ' ' + chalk.red('(' + ex.toString() + ')'));
+				console.log(chalk.red('[FAILED]') + ' ' + payload.name + ' ' + chalk.red('(' + ex.toString() + ')'));
 				reject();
 			}
 		}, payload.delay);

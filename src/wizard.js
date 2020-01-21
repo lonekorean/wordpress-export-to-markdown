@@ -3,6 +3,7 @@ const commander = require('commander');
 const fs = require('fs');
 const inquirer = require('inquirer');
 const path = require('path');
+const process = require('process');
 
 const package = require('../package.json');
 
@@ -137,7 +138,30 @@ function parseCommandLine(argv) {
 		commander.option(flag, input.description, coerce, input.default);
 	});
 
-	return commander.parse(argv);
+	commander.exitOverride();
+	let program;
+	try {
+		program = commander.parse(argv);
+	} catch (ex) {
+		switch (ex.code) {
+			case 'commander.version':
+			case 'commander.helpDisplayed':
+				// not really an error, but should quit here
+				process.exit();
+				break;
+			case 'commander.unknownOption':
+				// provide more helpful information for unknown options
+				console.log('\nIt could be a typo or the option might be obsolete. For help:');
+				console.log('- Run the script again with no options and let the wizard set them for you.');
+				console.log('- Or check documentation at https://github.com/lonekorean/wordpress-export-to-markdown.');
+				process.exit();
+				break;
+			default:
+				throw ex;
+		}
+	}
+
+	return program;
 }
 
 function coerceBoolean(value) {
