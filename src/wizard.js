@@ -30,36 +30,42 @@ const options = [
 	},
 	{
 		name: 'year-folders',
+		aliases: ['yearfolders', 'yearmonthfolders'],
 		type: 'boolean',
 		description: 'Create year folders',
 		default: false
 	},
 	{
 		name: 'month-folders',
+		aliases: ['yearmonthfolders'],
 		type: 'boolean',
 		description: 'Create month folders',
 		default: false
 	},
 	{
 		name: 'post-folders',
+		aliases: ['postfolders'],
 		type: 'boolean',
 		description: 'Create a folder for each post',
 		default: true
 	},
 	{
 		name: 'prefix-date',
+		aliases: ['prefixdate'],
 		type: 'boolean',
 		description: 'Prefix post folders/files with date',
 		default: false
 	},
 	{
 		name: 'save-attached-images',
+		aliases: ['saveimages'],
 		type: 'boolean',
 		description: 'Save images attached to posts',
 		default: true
 	},
 	{
 		name: 'save-scraped-images',
+		aliases: ['addcontentimages'],
 		type: 'boolean',
 		description: 'Save images scraped from post body content',
 		default: true
@@ -68,7 +74,8 @@ const options = [
 
 async function getConfig(argv) {
 	extendOptionsData();
-	const program = parseCommandLine(argv);
+	const unaliasedArgv = replaceAliases(argv);
+	const program = parseCommandLine(unaliasedArgv);
 
 	let answers;
 	if (program.wizard) {
@@ -117,6 +124,33 @@ function extendOptionsData() {
 	});
 }
 
+function replaceAliases(argv) {
+	let paths = argv.slice(0, 2);
+	let replaced = [];
+	let unmodified = [];
+
+	argv.slice(2).forEach(arg => {
+		let aliasFound = false;
+
+		// this loop does not short circuit because an alias can map to multiple options
+		options.forEach(option => {
+			const aliases = option.aliases || [];
+			aliases.forEach(alias => {
+				if (arg.includes('--' + alias)) {
+					replaced.push(arg.replace('--' + alias, '--' + option.name));
+					aliasFound = true;
+				}	
+			});
+		});
+
+		if (!aliasFound) {
+			unmodified.push(arg);
+		}
+	});
+
+	return [...paths, ...replaced, ...unmodified];
+}
+
 function parseCommandLine(argv) {
 	// setup for help output
 	commander
@@ -138,30 +172,7 @@ function parseCommandLine(argv) {
 		commander.option(flag, input.description, coerce, input.default);
 	});
 
-	commander.exitOverride();
-	let program;
-	try {
-		program = commander.parse(argv);
-	} catch (ex) {
-		switch (ex.code) {
-			case 'commander.version':
-			case 'commander.helpDisplayed':
-				// not really an error, but should quit here
-				process.exit();
-				break;
-			case 'commander.unknownOption':
-				// provide more helpful information for unknown options
-				console.log('\nIt could be a typo or the option might be obsolete. For help:');
-				console.log('- Run the script again with no options and let the wizard set them for you.');
-				console.log('- Or check documentation at https://github.com/lonekorean/wordpress-export-to-markdown.');
-				process.exit();
-				break;
-			default:
-				throw ex;
-		}
-	}
-
-	return program;
+	return commander.parse(argv);
 }
 
 function coerceBoolean(value) {
