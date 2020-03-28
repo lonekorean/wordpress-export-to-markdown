@@ -36,22 +36,29 @@ function collectPosts(data, config) {
 	// this is passed into getPostContent() for the markdown conversion
 	const turndownService = translator.initTurndownService();
 
-	const posts = getItemsOfType(data, 'post')
-		.filter(post => post.status[0] !== 'trash' && post.status[0] !== 'draft')
-		.map(post => ({
-			// meta data isn't written to file, but is used to help with other things
-			meta: {
-				id: getPostId(post),
-				slug: getPostSlug(post),
-				coverImageId: getPostCoverImageId(post),
-				imageUrls: []
-			},
-			frontmatter: {
-				title: getPostTitle(post),
-				date: getPostDate(post)
-			},
-			content: translator.getPostContent(post, turndownService, config)
-		}));
+  const posts = getItemsOfType(data, "post")
+    .filter(post => post.status[0] !== "trash" && post.status[0] !== "draft")
+    .map(post => {
+      const optionalExcerpt = config.addExcerpt
+        ? { excerpt: getPostExcerpt(post) }
+        : undefined;
+
+      return {
+        // meta data isn't written to file, but is used to help with other things
+        meta: {
+          id: getPostId(post),
+          slug: getPostSlug(post),
+          coverImageId: getPostCoverImageId(post),
+          imageUrls: []
+        },
+        frontmatter: {
+          title: getPostTitle(post),
+          date: getPostDate(post),
+          ...optionalExcerpt
+        },
+        content: translator.getPostContent(post, turndownService, config)
+      };
+    });
 
 	console.log(posts.length + ' posts found.');
 	return posts;
@@ -81,6 +88,11 @@ function getPostTitle(post) {
 
 function getPostDate(post) {
 	return luxon.DateTime.fromRFC2822(post.pubDate[0], { zone: 'utc' }).toISODate();
+}
+
+function getPostExcerpt(post) {
+  const excerpt = post.encoded[1].replace(/(\r\n|\n|\r)/gm, " "); 
+  return excerpt;
 }
 
 function collectAttachedImages(data) {
