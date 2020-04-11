@@ -20,15 +20,15 @@
 		"node": ">= 12.14.0"
 	},
 	"dependencies": {
-		"camelcase": "^5.3.1",
-		"chalk": "^3.0.0",
-		"commander": "^4.0.1",
-		"inquirer": "^7.0.3",
-		"luxon": "^1.21.3",
-		"request": "^2.88.0",
+		"camelcase": "^6.0.0",
+		"chalk": "^4.0.0",
+		"commander": "^5.0.0",
+		"inquirer": "^7.1.0",
+		"luxon": "^1.23.0",
+		"request": "^2.88.2",
 		"request-promise-native": "^1.0.8",
-		"turndown": "^5.0.3",
-		"xml2js": "^0.4.22"
+		"turndown": "^6.0.0",
+		"xml2js": "^0.4.23"
 	},
 	"devDependencies": {
 		"eslint": "^6.8.0"
