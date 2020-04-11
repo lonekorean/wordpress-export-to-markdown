@@ -5,6 +5,7 @@ const path = require('path');
 const requestPromiseNative = require('request-promise-native');
 
 const shared = require('./shared');
+const settings = require('./settings');
 
 async function writeFilesPromise(posts, config) {
 	await writeMarkdownFilesPromise(posts, config);
@@ -46,7 +47,7 @@ async function writeMarkdownFilesPromise(posts, config ) {
 		item: post,
 		name: post.meta.slug,
 		destinationPath: getPostPath(post, config),
-		delay: index * 25
+		delay: index * settings.markdown_file_write_delay
 	}));
 
 	console.log('\nSaving posts...');
@@ -78,7 +79,7 @@ async function writeImageFilesPromise(posts, config) {
 				destinationPath: path.join(imagesDir, filename),
 				delay
 			};
-			delay += 100;
+			delay += settings.image_file_request_delay;
 			return payload;
 		});
 	});
