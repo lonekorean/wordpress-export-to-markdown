@@ -42,7 +42,7 @@ function collectPosts(data, config) {
 			// meta data isn't written to file, but is used to help with other things
 			meta: {
 				id: getPostId(post),
-				slug: getPostSlug(post),
+				slug: decodeURI(getPostSlug(post)),
 				coverImageId: getPostCoverImageId(post),
 				imageUrls: []
 			},
