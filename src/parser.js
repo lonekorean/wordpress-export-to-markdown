@@ -48,6 +48,7 @@ function collectPosts(data, config) {
 			},
 			frontmatter: {
 				title: getPostTitle(post),
+				tags: getTags(post),
 				date: getPostDate(post)
 			},
 			content: translator.getPostContent(post, turndownService, config)
@@ -63,6 +64,10 @@ function getPostId(post) {
 
 function getPostSlug(post) {
 	return post.post_name[0];
+}
+
+function getTags(post) {
+	return post.category.map(tag => tag._).join(',');
 }
 
 function getPostCoverImageId(post) {
