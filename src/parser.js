@@ -94,10 +94,12 @@ function getTags(post) {
 }
 
 function processCategoryTags(post, domain) {
+	if (!post.category) {
+		return [];
+	}
 	return post.category
 		.filter(c => c["$"].domain === domain)
-		.map(({ $: c }) => c.nicename)
-		.join(", ");
+		.map(({ $: c }) => c.nicename);
 }
 
 function collectAttachedImages(data) {
