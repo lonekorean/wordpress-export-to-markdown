@@ -99,7 +99,7 @@ async function loadImageFilePromise(imageUrl) {
 			url: imageUrl,
 			encoding: null, // preserves binary encoding
 			headers: {
-				'User-Agent' : 'wordpress-export-to-markdown'
+				'User-Agent': 'wordpress-export-to-markdown'
 			}
 		});
 	} catch (ex) {
