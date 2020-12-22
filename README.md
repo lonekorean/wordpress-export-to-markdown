@@ -154,3 +154,9 @@ Whether or not to download and save images attached to posts. Generally speaking
 - Default: `true`
 
 Whether or not to download and save images scraped from &lt;img&gt; tags in post body content. Images are saved into `/images`. The &lt;img&gt; tags are updated to point to where the images are saved.
+
+## Advanced Settings
+
+You can edit [settings.js](https://github.com/lonekorean/wordpress-export-to-markdown/blob/master/src/settings.js) to tweak advanced settings. This includes things like throttling image downloads or customizing the date format in frontmatter.
+
+You'll need to run the script locally (not using `npx`) to make use of advanced settings.
