@@ -3,6 +3,7 @@ const luxon = require('luxon');
 const xml2js = require('xml2js');
 
 const shared = require('./shared');
+const settings = require('./settings');
 const translator = require('./translator');
 
 async function parseFilePromise(config) {
@@ -82,7 +83,15 @@ function getPostTitle(post) {
 }
 
 function getPostDate(post) {
-	return luxon.DateTime.fromRFC2822(post.pubDate[0], { zone: 'utc' }).toISO();
+	const dateTime = luxon.DateTime.fromRFC2822(post.pubDate[0], { zone: 'utc' });
+
+	if (settings.custom_date_formatting) {
+		return dateTime.toFormat(settings.custom_date_formatting);
+	} else if (settings.include_time_with_date) {
+		return dateTime.toISO();
+	} else {
+		return dateTime.toISODate();
+	}
 }
 
 function getCategories(post) {
