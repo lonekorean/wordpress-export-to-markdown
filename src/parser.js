@@ -48,7 +48,9 @@ function collectPosts(data, config) {
 			},
 			frontmatter: {
 				title: getPostTitle(post),
-				date: getPostDate(post)
+				date: getPostDate(post),
+				categories: getCategories(post),
+				tags: getTags(post),
 			},
 			content: translator.getPostContent(post, turndownService, config)
 		}));
@@ -80,7 +82,24 @@ function getPostTitle(post) {
 }
 
 function getPostDate(post) {
-	return luxon.DateTime.fromRFC2822(post.pubDate[0], { zone: 'utc' }).toISODate();
+	return luxon.DateTime.fromRFC2822(post.pubDate[0], { zone: 'utc' }).toISO();
+}
+
+function getCategories(post) {
+	return processCategoryTags(post, "category");
+}
+
+function getTags(post) {
+	return processCategoryTags(post, "post_tag");
+}
+
+function processCategoryTags(post, domain) {
+	if (!post.category) {
+		return [];
+	}
+	return post.category
+		.filter(c => c["$"].domain === domain)
+		.map(({ $: c }) => c.nicename);
 }
 
 function collectAttachedImages(data) {
