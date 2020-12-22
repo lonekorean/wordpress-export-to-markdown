@@ -1,4 +1,5 @@
 const turndown = require('turndown');
+const turndownPluginGfm = require('turndown-plugin-gfm');
 
 function initTurndownService() {
 	const turndownService = new turndown({
@@ -6,6 +7,8 @@ function initTurndownService() {
 		bulletListMarker: '-',
 		codeBlockStyle: 'fenced'
 	});
+
+	turndownService.use(turndownPluginGfm.tables);
 
 	// preserve embedded tweets
 	turndownService.addRule('tweet', {
