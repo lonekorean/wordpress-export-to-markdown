@@ -51,7 +51,7 @@ function collectPosts(data, config) {
 				title: getPostTitle(post),
 				date: getPostDate(post),
 				categories: getCategories(post),
-				tags: getTags(post),
+				tags: getTags(post)
 			},
 			content: translator.getPostContent(post, turndownService, config)
 		}));
@@ -95,20 +95,22 @@ function getPostDate(post) {
 }
 
 function getCategories(post) {
-	return processCategoryTags(post, "category");
+	const categories = processCategoryTags(post, 'category');
+	return categories.filter(category => !settings.filter_categories.includes(category));
 }
 
 function getTags(post) {
-	return processCategoryTags(post, "post_tag");
+	return processCategoryTags(post, 'post_tag');
 }
 
 function processCategoryTags(post, domain) {
 	if (!post.category) {
 		return [];
 	}
+
 	return post.category
-		.filter(c => c["$"].domain === domain)
-		.map(({ $: c }) => c.nicename);
+		.filter(category => category.$.domain === domain)
+		.map(({ $: attributes }) => attributes.nicename);
 }
 
 function collectAttachedImages(data) {
