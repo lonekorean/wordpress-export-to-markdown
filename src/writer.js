@@ -110,7 +110,7 @@ async function loadImageFilePromise(imageUrl) {
 	let buffer;
 	try {
 		buffer = await requestPromiseNative.get({
-			url: imageUrl,
+			url: encodeURI(imageUrl),
 			encoding: null, // preserves binary encoding
 			headers: {
 				'User-Agent': 'wordpress-export-to-markdown'

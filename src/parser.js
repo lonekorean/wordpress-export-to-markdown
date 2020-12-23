@@ -43,7 +43,7 @@ function collectPosts(data, config) {
 			// meta data isn't written to file, but is used to help with other things
 			meta: {
 				id: getPostId(post),
-				slug: decodeURI(getPostSlug(post)),
+				slug: getPostSlug(post),
 				coverImageId: getPostCoverImageId(post),
 				imageUrls: []
 			},
@@ -65,7 +65,7 @@ function getPostId(post) {
 }
 
 function getPostSlug(post) {
-	return post.post_name[0];
+	return decodeURI(post.post_name[0]);
 }
 
 function getPostCoverImageId(post) {
@@ -110,7 +110,7 @@ function processCategoryTags(post, domain) {
 
 	return post.category
 		.filter(category => category.$.domain === domain)
-		.map(({ $: attributes }) => attributes.nicename);
+		.map(({ $: attributes }) => decodeURI(attributes.nicename));
 }
 
 function collectAttachedImages(data) {
@@ -138,11 +138,10 @@ function collectScrapedImages(data) {
 		matches.forEach(match => {
 			// base the matched image URL relative to the post URL
 			const url = new URL(match[1], postLink).href;
-
 			images.push({
 				id: -1,
 				postId: postId,
-				url: url
+				url: decodeURI(url)
 			});
 		});
 	});
