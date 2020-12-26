@@ -132,6 +132,11 @@ function getPostPath(post, config) {
 	// start with base output dir
 	const pathSegments = [config.output];
 
+	// create fragment for post type, if there's more than one
+	if (settings.post_types.length > 1) {
+		pathSegments.push(post.meta.type);
+	}
+
 	if (config.yearFolders) {
 		pathSegments.push(dt.toFormat('yyyy'));
 	}

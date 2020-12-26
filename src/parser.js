@@ -37,27 +37,39 @@ function collectPosts(data, config) {
 	// this is passed into getPostContent() for the markdown conversion
 	const turndownService = translator.initTurndownService();
 
-	const posts = getItemsOfType(data, 'post')
-		.filter(post => post.status[0] !== 'trash' && post.status[0] !== 'draft')
-		.map(post => ({
-			// meta data isn't written to file, but is used to help with other things
-			meta: {
-				id: getPostId(post),
-				slug: getPostSlug(post),
-				coverImageId: getPostCoverImageId(post),
-				imageUrls: []
-			},
-			frontmatter: {
-				title: getPostTitle(post),
-				date: getPostDate(post),
-				categories: getCategories(post),
-				tags: getTags(post)
-			},
-			content: translator.getPostContent(post, turndownService, config)
-		}));
+	let allPosts = [];
+	settings.post_types.forEach(postType => {
+		const postsForType = getItemsOfType(data, postType)
+			.filter(post => post.status[0] !== 'trash' && post.status[0] !== 'draft')
+			.map(post => ({
+				// meta data isn't written to file, but is used to help with other things
+				meta: {
+					id: getPostId(post),
+					slug: getPostSlug(post),
+					coverImageId: getPostCoverImageId(post),
+					type: postType,
+					imageUrls: []
+				},
+				frontmatter: {
+					title: getPostTitle(post),
+					date: getPostDate(post),
+					categories: getCategories(post),
+					tags: getTags(post)
+				},
+				content: translator.getPostContent(post, turndownService, config)
+			}));
 
-	console.log(posts.length + ' posts found.');
-	return posts;
+		if (settings.post_types.length > 1) {
+			console.log(`${postsForType.length} "${postType}" posts found.`);
+		}
+
+		allPosts.push(...postsForType);
+	});
+
+	if (settings.post_types.length === 1) {
+		console.log(allPosts.length + ' posts found.');
+	}
+	return allPosts;
 }
 
 function getPostId(post) {
