@@ -1,7 +1,3 @@
-// the post types you want to export (the default is plain old vanilla "post")
-// if you specify multiple post types, then a folder will be created for each within the output folder
-exports.post_types = ['post'];
-
 // time in ms to wait between requesting image files
 // increase this if you see timeouts or server errors
 exports.image_file_request_delay = 500;

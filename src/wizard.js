@@ -3,11 +3,10 @@ const commander = require('commander');
 const fs = require('fs');
 const inquirer = require('inquirer');
 const path = require('path');
-const process = require('process');
 
 const package = require('../package.json');
 
-// all user options for command line and wizard are declard here
+// all user options for command line and wizard are declared here
 const options = [
 	// wizard must always be first
 	{
@@ -69,6 +68,12 @@ const options = [
 		type: 'boolean',
 		description: 'Save images scraped from post body content',
 		default: true
+	},
+	{
+		name: 'include-other-types',
+		type: 'boolean',
+		description: 'Include custom post types and pages',
+		default: false
 	}
 ];
 

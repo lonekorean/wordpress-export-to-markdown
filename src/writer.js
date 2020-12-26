@@ -132,8 +132,8 @@ function getPostPath(post, config) {
 	// start with base output dir
 	const pathSegments = [config.output];
 
-	// create fragment for post type, if there's more than one
-	if (settings.post_types.length > 1) {
+	// create fragment for post type if we're dealing with more than just "post"
+	if (config.includeOtherTypes) {
 		pathSegments.push(post.meta.type);
 	}
 

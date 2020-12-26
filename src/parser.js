@@ -29,6 +29,20 @@ async function parseFilePromise(config) {
 	return posts;
 }
 
+function getItemTypes(data, config) {
+	if (config.includeOtherTypes) {
+		// search export file for all post types minus some default types we don't want
+		// effectively this will be 'post', 'page', and custom post types
+		const types = data.rss.channel[0].item
+			.map(item => item.post_type[0])
+			.filter(type => !['attachment', 'revision', 'nav_menu_item'].includes(type));
+		return [...new Set(types)]; // remove duplicates
+	} else {
+		// just plain old vanilla "post" posts
+		return ['post'];
+	}
+}
+
 function getItemsOfType(data, type) {
 	return data.rss.channel[0].item.filter(item => item.post_type[0] === type);
 }
@@ -37,8 +51,9 @@ function collectPosts(data, config) {
 	// this is passed into getPostContent() for the markdown conversion
 	const turndownService = translator.initTurndownService();
 
+	const types = getItemTypes(data, config);
 	let allPosts = [];
-	settings.post_types.forEach(postType => {
+	types.forEach(postType => {
 		const postsForType = getItemsOfType(data, postType)
 			.filter(post => post.status[0] !== 'trash' && post.status[0] !== 'draft')
 			.map(post => ({
@@ -59,14 +74,14 @@ function collectPosts(data, config) {
 				content: translator.getPostContent(post, turndownService, config)
 			}));
 
-		if (settings.post_types.length > 1) {
+		if (types.length > 1) {
 			console.log(`${postsForType.length} "${postType}" posts found.`);
 		}
 
 		allPosts.push(...postsForType);
 	});
 
-	if (settings.post_types.length === 1) {
+	if (types.length === 1) {
 		console.log(allPosts.length + ' posts found.');
 	}
 	return allPosts;
