@@ -45,7 +45,7 @@ async function writeMarkdownFilesPromise(posts, config ) {
 	// package up posts into payloads
 	const payloads = posts.map((post, index) => ({
 		item: post,
-		name: post.meta.slug,
+		name: (config.includeOtherTypes ? post.meta.type + ' - ' : '') + post.meta.slug,
 		destinationPath: getPostPath(post, config),
 		delay: index * settings.markdown_file_write_delay
 	}));
