@@ -147,7 +147,7 @@ function collectAttachedImages(data) {
 		.map(attachment => ({
 			id: attachment.post_id[0],
 			postId: attachment.post_parent[0],
-			url: attachment.attachment_url[0]
+			url: decodeURI(attachment.attachment_url[0])
 		}));
 
 	console.log(images.length + ' attached images found.');
