@@ -92,7 +92,7 @@ function getPostId(post) {
 }
 
 function getPostSlug(post) {
-	return decodeURI(post.post_name[0]);
+	return decodeURIComponent(post.post_name[0]);
 }
 
 function getPostCoverImageId(post) {
@@ -137,7 +137,7 @@ function processCategoryTags(post, domain) {
 
 	return post.category
 		.filter(category => category.$.domain === domain)
-		.map(({ $: attributes }) => decodeURI(attributes.nicename));
+		.map(({ $: attributes }) => decodeURIComponent(attributes.nicename));
 }
 
 function collectAttachedImages(data) {
@@ -147,7 +147,7 @@ function collectAttachedImages(data) {
 		.map(attachment => ({
 			id: attachment.post_id[0],
 			postId: attachment.post_parent[0],
-			url: decodeURI(attachment.attachment_url[0])
+			url: attachment.attachment_url[0]
 		}));
 
 	console.log(images.length + ' attached images found.');
@@ -168,7 +168,7 @@ function collectScrapedImages(data) {
 			images.push({
 				id: -1,
 				postId: postId,
-				url: decodeURI(url)
+				url
 			});
 		});
 	});

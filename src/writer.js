@@ -134,10 +134,13 @@ async function writeImageFilesPromise(posts, config) {
 }
 
 async function loadImageFilePromise(imageUrl) {
+	// only encode the URL if it doesn't already have encoded characters
+	const url = (/%[\da-f]{2}/i).test(imageUrl) ? imageUrl : encodeURI(imageUrl);
+
 	let buffer;
 	try {
 		buffer = await requestPromiseNative.get({
-			url: encodeURI(imageUrl),
+			url,
 			encoding: null, // preserves binary encoding
 			headers: {
 				'User-Agent': 'wordpress-export-to-markdown'
