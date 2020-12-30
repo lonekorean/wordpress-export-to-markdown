@@ -153,7 +153,15 @@ Whether or not to download and save images attached to posts. Generally speaking
 - Type: `boolean`
 - Default: `true`
 
-Whether or not to download and save images scraped from &lt;img&gt; tags in post body content. Images are saved into `/images`. The &lt;img&gt; tags are updated to point to where the images are saved.
+Whether or not to download and save images scraped from `<img>` tags in post body content. Images are saved into `/images`. The `<img>` tags are updated to point to where the images are saved.
+
+### Include custom post types and pages?
+
+- Argument: `--include-other-types`
+- Type: `boolean`
+- Default: `false`
+
+Some WordPress sites make use of a `"page"` post type and/or custom post types. Set this to `true` to include these post types in the results. Posts will be organized into post type folders.
 
 ## Advanced Settings
 

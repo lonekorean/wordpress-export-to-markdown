@@ -29,6 +29,20 @@ async function parseFilePromise(config) {
 	return posts;
 }
 
+function getItemTypes(data, config) {
+	if (config.includeOtherTypes) {
+		// search export file for all post types minus some default types we don't want
+		// effectively this will be 'post', 'page', and custom post types
+		const types = data.rss.channel[0].item
+			.map(item => item.post_type[0])
+			.filter(type => !['attachment', 'revision', 'nav_menu_item', 'custom_css', 'customize_changeset'].includes(type));
+		return [...new Set(types)]; // remove duplicates
+	} else {
+		// just plain old vanilla "post" posts
+		return ['post'];
+	}
+}
+
 function getItemsOfType(data, type) {
 	return data.rss.channel[0].item.filter(item => item.post_type[0] === type);
 }
@@ -37,27 +51,40 @@ function collectPosts(data, config) {
 	// this is passed into getPostContent() for the markdown conversion
 	const turndownService = translator.initTurndownService();
 
-	const posts = getItemsOfType(data, 'post')
-		.filter(post => post.status[0] !== 'trash' && post.status[0] !== 'draft')
-		.map(post => ({
-			// meta data isn't written to file, but is used to help with other things
-			meta: {
-				id: getPostId(post),
-				slug: getPostSlug(post),
-				coverImageId: getPostCoverImageId(post),
-				imageUrls: []
-			},
-			frontmatter: {
-				title: getPostTitle(post),
-				date: getPostDate(post),
-				categories: getCategories(post),
-				tags: getTags(post)
-			},
-			content: translator.getPostContent(post, turndownService, config)
-		}));
+	const types = getItemTypes(data, config);
+	let allPosts = [];
+	types.forEach(postType => {
+		const postsForType = getItemsOfType(data, postType)
+			.filter(post => post.status[0] !== 'trash' && post.status[0] !== 'draft')
+			.map(post => ({
+				// meta data isn't written to file, but is used to help with other things
+				meta: {
+					id: getPostId(post),
+					slug: getPostSlug(post),
+					coverImageId: getPostCoverImageId(post),
+					type: postType,
+					imageUrls: []
+				},
+				frontmatter: {
+					title: getPostTitle(post),
+					date: getPostDate(post),
+					categories: getCategories(post),
+					tags: getTags(post)
+				},
+				content: translator.getPostContent(post, turndownService, config)
+			}));
 
-	console.log(posts.length + ' posts found.');
-	return posts;
+		if (types.length > 1) {
+			console.log(`${postsForType.length} "${postType}" posts found.`);
+		}
+
+		allPosts.push(...postsForType);
+	});
+
+	if (types.length === 1) {
+		console.log(allPosts.length + ' posts found.');
+	}
+	return allPosts;
 }
 
 function getPostId(post) {
@@ -65,7 +92,7 @@ function getPostId(post) {
 }
 
 function getPostSlug(post) {
-	return decodeURI(post.post_name[0]);
+	return decodeURIComponent(post.post_name[0]);
 }
 
 function getPostCoverImageId(post) {
@@ -110,7 +137,7 @@ function processCategoryTags(post, domain) {
 
 	return post.category
 		.filter(category => category.$.domain === domain)
-		.map(({ $: attributes }) => decodeURI(attributes.nicename));
+		.map(({ $: attributes }) => decodeURIComponent(attributes.nicename));
 }
 
 function collectAttachedImages(data) {
@@ -141,7 +168,7 @@ function collectScrapedImages(data) {
 			images.push({
 				id: -1,
 				postId: postId,
-				url: decodeURI(url)
+				url
 			});
 		});
 	});

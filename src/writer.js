@@ -12,11 +12,11 @@ async function writeFilesPromise(posts, config) {
 	await writeImageFilesPromise(posts, config);
 }
 
-async function processPayloadsPromise(payloads, loadFunc, config) {
+async function processPayloadsPromise(payloads, loadFunc) {
 	const promises = payloads.map(payload => new Promise((resolve, reject) => {
 		setTimeout(async () => {
 			try {
-				const data = await loadFunc(payload.item, config);
+				const data = await loadFunc(payload.item);
 				await writeFile(payload.destinationPath, data);
 				console.log(chalk.green('[OK]') + ' ' + payload.name);
 				resolve();
@@ -43,15 +43,33 @@ async function writeFile(destinationPath, data) {
 
 async function writeMarkdownFilesPromise(posts, config ) {
 	// package up posts into payloads
-	const payloads = posts.map((post, index) => ({
-		item: post,
-		name: post.meta.slug,
-		destinationPath: getPostPath(post, config),
-		delay: index * settings.markdown_file_write_delay
-	}));
+	let skipCount = 0;
+	let delay = 0;
+	const payloads = posts.flatMap(post => {
+		const destinationPath = getPostPath(post, config);
+		if (checkFile(destinationPath)) {
+			// already exists, don't need to save again
+			skipCount++;
+			return [];
+		} else {
+			const payload = {
+				item: post,
+				name: (config.includeOtherTypes ? post.meta.type + ' - ' : '') + post.meta.slug,
+				destinationPath,
+				delay
+			};
+			delay += settings.markdown_file_write_delay;
+			return [payload];
+		}
+	});
 
-	console.log('\nSaving posts...');
-	await processPayloadsPromise(payloads, loadMarkdownFilePromise, config);
+	const remainingCount = payloads.length;
+	if (remainingCount + skipCount === 0) {
+		console.log('\nNo posts to save...');
+	} else {
+		console.log(`\nSaving ${remainingCount} posts (${skipCount} already exist)...`);
+		await processPayloadsPromise(payloads, loadMarkdownFilePromise);
+	}
 }
 
 async function loadMarkdownFilePromise(post) {
@@ -81,36 +99,48 @@ async function loadMarkdownFilePromise(post) {
 
 async function writeImageFilesPromise(posts, config) {
 	// collect image data from all posts into a single flattened array of payloads
+	let skipCount = 0;
 	let delay = 0;
 	const payloads = posts.flatMap(post => {
 		const postPath = getPostPath(post, config);
 		const imagesDir = path.join(path.dirname(postPath), 'images');
-		return post.meta.imageUrls.map(imageUrl => {
+		return post.meta.imageUrls.flatMap(imageUrl => {
 			const filename = shared.getFilenameFromUrl(imageUrl);
-			const payload = {
-				item: imageUrl,
-				name: filename,
-				destinationPath: path.join(imagesDir, filename),
-				delay
-			};
-			delay += settings.image_file_request_delay;
-			return payload;
+			const destinationPath = path.join(imagesDir, filename);
+			if (checkFile(destinationPath)) {
+				// already exists, don't need to save again
+				skipCount++;
+				return [];
+			} else {
+				const payload = {
+					item: imageUrl,
+					name: filename,
+					destinationPath,
+					delay
+				};
+				delay += settings.image_file_request_delay;
+				return [payload];
+			}
 		});
 	});
 
-	if (payloads.length > 0) {
-		console.log('\nDownloading and saving images...');
-		await processPayloadsPromise(payloads, loadImageFilePromise);
-	} else {
+	const remainingCount = payloads.length;
+	if (remainingCount + skipCount === 0) {
 		console.log('\nNo images to download and save...');
+	} else {
+		console.log(`\nDownloading and saving ${remainingCount} images (${skipCount} already exist)...`);
+		await processPayloadsPromise(payloads, loadImageFilePromise);
 	}
 }
 
 async function loadImageFilePromise(imageUrl) {
+	// only encode the URL if it doesn't already have encoded characters
+	const url = (/%[\da-f]{2}/i).test(imageUrl) ? imageUrl : encodeURI(imageUrl);
+
 	let buffer;
 	try {
 		buffer = await requestPromiseNative.get({
-			url: encodeURI(imageUrl),
+			url,
 			encoding: null, // preserves binary encoding
 			headers: {
 				'User-Agent': 'wordpress-export-to-markdown'
@@ -131,6 +161,11 @@ function getPostPath(post, config) {
 
 	// start with base output dir
 	const pathSegments = [config.output];
+
+	// create segment for post type if we're dealing with more than just "post"
+	if (config.includeOtherTypes) {
+		pathSegments.push(post.meta.type);
+	}
 
 	if (config.yearFolders) {
 		pathSegments.push(dt.toFormat('yyyy'));
@@ -154,6 +189,10 @@ function getPostPath(post, config) {
 	}
 
 	return path.join(...pathSegments);
+}
+
+function checkFile(path) {
+	return fs.existsSync(path);
 }
 
 exports.writeFilesPromise = writeFilesPromise;

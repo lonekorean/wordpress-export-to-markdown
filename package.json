@@ -27,7 +27,7 @@
 		"luxon": "^1.23.0",
 		"request": "^2.88.2",
 		"request-promise-native": "^1.0.8",
-		"turndown": "^6.0.0",
+		"turndown": "^7.0.0",
 		"turndown-plugin-gfm": "^1.0.2",
 		"xml2js": "^0.4.23"
 	},
