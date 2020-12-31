@@ -17,7 +17,34 @@ async function processPayloadsPromise(payloads, loadFunc) {
 		setTimeout(async () => {
 			try {
 				const data = await loadFunc(payload.item);
-				await writeFile(payload.destinationPath, data);
+				if (typeof data === 'string') {
+					// posts are of type string
+					const split = data.split(/:::(?:pt|en):::/);
+					if (split.length === 1) {
+						// language tokens not found, so don't do anything special
+						await writeFile(payload.destinationPath, data);
+					} else {
+						// pull apart content for PT/EN
+						let ptContent = split[0] + split[1]; // frontmatter + PT content (assumes PT content comes first)
+						let enContent = split[0] + split[2]; // frontmatter + EN content (assumes EN content comes second)
+
+						// sometimes the EN content is not preset, so check this and don't write the EN file later
+						const enMissing = split[2] === undefined;
+
+						// lol regex hack to insert lang into frontmatter
+						ptContent = ptContent.replace(/---\n\n/, 'lang: "pt"\n---\n\n');
+						enContent = enContent.replace(/---\n\n/, 'lang: "en"\n---\n\n');
+
+						// write both files
+						await writeFile(payload.destinationPath.replace('.md', '-pt.md'), ptContent);
+						if (!enMissing) {
+							await writeFile(payload.destinationPath.replace('.md', '-en.md'), enContent);
+						}
+					}
+				} else {
+					// image
+					await writeFile(payload.destinationPath, data);
+				}
 				console.log(chalk.green('[OK]') + ' ' + payload.name);
 				resolve();
 			} catch (ex) {

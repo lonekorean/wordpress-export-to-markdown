@@ -59,6 +59,15 @@ function initTurndownService() {
 function getPostContent(post, turndownService, config) {
 	let content = post.encoded[0];
 
+	// extra processing for pt/en language chunks
+	// the goal is to have the content always formatted like:
+	// ":::pt:::(portuguese content):::en:::(english content)"
+	// it's just easier for code in the writer to recognize this format
+	content = content
+		.replace(/<!--:-->|\[:\]/g, '')
+		.replace(/<!--:(pt|en)-->/g, ':::$1:::')
+		.replace(/\[:(pt|en)\]/g, ':::$1:::');
+
 	// insert an empty div element between double line breaks
 	// this nifty trick causes turndown to keep adjacent paragraphs separated
 	// without mucking up content inside of other elemnts (like <code> blocks)
