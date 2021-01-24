@@ -10,7 +10,7 @@ Each post is saved as a separate Markdown file with appropriate frontmatter. Ima
 
 You'll need:
 - [Node.js](https://nodejs.org/) v12.14 or later
-- Your [WordPress export file](https://wordpress.org/support/article/tools-export-screen/)
+- Your [WordPress export file](https://wordpress.org/support/article/tools-export-screen/) (be sure to export "All content" if you want to save images and/or pages)
 
 It is recommended that you drop your WordPress export file into the same directory that you run this script from so it's easy to find.
 
