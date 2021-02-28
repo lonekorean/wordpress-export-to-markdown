@@ -14,14 +14,15 @@ async function parseFilePromise(config) {
 		tagNameProcessors: [xml2js.processors.stripPrefix]
 	});
 
-	const posts = collectPosts(data, config);
+	const postTypes = getPostTypes(data, config);
+	const posts = collectPosts(data, postTypes, config);
 
 	const images = [];
 	if (config.saveAttachedImages) {
 		images.push(...collectAttachedImages(data));
 	}
 	if (config.saveScrapedImages) {
-		images.push(...collectScrapedImages(data));
+		images.push(...collectScrapedImages(data, postTypes));
 	}
 
 	mergeImagesIntoPosts(images, posts);
@@ -29,7 +30,7 @@ async function parseFilePromise(config) {
 	return posts;
 }
 
-function getItemTypes(data, config) {
+function getPostTypes(data, config) {
 	if (config.includeOtherTypes) {
 		// search export file for all post types minus some default types we don't want
 		// effectively this will be 'post', 'page', and custom post types
@@ -47,13 +48,12 @@ function getItemsOfType(data, type) {
 	return data.rss.channel[0].item.filter(item => item.post_type[0] === type);
 }
 
-function collectPosts(data, config) {
+function collectPosts(data, postTypes, config) {
 	// this is passed into getPostContent() for the markdown conversion
 	const turndownService = translator.initTurndownService();
 
-	const types = getItemTypes(data, config);
 	let allPosts = [];
-	types.forEach(postType => {
+	postTypes.forEach(postType => {
 		const postsForType = getItemsOfType(data, postType)
 			.filter(post => post.status[0] !== 'trash' && post.status[0] !== 'draft')
 			.map(post => ({
@@ -74,14 +74,14 @@ function collectPosts(data, config) {
 				content: translator.getPostContent(post, turndownService, config)
 			}));
 
-		if (types.length > 1) {
+		if (postTypes.length > 1) {
 			console.log(`${postsForType.length} "${postType}" posts found.`);
 		}
 
 		allPosts.push(...postsForType);
 	});
 
-	if (types.length === 1) {
+	if (postTypes.length === 1) {
 		console.log(allPosts.length + ' posts found.');
 	}
 	return allPosts;
@@ -154,21 +154,23 @@ function collectAttachedImages(data) {
 	return images;
 }
 
-function collectScrapedImages(data) {
+function collectScrapedImages(data, postTypes) {
 	const images = [];
-	getItemsOfType(data, 'post').forEach(post => {
-		const postId = post.post_id[0];
-		const postContent = post.encoded[0];
-		const postLink = post.link[0];
+	postTypes.forEach(postType => {
+		getItemsOfType(data, postType).forEach(post => {
+			const postId = post.post_id[0];
+			const postContent = post.encoded[0];
+			const postLink = post.link[0];
 
-		const matches = [...postContent.matchAll(/<img[^>]*src="(.+?\.(?:gif|jpe?g|png))"[^>]*>/gi)];
-		matches.forEach(match => {
-			// base the matched image URL relative to the post URL
-			const url = new URL(match[1], postLink).href;
-			images.push({
-				id: -1,
-				postId: postId,
-				url
+			const matches = [...postContent.matchAll(/<img[^>]*src="(.+?\.(?:gif|jpe?g|png))"[^>]*>/gi)];
+			matches.forEach(match => {
+				// base the matched image URL relative to the post URL
+				const url = new URL(match[1], postLink).href;
+				images.push({
+					id: -1,
+					postId: postId,
+					url
+				});
 			});
 		});
 	});
