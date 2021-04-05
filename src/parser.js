@@ -56,23 +56,34 @@ function collectPosts(data, postTypes, config) {
 	postTypes.forEach(postType => {
 		const postsForType = getItemsOfType(data, postType)
 			.filter(post => post.status[0] !== 'trash' && post.status[0] !== 'draft')
-			.map(post => ({
-				// meta data isn't written to file, but is used to help with other things
-				meta: {
-					id: getPostId(post),
-					slug: getPostSlug(post),
-					coverImageId: getPostCoverImageId(post),
-					type: postType,
-					imageUrls: []
-				},
-				frontmatter: {
-					title: getPostTitle(post),
-					date: getPostDate(post),
-					categories: getCategories(post),
-					tags: getTags(post)
-				},
-				content: translator.getPostContent(post, turndownService, config)
-			}));
+			.map(post => { 
+				const postMapped = {};
+        // meta data isn't written to file, but is used to help with other things
+        postMapped.meta = {
+          id: getPostId(post),
+          slug: getPostSlug(post),
+          coverImageId: getPostCoverImageId(post),
+          type: postType,
+          imageUrls: [],
+        };
+        postMapped.frontmatter = {
+          title: getPostTitle(post),
+          date: getPostDate(post),
+          categories: getCategories(post),
+          tags: getTags(post),
+        };
+        if (config.slug) {
+          postMapped.frontmatter.slug = getFrontmatterSlug(post);
+        }
+        
+        postMapped.content = translator.getPostContent(
+          post,
+          turndownService,
+          config
+        );
+
+        return postMapped;
+			});
 
 		if (postTypes.length > 1) {
 			console.log(`${postsForType.length} "${postType}" posts found.`);
@@ -93,6 +104,11 @@ function getPostId(post) {
 
 function getPostSlug(post) {
 	return decodeURIComponent(post.post_name[0]);
+}
+
+function getFrontmatterSlug(post) {
+  const url = new URL(post.link[0]);
+  return decodeURIComponent(url.pathname.replace(/\//g, ''));
 }
 
 function getPostCoverImageId(post) {

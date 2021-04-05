@@ -74,7 +74,13 @@ const options = [
 		type: 'boolean',
 		description: 'Include custom post types and pages',
 		default: false
-	}
+	},
+  {
+    name: 'slug',
+    type: 'boolean',
+    description: 'Set slug in front-matter based on wordpress link',
+    default: false,
+  },
 ];
 
 async function getConfig(argv) {
