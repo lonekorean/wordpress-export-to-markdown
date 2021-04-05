@@ -58,31 +58,31 @@ function collectPosts(data, postTypes, config) {
 			.filter(post => post.status[0] !== 'trash' && post.status[0] !== 'draft')
 			.map(post => { 
 				const postMapped = {};
-        // meta data isn't written to file, but is used to help with other things
-        postMapped.meta = {
-          id: getPostId(post),
-          slug: getPostSlug(post),
-          coverImageId: getPostCoverImageId(post),
-          type: postType,
-          imageUrls: [],
-        };
-        postMapped.frontmatter = {
-          title: getPostTitle(post),
-          date: getPostDate(post),
-          categories: getCategories(post),
-          tags: getTags(post),
-        };
-        if (config.slug) {
-          postMapped.frontmatter.slug = getFrontmatterSlug(post);
-        }
-        
-        postMapped.content = translator.getPostContent(
-          post,
-          turndownService,
-          config
-        );
+				// meta data isn't written to file, but is used to help with other things
+				postMapped.meta = {
+					id: getPostId(post),
+					slug: getPostSlug(post),
+					coverImageId: getPostCoverImageId(post),
+					type: postType,
+					imageUrls: [],
+				};
+				postMapped.frontmatter = {
+					title: getPostTitle(post),
+					date: getPostDate(post),
+					categories: getCategories(post),
+					tags: getTags(post),
+				};
+				if (config.slug) {
+					postMapped.frontmatter.slug = getFrontmatterSlug(post);
+				}
+				
+				postMapped.content = translator.getPostContent(
+					post,
+					turndownService,
+					config
+				);
 
-        return postMapped;
+				return postMapped;
 			});
 
 		if (postTypes.length > 1) {
@@ -107,8 +107,8 @@ function getPostSlug(post) {
 }
 
 function getFrontmatterSlug(post) {
-  const url = new URL(post.link[0]);
-  return decodeURIComponent(url.pathname.replace(/\//g, ''));
+	const url = new URL(post.link[0]);
+	return decodeURIComponent(url.pathname.replace(/\//g, ''));
 }
 
 function getPostCoverImageId(post) {
