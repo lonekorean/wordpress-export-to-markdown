@@ -18,3 +18,7 @@ exports.custom_date_formatting = '';
 // categories to be excluded from post frontmatter
 // this does not filter out posts themselves, just the categories listed in their frontmatter
 exports.filter_categories = ['uncategorized'];
+
+// override date timezone
+// it change date and slug to localized timezone, e.g. Asia/Tokyo
+exports.custom_date_timezone = 'Asia/Tokyo';
