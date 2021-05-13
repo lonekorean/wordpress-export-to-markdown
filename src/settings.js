@@ -21,4 +21,4 @@ exports.filter_categories = ['uncategorized'];
 
 // override date timezone
 // it change date and slug to localized timezone, e.g. Asia/Tokyo
-exports.custom_date_timezone = 'Asia/Tokyo';
+//  exports.custom_date_timezone = 'utc';
