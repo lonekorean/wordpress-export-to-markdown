@@ -110,7 +110,7 @@ function getPostTitle(post) {
 }
 
 function getPostDate(post) {
-	const dateTime = luxon.DateTime.fromRFC2822(post.pubDate[0], { zone: 'utc' });
+	const dateTime = luxon.DateTime.fromRFC2822(post.pubDate[0], { zone: settings.custom_date_timezone || 'utc' });
 
 	if (settings.custom_date_formatting) {
 		return dateTime.toFormat(settings.custom_date_formatting);
