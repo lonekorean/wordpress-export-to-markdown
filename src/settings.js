@@ -18,3 +18,5 @@ exports.custom_date_formatting = '';
 // categories to be excluded from post frontmatter
 // this does not filter out posts themselves, just the categories listed in their frontmatter
 exports.filter_categories = ['uncategorized'];
+
+process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0
