@@ -44,6 +44,15 @@ function initTurndownService() {
 		}
 	});
 
+	// preserve enlighter code blocks
+	turndownService.addRule('enlighter', {
+		filter: node => node.nodeName === 'PRE' && node.getAttribute('class') === 'EnlighterJSRAW',
+		replacement: (content, node) => {
+			const language = node.getAttribute('data-enlighter-language') ?? '';
+			return '\n' + '```' + language + '\n' + content + '\n' + '```' + '\n';
+		}
+	});
+
 	// preserve iframes (common for embedded audio/video)
 	turndownService.addRule('iframe', {
 		filter: 'iframe',
