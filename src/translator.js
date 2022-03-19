@@ -46,7 +46,7 @@ function initTurndownService() {
 
 	// preserve enlighter code blocks
 	turndownService.addRule('enlighter', {
-		filter: node => node.nodeName === 'PRE' && node.getAttribute('class') === 'EnlighterJSRAW',
+		filter: (node) => node.nodeName === 'PRE' && node.classList.contains('EnlighterJSRAW'),
 		replacement: (content, node) => {
 			const language = node.getAttribute('data-enlighter-language') ?? '';
 			return '\n' + '```' + language + '\n' + content + '\n' + '```' + '\n';
