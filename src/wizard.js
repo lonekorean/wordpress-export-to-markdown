@@ -74,6 +74,12 @@ const options = [
 		type: 'boolean',
 		description: 'Include custom post types and pages',
 		default: false
+	},
+	{
+		name: 'disable-strict-ssl',
+		type: 'boolean',
+		description: 'Strict SSL prevents image retrieval from self-signed servers',
+		default: false
 	}
 ];
 
