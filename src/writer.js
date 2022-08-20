@@ -16,7 +16,7 @@ async function processPayloadsPromise(payloads, loadFunc) {
 	const promises = payloads.map(payload => new Promise((resolve, reject) => {
 		setTimeout(async () => {
 			try {
-				const data = await loadFunc(payload.item);
+				const data = await loadFunc(payload.item, payload.strictSSL);
 				await writeFile(payload.destinationPath, data);
 				console.log(chalk.green('[OK]') + ' ' + payload.name);
 				resolve();
@@ -55,6 +55,7 @@ async function writeMarkdownFilesPromise(posts, config ) {
 			const payload = {
 				item: post,
 				name: (config.includeOtherTypes ? post.meta.type + ' - ' : '') + post.meta.slug,
+				strictSSL: !config.disableStrictSsl,
 				destinationPath,
 				delay
 			};
@@ -72,7 +73,7 @@ async function writeMarkdownFilesPromise(posts, config ) {
 	}
 }
 
-async function loadMarkdownFilePromise(post) {
+async function loadMarkdownFilePromise(post, strictSSL) {
 	let output = '---\n';
 
 	Object.entries(post.frontmatter).forEach(([key, value]) => {
@@ -117,6 +118,7 @@ async function writeImageFilesPromise(posts, config) {
 				const payload = {
 					item: imageUrl,
 					name: filename,
+					strictSSL: !config.disableStrictSsl,
 					destinationPath,
 					delay
 				};
@@ -135,7 +137,7 @@ async function writeImageFilesPromise(posts, config) {
 	}
 }
 
-async function loadImageFilePromise(imageUrl) {
+async function loadImageFilePromise(imageUrl, strictSSL) {
 	// only encode the URL if it doesn't already have encoded characters
 	const url = (/%[\da-f]{2}/i).test(imageUrl) ? imageUrl : encodeURI(imageUrl);
 
@@ -146,7 +148,8 @@ async function loadImageFilePromise(imageUrl) {
 			encoding: null, // preserves binary encoding
 			headers: {
 				'User-Agent': 'wordpress-export-to-markdown'
-			}
+			},
+			strictSSL: strictSSL
 		});
 	} catch (ex) {
 		if (ex.name === 'StatusCodeError') {
