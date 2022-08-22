@@ -163,6 +163,14 @@ Whether or not to download and save images scraped from `<img>` tags in post bod
 
 Some WordPress sites make use of a `"page"` post type and/or custom post types. Set this to `true` to include these post types in the results. Posts will be organized into post type folders.
 
+### Ignore certificate errors, for, eg, self-signing?
+
+- Argument: `--disable-strict-ssl`
+- Type: `boolean`
+- Default: `false`
+
+Strict SSL prevents image retrieval from self-signed servers. The user would see "RequestError: Error: self-signed certificate" without setting this flag.
+
 ## Advanced Settings
 
 You can edit [settings.js](https://github.com/lonekorean/wordpress-export-to-markdown/blob/master/src/settings.js) to tweak advanced settings. This includes things like throttling image downloads or customizing the date format in frontmatter.
