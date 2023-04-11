@@ -68,6 +68,7 @@ function collectPosts(data, postTypes, config) {
 				frontmatter: {
 					title: getPostTitle(post),
 					date: getPostDate(post),
+					date_unformatted: getPostDate(post, true),
 					categories: getCategories(post),
 					tags: getTags(post)
 				},
@@ -109,10 +110,10 @@ function getPostTitle(post) {
 	return post.title[0];
 }
 
-function getPostDate(post) {
+function getPostDate(post, ignoreFormatting = false) {
 	const dateTime = luxon.DateTime.fromRFC2822(post.pubDate[0], { zone: 'utc' });
 
-	if (settings.custom_date_formatting) {
+	if (settings.custom_date_formatting && !ignoreFormatting) {
 		return dateTime.toFormat(settings.custom_date_formatting);
 	} else if (settings.include_time_with_date) {
 		return dateTime.toISO();
