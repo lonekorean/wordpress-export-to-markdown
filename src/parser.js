@@ -27,6 +27,12 @@ async function parseFilePromise(config) {
 
 	mergeImagesIntoPosts(images, posts);
 
+	if(config.includeWpFrontmatter){
+		console.log('adding Wordpress metadata to frontmatter');
+		addWPFrontMatter(posts);
+
+	}
+
 	return posts;
 }
 
@@ -199,6 +205,14 @@ function mergeImagesIntoPosts(images, posts) {
 				post.meta.imageUrls.push(image.url);
 			}
 		});
+	});
+}
+
+function addWPFrontMatter(posts) {
+	posts.forEach(post => {
+		post.frontmatter.wp_id = post.meta.id;
+		post.frontmatter.wp_slug = post.meta.slug;
+		post.frontmatter.wp_type = post.meta.type;
 	});
 }
 

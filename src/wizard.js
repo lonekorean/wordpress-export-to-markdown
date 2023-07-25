@@ -74,6 +74,12 @@ const options = [
 		type: 'boolean',
 		description: 'Include custom post types and pages',
 		default: false
+	},
+	{
+		name: 'include-wp-frontmatter',
+		type: 'boolean',
+		description: 'Include Wordpress metadata in frontmatter',
+		default: false
 	}
 ];
 
