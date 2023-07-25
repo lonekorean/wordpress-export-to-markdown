@@ -10,6 +10,9 @@ const settings = require('./settings');
 async function writeFilesPromise(posts, config) {
 	await writeMarkdownFilesPromise(posts, config);
 	await writeImageFilesPromise(posts, config);
+	if(config.writeWpIdFileMap){
+		await writeMapFilePromise(posts, config);
+	}
 }
 
 async function processPayloadsPromise(payloads, loadFunc) {
@@ -47,6 +50,9 @@ async function writeMarkdownFilesPromise(posts, config ) {
 	let delay = 0;
 	const payloads = posts.flatMap(post => {
 		const destinationPath = getPostPath(post, config);
+		if(config.writeWpIdFileMap){
+			post.meta.destinationPath = destinationPath;
+		}
 		if (checkFile(destinationPath)) {
 			// already exists, don't need to save again
 			skipCount++;
@@ -154,6 +160,25 @@ async function loadImageFilePromise(imageUrl) {
 		throw ex;
 	}
 	return buffer;
+}
+
+async function writeMapFilePromise(posts, config){
+	console.log(`\nWriting Wordpress ID to Destination File Map...`);
+	const idFileMap = {};
+	posts.forEach(post => {
+		if(!idFileMap[post.meta.type]){
+			idFileMap[post.meta.type] = {};
+		}	
+		idFileMap[post.meta.type][post.meta.id] = path.relative(config.output, post.meta.destinationPath);
+	});
+	const jsonName = 'wp-id-file-map.json';
+	try {
+		await writeFile(path.join(config.output, jsonName),  JSON.stringify(idFileMap, null, 2));
+		console.log(chalk.green('[OK]') + ' ' + jsonName);
+	} catch (ex) {
+		console.log(chalk.red('[FAILED]') + ' ' + jsonName + ' ' + chalk.red('(' + ex.toString() + ')'));
+	}
+	console.log("Done")
 }
 
 function getPostPath(post, config) {

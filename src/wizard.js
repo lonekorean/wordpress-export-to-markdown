@@ -80,6 +80,12 @@ const options = [
 		type: 'boolean',
 		description: 'Include Wordpress metadata in frontmatter',
 		default: false
+	},
+	{
+		name: 'write-wp-id-file-map',
+		type: 'boolean',
+		description: 'Write wp-id-file-map.json file mapping wordpress IDs to Markdown files',
+		default: false
 	}
 ];
 
