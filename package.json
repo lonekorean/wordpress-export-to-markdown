@@ -23,7 +23,7 @@
 		"camelcase": "^6.0.0",
 		"chalk": "^4.0.0",
 		"commander": "^5.0.0",
-		"compare-versions": "^3.6.0",
+		"compare-versions": "^6.1.0",
 		"inquirer": "^7.1.0",
 		"luxon": "^1.28.1",
 		"request": "^2.88.2",
