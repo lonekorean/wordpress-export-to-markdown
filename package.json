@@ -20,7 +20,7 @@
 		"node": ">= 12.14.0"
 	},
 	"dependencies": {
-		"camelcase": "^6.0.0",
+		"camelcase": "^8.0.0",
 		"chalk": "^4.0.0",
 		"commander": "^5.0.0",
 		"compare-versions": "^3.6.0",
