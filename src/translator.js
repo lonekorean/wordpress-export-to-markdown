@@ -79,6 +79,20 @@ function initTurndownService() {
 		}
 	});
 
+	turndownService.addRule("pre", {
+		filter: (node, options) => {
+			return (
+				options.codeBlockStyle === "fenced" &&
+				node.nodeName === "PRE" &&
+				node.firstChild
+			);
+		},
+		replacement: (content, node) => {
+			const code = node.textContent;
+			return "\n" + "```" + "\n" + code + "\n" + "```" + "\n";
+		}
+	});
+
 	return turndownService;
 }
 
