@@ -114,18 +114,16 @@ function getPostEnclosure(post) {
 	const postmeta = post.postmeta.find(postmeta => postmeta.meta_key[0] === 'enclosure');
 	const data = postmeta ? postmeta.meta_value[0] : undefined;
 
-	console.log('Enclosure found!');
 	if(data === undefined) {
 		return undefined
 	} else {
+		console.log('Enclosure found!', data);
 		const regexLines = /([^\n]+)(?:\n|$)/g;
-		const regexMeta = /"([^"]+)";/g; // Match strings within double quotes
 
 		let matches;
 		let response = '';
 		while ((matches = regexLines.exec(data)) !== null) {
 			if(matches[1].indexOf("{") === -1) response += matches[1] + ' ';
-			console.log(response);
 		}
 		return (response !== '') ? response : undefined;
 	}
