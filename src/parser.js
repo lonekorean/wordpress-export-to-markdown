@@ -69,7 +69,8 @@ function collectPosts(data, postTypes, config) {
 					title: getPostTitle(post),
 					date: getPostDate(post),
 					categories: getCategories(post),
-					tags: getTags(post)
+					tags: getTags(post),
+					author: getAuthor(post)
 				},
 				content: translator.getPostContent(post, turndownService, config)
 			}));
@@ -119,6 +120,10 @@ function getPostDate(post) {
 	} else {
 		return dateTime.toISODate();
 	}
+}
+
+function getAuthor(post) {
+	return post.creator[0]
 }
 
 function getCategories(post) {
