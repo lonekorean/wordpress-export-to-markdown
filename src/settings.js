@@ -11,7 +11,7 @@ exports.markdown_file_write_delay = 25;
 exports.include_time_with_date = false;
 
 // override post date formatting with a custom formatting string (for example: 'yyyy LLL dd')
-// tokens are documented here: https://moment.github.io/luxon/docs/manual/formatting.html#table-of-tokens
+// tokens are documented here: https://moment.github.io/luxon/#/parsing?id=table-of-tokens
 // if set, this takes precedence over include_time_with_date
 exports.custom_date_formatting = '';
 
