@@ -9,7 +9,6 @@ function initTurndownService() {
 	});
 
 	turndownService.use(turndownPluginGfm.tables);
-	turndownService.keep(['iframe']);
 
 	// preserve embedded tweets
 	turndownService.addRule('tweet', {
@@ -53,6 +52,15 @@ function initTurndownService() {
 				.replace('allowfullscreen=""', 'allowfullscreen')
 				.replace('allowpaymentrequest=""', 'allowpaymentrequest');
 			return '\n\n' + html + '\n\n';
+		}
+	});
+
+	// preserve <figure> and <figcaption>
+	turndownService.addRule('fig', {
+		filter: ['figure', 'figcaption'],
+		replacement: (content, node) => {
+			const tagName = node.nodeName.toLowerCase();
+			return '<' + tagName + '>' + content + '</' + tagName + '>';
 		}
 	});
 
