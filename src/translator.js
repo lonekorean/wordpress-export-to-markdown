@@ -61,7 +61,7 @@ function getPostContent(post, turndownService, config) {
 
 	// insert an empty div element between double line breaks
 	// this nifty trick causes turndown to keep adjacent paragraphs separated
-	// without mucking up content inside of other elemnts (like <code> blocks)
+	// without mucking up content inside of other elements (like <code> blocks)
 	content = content.replace(/(\r?\n){2}/g, '\n<div></div>\n');
 
 	if (config.saveScrapedImages) {
@@ -74,6 +74,10 @@ function getPostContent(post, turndownService, config) {
 	// allows the iframe rule declared in initTurndownService() to take effect
 	// (using turndown's blankRule() and keep() solution did not work for me)
 	content = content.replace(/(<\/iframe>)/gi, '.$1');
+
+	// preserve "more" separator, max one per post, optionally with custom label
+	// by escaping angle brackets (will be unescaped during turndown conversion)
+	content = content.replace(/<(!--more( .*)?--)>/, '&lt;$1&gt;')
 
 	// use turndown to convert HTML to Markdown
 	content = turndownService.turndown(content);
