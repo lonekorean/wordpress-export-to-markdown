@@ -77,7 +77,7 @@ function getPostContent(post, turndownService, config) {
 
 	// preserve "more" separator, max one per post, optionally with custom label
 	// by escaping angle brackets (will be unescaped during turndown conversion)
-	content = content.replace(/<(!--more( .*)?--)>/, '&lt;$1&gt;')
+	content = content.replace(/<(!--more( .*)?--)>/, '&lt;$1&gt;');
 
 	// use turndown to convert HTML to Markdown
 	content = turndownService.turndown(content);
