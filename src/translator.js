@@ -55,12 +55,14 @@ function initTurndownService() {
 		}
 	});
 
-	// preserve <figure> and <figcaption>
+	// preserve <figure> and <figcaption> -- the extra newlines between tags are
+	// necessary because of how markdown is being used inside HTML tags
 	turndownService.addRule('fig', {
 		filter: ['figure', 'figcaption'],
 		replacement: (content, node) => {
 			const tagName = node.nodeName.toLowerCase();
-			return '<' + tagName + '>' + content + '</' + tagName + '>';
+			const result = '\n\n<' + tagName + '>\n\n' + content + '\n\n</' + tagName + '>\n\n';
+			return result.replace('\n\n\n\n', '\n\n'); // reduce quadruple newlines
 		}
 	});
 
