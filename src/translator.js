@@ -44,15 +44,6 @@ function initTurndownService() {
 		}
 	});
 
-	// preserve enlighter code blocks
-	turndownService.addRule('enlighter', {
-		filter: (node) => node.nodeName === 'PRE' && node.classList.contains('EnlighterJSRAW'),
-		replacement: (content, node) => {
-			const language = node.getAttribute('data-enlighter-language') ?? '';
-			return '\n' + '```' + language + '\n' + content + '\n' + '```' + '\n';
-		}
-	});
-
 	// iframe boolean attributes do not need to be set to empty string
 	turndownService.addRule('iframe', {
 		filter: 'iframe',
@@ -88,17 +79,15 @@ function initTurndownService() {
 		}
 	});
 
-	turndownService.addRule("pre", {
-		filter: (node, options) => {
-			return (
-				options.codeBlockStyle === "fenced" &&
-				node.nodeName === "PRE" &&
-				node.firstChild
-			);
+	// convert <pre> into a code block with language when appropriate
+	turndownService.addRule('pre', {
+		filter: node => {
+			// a <pre> with <code> inside will already render nicely, so don't interfere
+			return node.nodeName === 'PRE' && !node.querySelector('code');
 		},
 		replacement: (content, node) => {
-			const code = node.textContent;
-			return "\n" + "```" + "\n" + code + "\n" + "```" + "\n";
+			const language = node.getAttribute('data-wetm-language') || '';
+			return '\n\n```' + language + '\n' + node.textContent + '\n```\n\n';
 		}
 	});
 
@@ -122,6 +111,10 @@ function getPostContent(post, turndownService, config) {
 	// preserve "more" separator, max one per post, optionally with custom label
 	// by escaping angle brackets (will be unescaped during turndown conversion)
 	content = content.replace(/<(!--more( .*)?--)>/, '&lt;$1&gt;');
+
+	// some WordPress plugins specify a code language in an HTML comment above a
+	// <pre> block, save it to a data attribute so the "pre" rule can use it
+	content = content.replace(/(<!-- wp:.+? \{"language":"(.+?)"\} -->\r?\n<pre )/g, '$1data-wetm-language="$2" ');
 
 	// use turndown to convert HTML to Markdown
 	content = turndownService.turndown(content);
