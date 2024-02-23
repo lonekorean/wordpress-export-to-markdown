@@ -1,3 +1,11 @@
+exports.frontmatter_fields = [
+  'title',
+  'date',
+  'categories',
+  'tags',
+  'coverImage'
+];
+
 // time in ms to wait between requesting image files
 // increase this if you see timeouts or server errors
 exports.image_file_request_delay = 500;

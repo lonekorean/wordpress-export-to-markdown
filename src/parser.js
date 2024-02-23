@@ -1,10 +1,16 @@
 const fs = require('fs');
-const luxon = require('luxon');
 const xml2js = require('xml2js');
 
 const shared = require('./shared');
-const settings = require('./settings');
 const translator = require('./translator');
+
+const frontmatter = {
+	title: require('./frontmatter/title'),
+	date: require('./frontmatter/date'),
+	categories: require('./frontmatter/categories'),
+	tags: require('./frontmatter/tags'),
+	coverImage: require('./frontmatter/coverImage'),
+};
 
 async function parseFilePromise(config) {
 	console.log('\nParsing...');
@@ -104,45 +110,6 @@ function getPostCoverImageId(postData) {
 	return id;
 }
 
-function getPostTitle(post) {
-	return post.data.title[0];
-}
-
-function getPostDate(post) {
-	const dateTime = luxon.DateTime.fromRFC2822(post.data.pubDate[0], { zone: 'utc' });
-
-	if (settings.custom_date_formatting) {
-		return dateTime.toFormat(settings.custom_date_formatting);
-	} else if (settings.include_time_with_date) {
-		return dateTime.toISO();
-	} else {
-		return dateTime.toISODate();
-	}
-}
-
-function getCategories(post) {
-	const categories = processCategoryTags(post.data, 'category');
-	return categories.filter(category => !settings.filter_categories.includes(category));
-}
-
-function getTags(post) {
-	return processCategoryTags(post.data, 'post_tag');
-}
-
-function getCoverImage(post) {
-	return post.meta.coverImage;
-}
-
-function processCategoryTags(postData, domain) {
-	if (!postData.category) {
-		return [];
-	}
-
-	return postData.category
-		.filter(category => category.$.domain === domain)
-		.map(({ $: attributes }) => decodeURIComponent(attributes.nicename));
-}
-
 function collectAttachedImages(channelData) {
 	const images = getItemsOfType(channelData, 'attachment')
 		// filter to certain image file types
@@ -207,13 +174,12 @@ function mergeImagesIntoPosts(images, posts) {
 
 function populateFrontmatter(posts) {
 	posts.forEach(post => {
-		console.log(post);
 		post.frontmatter = {
-			title: getPostTitle(post),
-			date: getPostDate(post),
-			categories: getCategories(post),
-			tags: getTags(post),
-			coverImage: getCoverImage(post)
+			title: frontmatter.title(post),
+			date: frontmatter.date(post),
+			categories: frontmatter.categories(post),
+			tags: frontmatter.tags(post),
+			coverImage: frontmatter.coverImage(post)
 		}
 	});
 }
