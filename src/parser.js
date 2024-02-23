@@ -9,32 +9,34 @@ const translator = require('./translator');
 async function parseFilePromise(config) {
 	console.log('\nParsing...');
 	const content = await fs.promises.readFile(config.input, 'utf8');
-	const data = await xml2js.parseStringPromise(content, {
+	const allData = await xml2js.parseStringPromise(content, {
 		trim: true,
 		tagNameProcessors: [xml2js.processors.stripPrefix]
 	});
+	const channelData = allData.rss.channel[0].item;
 
-	const postTypes = getPostTypes(data, config);
-	const posts = collectPosts(data, postTypes, config);
+	const postTypes = getPostTypes(channelData, config);
+	const posts = collectPosts(channelData, postTypes, config);
 
 	const images = [];
 	if (config.saveAttachedImages) {
-		images.push(...collectAttachedImages(data));
+		images.push(...collectAttachedImages(channelData));
 	}
 	if (config.saveScrapedImages) {
-		images.push(...collectScrapedImages(data, postTypes));
+		images.push(...collectScrapedImages(channelData, postTypes));
 	}
 
 	mergeImagesIntoPosts(images, posts);
+	populateFrontmatter(posts);
 
 	return posts;
 }
 
-function getPostTypes(data, config) {
+function getPostTypes(channelData, config) {
 	if (config.includeOtherTypes) {
 		// search export file for all post types minus some default types we don't want
 		// effectively this will be 'post', 'page', and custom post types
-		const types = data.rss.channel[0].item
+		const types = channelData
 			.map(item => item.post_type[0])
 			.filter(type => !['attachment', 'revision', 'nav_menu_item', 'custom_css', 'customize_changeset'].includes(type));
 		return [...new Set(types)]; // remove duplicates
@@ -44,34 +46,31 @@ function getPostTypes(data, config) {
 	}
 }
 
-function getItemsOfType(data, type) {
-	return data.rss.channel[0].item.filter(item => item.post_type[0] === type);
+function getItemsOfType(channelData, type) {
+	return channelData.filter(item => item.post_type[0] === type);
 }
 
-function collectPosts(data, postTypes, config) {
+function collectPosts(channelData, postTypes, config) {
 	// this is passed into getPostContent() for the markdown conversion
 	const turndownService = translator.initTurndownService();
 
 	let allPosts = [];
 	postTypes.forEach(postType => {
-		const postsForType = getItemsOfType(data, postType)
-			.filter(post => post.status[0] !== 'trash' && post.status[0] !== 'draft')
-			.map(post => ({
+		const postsForType = getItemsOfType(channelData, postType)
+			.filter(postData => postData.status[0] !== 'trash' && postData.status[0] !== 'draft')
+			.map(postData => ({
+				data: postData,
+
 				// meta data isn't written to file, but is used to help with other things
 				meta: {
-					id: getPostId(post),
-					slug: getPostSlug(post),
-					coverImageId: getPostCoverImageId(post),
+					id: getPostId(postData),
+					slug: getPostSlug(postData),
+					coverImageId: getPostCoverImageId(postData),
+					coverImage: undefined, // possibly set later in mergeImagesIntoPosts()
 					type: postType,
 					imageUrls: []
 				},
-				frontmatter: {
-					title: getPostTitle(post),
-					date: getPostDate(post),
-					categories: getCategories(post),
-					tags: getTags(post)
-				},
-				content: translator.getPostContent(post, turndownService, config)
+				content: translator.getPostContent(postData, turndownService, config)
 			}));
 
 		if (postTypes.length > 1) {
@@ -87,30 +86,30 @@ function collectPosts(data, postTypes, config) {
 	return allPosts;
 }
 
-function getPostId(post) {
-	return post.post_id[0];
+function getPostId(postData) {
+	return postData.post_id[0];
 }
 
-function getPostSlug(post) {
-	return decodeURIComponent(post.post_name[0]);
+function getPostSlug(postData) {
+	return decodeURIComponent(postData.post_name[0]);
 }
 
-function getPostCoverImageId(post) {
-	if (post.postmeta === undefined) {
+function getPostCoverImageId(postData) {
+	if (postData.postmeta === undefined) {
 		return undefined;
 	}
 
-	const postmeta = post.postmeta.find(postmeta => postmeta.meta_key[0] === '_thumbnail_id');
+	const postmeta = postData.postmeta.find(postmeta => postmeta.meta_key[0] === '_thumbnail_id');
 	const id = postmeta ? postmeta.meta_value[0] : undefined;
 	return id;
 }
 
 function getPostTitle(post) {
-	return post.title[0];
+	return post.data.title[0];
 }
 
 function getPostDate(post) {
-	const dateTime = luxon.DateTime.fromRFC2822(post.pubDate[0], { zone: 'utc' });
+	const dateTime = luxon.DateTime.fromRFC2822(post.data.pubDate[0], { zone: 'utc' });
 
 	if (settings.custom_date_formatting) {
 		return dateTime.toFormat(settings.custom_date_formatting);
@@ -122,26 +121,30 @@ function getPostDate(post) {
 }
 
 function getCategories(post) {
-	const categories = processCategoryTags(post, 'category');
+	const categories = processCategoryTags(post.data, 'category');
 	return categories.filter(category => !settings.filter_categories.includes(category));
 }
 
 function getTags(post) {
-	return processCategoryTags(post, 'post_tag');
+	return processCategoryTags(post.data, 'post_tag');
 }
 
-function processCategoryTags(post, domain) {
-	if (!post.category) {
+function getCoverImage(post) {
+	return post.meta.coverImage;
+}
+
+function processCategoryTags(postData, domain) {
+	if (!postData.category) {
 		return [];
 	}
 
-	return post.category
+	return postData.category
 		.filter(category => category.$.domain === domain)
 		.map(({ $: attributes }) => decodeURIComponent(attributes.nicename));
 }
 
-function collectAttachedImages(data) {
-	const images = getItemsOfType(data, 'attachment')
+function collectAttachedImages(channelData) {
+	const images = getItemsOfType(channelData, 'attachment')
 		// filter to certain image file types
 		.filter(attachment => (/\.(gif|jpe?g|png)$/i).test(attachment.attachment_url[0]))
 		.map(attachment => ({
@@ -154,13 +157,13 @@ function collectAttachedImages(data) {
 	return images;
 }
 
-function collectScrapedImages(data, postTypes) {
+function collectScrapedImages(channelData, postTypes) {
 	const images = [];
 	postTypes.forEach(postType => {
-		getItemsOfType(data, postType).forEach(post => {
-			const postId = post.post_id[0];
-			const postContent = post.encoded[0];
-			const postLink = post.link[0];
+		getItemsOfType(channelData, postType).forEach(postData => {
+			const postId = postData.post_id[0];
+			const postContent = postData.encoded[0];
+			const postLink = postData.link[0];
 
 			const matches = [...postContent.matchAll(/<img[^>]*src="(.+?\.(?:gif|jpe?g|png))"[^>]*>/gi)];
 			matches.forEach(match => {
@@ -192,13 +195,26 @@ function mergeImagesIntoPosts(images, posts) {
 			// this image was set as the featured image for this post
 			if (image.id === post.meta.coverImageId) {
 				shouldAttach = true;
-				post.frontmatter.coverImage = shared.getFilenameFromUrl(image.url);
+				post.meta.coverImage = shared.getFilenameFromUrl(image.url);
 			}
 
 			if (shouldAttach && !post.meta.imageUrls.includes(image.url)) {
 				post.meta.imageUrls.push(image.url);
 			}
 		});
+	});
+}
+
+function populateFrontmatter(posts) {
+	posts.forEach(post => {
+		console.log(post);
+		post.frontmatter = {
+			title: getPostTitle(post),
+			date: getPostDate(post),
+			categories: getCategories(post),
+			tags: getTags(post),
+			coverImage: getCoverImage(post)
+		}
 	});
 }
 
