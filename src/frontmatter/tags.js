@@ -1,5 +1,3 @@
-const settings = require('../settings');
-
 module.exports = (post) => {
 	if (!post.data.category) {
 		return [];
