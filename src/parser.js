@@ -69,7 +69,8 @@ function collectPosts(data, postTypes, config) {
 					title: getPostTitle(post),
 					date: getPostDate(post),
 					categories: getCategories(post),
-					tags: getTags(post)
+					tags: getTags(post),
+					enclosure: getPostEnclosure(post)
 				},
 				content: translator.getPostContent(post, turndownService, config)
 			}));
@@ -103,6 +104,30 @@ function getPostCoverImageId(post) {
 	const postmeta = post.postmeta.find(postmeta => postmeta.meta_key[0] === '_thumbnail_id');
 	const id = postmeta ? postmeta.meta_value[0] : undefined;
 	return id;
+}
+
+function getPostEnclosure(post) {
+	if (post.postmeta === undefined) {
+		return undefined;
+	}
+
+	const postmeta = post.postmeta.find(postmeta => postmeta.meta_key[0] === 'enclosure');
+	const data = postmeta ? postmeta.meta_value[0] : undefined;
+
+	if(data === undefined) {
+		return undefined
+	} else {
+		console.log('Enclosure found!', data);
+		const regexLines = /([^\n]+)(?:\n|$)/g;
+
+		let matches;
+		let response = '';
+		while ((matches = regexLines.exec(data)) !== null) {
+			if(matches[1].indexOf("{") === -1) response += matches[1] + ' ';
+		}
+		return (response !== '') ? response : undefined;
+	}
+
 }
 
 function getPostTitle(post) {
