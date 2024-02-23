@@ -1,16 +1,13 @@
 const fs = require('fs');
+const requireDirectory = require('require-directory');
 const xml2js = require('xml2js');
 
 const shared = require('./shared');
+const settings = require('./settings');
 const translator = require('./translator');
 
-const frontmatter = {
-	title: require('./frontmatter/title'),
-	date: require('./frontmatter/date'),
-	categories: require('./frontmatter/categories'),
-	tags: require('./frontmatter/tags'),
-	coverImage: require('./frontmatter/coverImage'),
-};
+// dynamically requires all frontmatter loaders
+const frontmatterLoaders = requireDirectory(module, './frontmatter', { recurse: false });
 
 async function parseFilePromise(config) {
 	console.log('\nParsing...');
@@ -174,13 +171,11 @@ function mergeImagesIntoPosts(images, posts) {
 
 function populateFrontmatter(posts) {
 	posts.forEach(post => {
-		post.frontmatter = {
-			title: frontmatter.title(post),
-			date: frontmatter.date(post),
-			categories: frontmatter.categories(post),
-			tags: frontmatter.tags(post),
-			coverImage: frontmatter.coverImage(post)
-		}
+		post.frontmatter = {};
+		settings.frontmatter_fields.forEach(field => {
+			[key, alias] = field.split(':');
+			post.frontmatter[alias || key] = frontmatterLoaders[key](post);
+		});
 	});
 }
 
