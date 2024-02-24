@@ -62,6 +62,7 @@ function collectPosts(channelData, postTypes, config) {
 		const postsForType = getItemsOfType(channelData, postType)
 			.filter(postData => postData.status[0] !== 'trash' && postData.status[0] !== 'draft')
 			.map(postData => ({
+				// raw post data, used by frontmatter getters
 				data: postData,
 
 				// meta data isn't written to file, but is used to help with other things
@@ -71,8 +72,10 @@ function collectPosts(channelData, postTypes, config) {
 					coverImageId: getPostCoverImageId(postData),
 					coverImage: undefined, // possibly set later in mergeImagesIntoPosts()
 					type: postType,
-					imageUrls: []
+					imageUrls: [] // possibly set later in mergeImagesIntoPosts()
 				},
+
+				// contents of the post in markdown
 				content: translator.getPostContent(postData, turndownService, config)
 			}));
 
