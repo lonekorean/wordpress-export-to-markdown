@@ -174,7 +174,13 @@ function populateFrontmatter(posts) {
 		post.frontmatter = {};
 		settings.frontmatter_fields.forEach(field => {
 			[key, alias] = field.split(':');
-			post.frontmatter[alias || key] = frontmatterGetters[key](post);
+
+			let frontmatterGetter = frontmatterGetters[key];
+			if (!frontmatterGetter) {
+				throw `Could not find a frontmatter getter named "${key}".`;
+			}
+
+			post.frontmatter[alias || key] = frontmatterGetter(post);
 		});
 	});
 }
