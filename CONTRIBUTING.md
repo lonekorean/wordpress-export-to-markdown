@@ -18,6 +18,6 @@ Keeping the wizard as short as possible is a priority. Pull requests that add op
 
 Similarly, default frontmatter output is limited to just a few widely used fields to avoid bloat. However, you may add new optional frontmatter fields.
 
-To do so, add a new `.js` file into the [/src/frontmatter](https://github.com/lonekorean/wordpress-export-to-markdown/tree/master/src/frontmatter) folder. The filename should be the name of the frontmatter field, camelcased. See the other files there for code examples.
+To do so, follow the instructions in [/src/frontmatter/example.js](https://github.com/lonekorean/wordpress-export-to-markdown/tree/master/src/frontmatterexample.js).
 
 Users will be able to include your new frontmatter field by editing `frontmatter_fields` in [settings.js](https://github.com/lonekorean/wordpress-export-to-markdown/blob/master/src/settings.js).
