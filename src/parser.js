@@ -171,7 +171,7 @@ function mergeImagesIntoPosts(images, posts) {
 
 function populateFrontmatter(posts) {
 	posts.forEach(post => {
-		post.frontmatter = {};
+		const frontmatter = {};
 		settings.frontmatter_fields.forEach(field => {
 			[key, alias] = field.split(':');
 
@@ -180,8 +180,9 @@ function populateFrontmatter(posts) {
 				throw `Could not find a frontmatter getter named "${key}".`;
 			}
 
-			post.frontmatter[alias || key] = frontmatterGetter(post);
+			frontmatter[alias || key] = frontmatterGetter(post);
 		});
+		post.frontmatter = frontmatter;
 	});
 }
 
