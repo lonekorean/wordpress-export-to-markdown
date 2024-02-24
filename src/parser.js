@@ -6,8 +6,8 @@ const shared = require('./shared');
 const settings = require('./settings');
 const translator = require('./translator');
 
-// dynamically requires all frontmatter loaders
-const frontmatterLoaders = requireDirectory(module, './frontmatter', { recurse: false });
+// dynamically requires all frontmatter getters
+const frontmatterGetters = requireDirectory(module, './frontmatter', { recurse: false });
 
 async function parseFilePromise(config) {
 	console.log('\nParsing...');
@@ -174,7 +174,7 @@ function populateFrontmatter(posts) {
 		post.frontmatter = {};
 		settings.frontmatter_fields.forEach(field => {
 			[key, alias] = field.split(':');
-			post.frontmatter[alias || key] = frontmatterLoaders[key](post);
+			post.frontmatter[alias || key] = frontmatterGetters[key](post);
 		});
 	});
 }
