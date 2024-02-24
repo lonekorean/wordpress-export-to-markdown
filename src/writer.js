@@ -85,7 +85,9 @@ async function loadMarkdownFilePromise(post) {
 		} else {
 			// single string value
 			const escapedValue = (value || '').replace(/"/g, '\\"');
-			outputValue = `"${escapedValue}"`;
+			if (escapedValue.length > 0) {
+				outputValue = `"${escapedValue}"`;
+			}
 		}
 
 		if (outputValue !== undefined) {
