@@ -110,10 +110,6 @@ function getPostCoverImageId(postData) {
 	return id;
 }
 
-function getAuthor(post) {
-	return post.creator[0]
-}
-
 function collectAttachedImages(channelData) {
 	const images = getItemsOfType(channelData, 'attachment')
 		// filter to certain image file types
