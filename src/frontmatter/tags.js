@@ -8,5 +8,5 @@ module.exports = (post) => {
 		.filter(category => category.$.domain === 'post_tag')
 		.map(({ $: attributes }) => decodeURIComponent(attributes.nicename));
 
-  return categories;
+		return categories;
 };
