@@ -1,4 +1,4 @@
-// get slug, previously set on post.meta
+// get slug, previously decoded and set on post.meta
 module.exports = (post) => {
 	return post.meta.slug;
 };

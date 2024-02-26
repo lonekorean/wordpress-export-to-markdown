@@ -1,6 +1,6 @@
 const settings = require('../settings');
 
-// get array of categories for post, filtered as specified in settings
+// get array of decoded category names, filtered as specified in settings
 module.exports = (post) => {
 	if (!post.data.category) {
 		return [];

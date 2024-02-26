@@ -1,4 +1,4 @@
-// get array of tags for post
+// get array of decoded tag names
 module.exports = (post) => {
 	if (!post.data.category) {
 		return [];
