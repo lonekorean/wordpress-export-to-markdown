@@ -10,5 +10,5 @@ module.exports = (post) => {
 		.filter(category => category.$.domain === 'category')
 		.map(({ $: attributes }) => decodeURIComponent(attributes.nicename));
 
-  return categories.filter(category => !settings.filter_categories.includes(category));
+	return categories.filter(category => !settings.filter_categories.includes(category));
 };
