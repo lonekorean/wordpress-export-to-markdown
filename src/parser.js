@@ -110,11 +110,6 @@ function getPostCoverImageId(postData) {
 	return id;
 }
 
-function getPostExcerpt(post) {
-  const excerpt = post.encoded[1].replace(/(\r\n|\n|\r)/gm, " "); 
-  return excerpt;
-}
-
 function collectAttachedImages(channelData) {
 	const images = getItemsOfType(channelData, 'attachment')
 		// filter to certain image file types
