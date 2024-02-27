@@ -18,6 +18,10 @@ exports.image_file_request_delay = 500;
 // overloaded.
 exports.markdown_file_write_delay = 25;
 
+// Specify the timezone used for post dates. See available zone values and examples here:
+// https://moment.github.io/luxon/#/zones?id=specifying-a-zone.
+exports.custom_date_timezone = 'utc';
+
 // Enable this to include time with post dates. For example, "2020-12-25" would become
 // "2020-12-25T11:20:35.000Z".
 exports.include_time_with_date = false;
