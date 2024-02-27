@@ -113,7 +113,7 @@ function getPostCoverImageId(postData) {
 function collectAttachedImages(channelData) {
 	const images = getItemsOfType(channelData, 'attachment')
 		// filter to certain image file types
-		.filter(attachment => (/\.(gif|jpe?g|png)$/i).test(attachment.attachment_url[0]))
+		.filter(attachment => attachment.attachment_url && (/\.(gif|jpe?g|png)$/i).test(attachment.attachment_url[0]))
 		.map(attachment => ({
 			id: attachment.post_id[0],
 			postId: attachment.post_parent[0],
