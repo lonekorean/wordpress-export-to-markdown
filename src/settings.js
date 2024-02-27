@@ -34,4 +34,3 @@ exports.custom_date_formatting = '';
 // Categories to be excluded from post frontmatter. This does not filter out posts themselves,
 // just the categories listed in their frontmatter.
 exports.filter_categories = ['uncategorized'];
-
