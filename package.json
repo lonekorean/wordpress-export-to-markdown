@@ -1,6 +1,6 @@
 {
 	"name": "wordpress-export-to-markdown",
-	"version": "2.2.2",
+	"version": "2.3.1",
 	"description": "Converts a WordPress export XML file into Markdown files.",
 	"main": "index.js",
 	"repository": "https://github.com/lonekorean/wordpress-export-to-markdown.git",
@@ -25,12 +25,13 @@
 		"commander": "^5.0.0",
 		"compare-versions": "^3.6.0",
 		"inquirer": "^7.1.0",
-		"luxon": "^1.23.0",
+		"luxon": "^3.4.4",
 		"request": "^2.88.2",
 		"request-promise-native": "^1.0.8",
-		"turndown": "^7.0.0",
+		"require-directory": "^2.1.1",
+		"turndown": "^7.1.2",
 		"turndown-plugin-gfm": "^1.0.2",
-		"xml2js": "^0.4.23"
+		"xml2js": "^0.6.2"
 	},
 	"devDependencies": {
 		"eslint": "^6.8.0"

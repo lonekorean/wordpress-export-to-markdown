@@ -44,24 +44,62 @@ function initTurndownService() {
 		}
 	});
 
-	// preserve iframes (common for embedded audio/video)
+	// iframe boolean attributes do not need to be set to empty string
 	turndownService.addRule('iframe', {
 		filter: 'iframe',
 		replacement: (content, node) => {
-			const html = node.outerHTML.replace('allowfullscreen=""', 'allowfullscreen');
+			const html = node.outerHTML
+				.replace('allowfullscreen=""', 'allowfullscreen')
+				.replace('allowpaymentrequest=""', 'allowpaymentrequest');
 			return '\n\n' + html + '\n\n';
+		}
+	});
+
+	// preserve <figure> when it contains a <figcaption>
+	turndownService.addRule('figure', {
+		filter: 'figure',
+		replacement: (content, node) => {
+			if (node.querySelector('figcaption')) {
+				// extra newlines are necessary for markdown and HTML to render correctly together
+				const result = '\n\n<figure>\n\n' + content + '\n\n</figure>\n\n';
+				return result.replace('\n\n\n\n', '\n\n'); // collapse quadruple newlines
+			} else {
+				// does not contain <figcaption>, do not preserve
+				return content;
+			}
+		}
+	});
+
+	// preserve <figcaption>
+	turndownService.addRule('figcaption', {
+		filter: 'figcaption',
+		replacement: (content, node) => {
+			// extra newlines are necessary for markdown and HTML to render correctly together
+			return '\n\n<figcaption>\n\n' + content + '\n\n</figcaption>\n\n';
+		}
+	});
+
+	// convert <pre> into a code block with language when appropriate
+	turndownService.addRule('pre', {
+		filter: node => {
+			// a <pre> with <code> inside will already render nicely, so don't interfere
+			return node.nodeName === 'PRE' && !node.querySelector('code');
+		},
+		replacement: (content, node) => {
+			const language = node.getAttribute('data-wetm-language') || '';
+			return '\n\n```' + language + '\n' + node.textContent + '\n```\n\n';
 		}
 	});
 
 	return turndownService;
 }
 
-function getPostContent(post, turndownService, config) {
-	let content = post.encoded[0];
+function getPostContent(postData, turndownService, config) {
+	let content = postData.encoded[0];
 
 	// insert an empty div element between double line breaks
 	// this nifty trick causes turndown to keep adjacent paragraphs separated
-	// without mucking up content inside of other elemnts (like <code> blocks)
+	// without mucking up content inside of other elements (like <code> blocks)
 	content = content.replace(/(\r?\n){2}/g, '\n<div></div>\n');
 
 	if (config.saveScrapedImages) {
@@ -70,19 +108,19 @@ function getPostContent(post, turndownService, config) {
 		content = content.replace(/(<img[^>]*src=").*?([^/"]+\.(?:gif|jpe?g|png))("[^>]*>)/gi, '$1images/$2$3');
 	}
 
-	// this is a hack to make <iframe> nodes non-empty by inserting a "." which
-	// allows the iframe rule declared in initTurndownService() to take effect
-	// (using turndown's blankRule() and keep() solution did not work for me)
-	content = content.replace(/(<\/iframe>)/gi, '.$1');
+	// preserve "more" separator, max one per post, optionally with custom label
+	// by escaping angle brackets (will be unescaped during turndown conversion)
+	content = content.replace(/<(!--more( .*)?--)>/, '&lt;$1&gt;');
+
+	// some WordPress plugins specify a code language in an HTML comment above a
+	// <pre> block, save it to a data attribute so the "pre" rule can use it
+	content = content.replace(/(<!-- wp:.+? \{"language":"(.+?)"\} -->\r?\n<pre )/g, '$1data-wetm-language="$2" ');
 
 	// use turndown to convert HTML to Markdown
 	content = turndownService.turndown(content);
 
 	// clean up extra spaces in list items
 	content = content.replace(/(-|\d+\.) +/g, '$1 ');
-
-	// clean up the "." from the iframe hack above
-	content = content.replace(/\.(<\/iframe>)/gi, '$1');
 
 	return content;
 }
