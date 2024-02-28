@@ -1,18 +1,18 @@
 # wordpress-export-to-markdown
 
-A script that converts a WordPress export XML file into Markdown files suitable for a static site generator ([Gatsby](https://www.gatsbyjs.org/), [Hugo](https://gohugo.io/), [Jekyll](https://jekyllrb.com/), etc.).
+Converts a WordPress export file into Markdown files that are compatible with static site generators ([Eleventy](https://www.11ty.dev/), [Gatsby](https://www.gatsbyjs.org/), [Hugo](https://gohugo.io/), etc.).
 
-Each post is saved as a separate Markdown file with appropriate frontmatter. Images are also downloaded and saved. Embedded content from YouTube, Twitter, CodePen, etc. is carefully preserved.
+Each post is saved as a separate Markdown file with frontmatter. Images are also downloaded and saved. Embedded content from YouTube, Twitter, CodePen, etc. is carefully preserved.
 
 ![wordpress-export-to-markdown running in a terminal](https://user-images.githubusercontent.com/1245573/72686026-3aa04280-3abe-11ea-92c1-d756a24657dd.gif)
 
 ## Quick Start
 
 You'll need:
-- [Node.js](https://nodejs.org/) v12.14 or later
-- Your [WordPress export file](https://wordpress.org/support/article/tools-export-screen/) (be sure to export "All content" if you want to save images and/or pages)
+- [Node.js](https://nodejs.org/) installed
+- Your [WordPress export file](https://wordpress.org/support/article/tools-export-screen/) (be sure to export "All content").
 
-It is recommended that you drop your WordPress export file into the same directory that you run this script from so it's easy to find.
+To make things easier, you can rename your WordPress export file to `export.xml` and drop it into the same directory that you run this script from.
 
 You can run this script immediately in your terminal with `npx`:
 
@@ -20,17 +20,17 @@ You can run this script immediately in your terminal with `npx`:
 npx wordpress-export-to-markdown
 ```
 
-Or you can clone and run (this makes repeated runs faster and allows you to tinker with the code). After cloning this repo, open your terminal to the package's directory and run:
+Or you can clone this repo, then from within the repo's directory, install and run:
 
 ```
 npm install && node index.js
 ```
 
-Either way you run it, the script will start the wizard. Answer the questions and off you go!
+Either way, the script will start a wizard to configure your options. Answer the questions and off you go!
 
 ## Command Line
 
-The wizard makes it easy to configure your options, but you can also do so via the command line if you want. For example, the following will give you [Jekyll](https://jekyllrb.com/)-style output in terms of folder structure and filenames.
+Options can also be configured via the command line. The wizard will skip asking about any such options. For example, the following will give you [Jekyll](https://jekyllrb.com/)-style output in terms of folder structure and filenames.
 
 Using `npx`:
 
@@ -44,7 +44,7 @@ Using a locally cloned repo:
 node index.js --post-folders=false --prefix-date=true
 ```
 
-The wizard will still ask you about any options not specifed on the command line. To skip the wizard entirely and use default values for unspecified options, add `--wizard=false`.
+The wizard will still ask you about any options not specified on the command line. To skip the wizard entirely and use default values for unspecified options, add `--wizard=false`.
 
 ## Options
 
