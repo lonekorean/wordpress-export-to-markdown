@@ -1,6 +1,6 @@
 # wordpress-export-to-markdown
 
-Converts a WordPress export file into Markdown files that are compatible with static site generators ([Eleventy](https://www.11ty.dev/), [Gatsby](https://www.gatsbyjs.org/), [Hugo](https://gohugo.io/), etc.).
+Converts a WordPress export file into Markdown files that are compatible with static site generators ([Eleventy](https://www.11ty.dev/), [Gatsby](https://www.gatsbyjs.com/), [Hugo](https://gohugo.io/), etc.).
 
 Each post is saved as a separate Markdown file with frontmatter. Images are downloaded and saved.
 
