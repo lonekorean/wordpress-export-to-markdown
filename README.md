@@ -2,7 +2,7 @@
 
 Converts a WordPress export file into Markdown files that are compatible with static site generators ([Eleventy](https://www.11ty.dev/), [Gatsby](https://www.gatsbyjs.org/), [Hugo](https://gohugo.io/), etc.).
 
-Each post is saved as a separate Markdown file with frontmatter. Images are also downloaded and saved. Embedded content from YouTube, Twitter, CodePen, etc. is carefully preserved.
+Each post is saved as a separate Markdown file with frontmatter. Images are downloaded and saved.
 
 ![wordpress-export-to-markdown running in a terminal](https://user-images.githubusercontent.com/1245573/72686026-3aa04280-3abe-11ea-92c1-d756a24657dd.gif)
 
@@ -48,51 +48,33 @@ The wizard will still ask you about any options not specified on the command lin
 
 ## Options
 
-### Use wizard?
-
-- Argument: `--wizard`
-- Type: `boolean`
-- Default: `true`
-
-Enable to have the script prompt you for each option. Disable to skip the wizard and use default values for any options not specified via the command line.
-
 ### Path to WordPress export file?
 
-- Argument: `--input`
-- Type: `file` (as a path string)
-- Default: `export.xml`
+**Command line:** `--input=export.xml`
 
-The path to the WordPress export file that you want to parse. It is recommended that you drop your WordPress export file into the same directory that you run this script from so it's easy to find.
+The path to your WordPress export file. To make things easier, you can rename your WordPress export file to `export.xml` and drop it into the same directory that you run this script from.
 
 ### Path to output folder?
 
-- Argument: `--output`
-- Type: `folder` (as a path string)
-- Default: `output`
+**Command line:** `--output=output`
 
-The path to the output directory where Markdown and image files will be saved. If it does not exist, it will be created for you.
+The path to the output directory where Markdown and image files will be saved. If it does not exist, it will be created.
 
 ### Create year folders?
 
-- Argument: `--year-folders`
-- Type: `boolean`
-- Default: `false`
+**Command line:** `--year-folders=false`
 
 Whether or not to organize output files into folders by year.
 
 ### Create month folders?
 
-- Argument: `--month-folders`
-- Type: `boolean`
-- Default: `false`
+**Command line:** `--month-folders=false`
 
 Whether or not to organize output files into folders by month. You'll probably want to combine this with `--year-folders` to organize files by year then month.
 
 ### Create a folder for each post?
 
-- Argument: `--post-folders`
-- Type: `boolean`
-- Default: `true`
+**Command line:** `--post-folders=true`
 
 Whether or not to save files and images into post folders.
 
@@ -121,9 +103,7 @@ Either way, this can be combined with with `--year-folders` and `--month-folders
 
 ### Prefix post folders/files with date?
 
-- Argument: `--prefix-date`
-- Type: `boolean`
-- Default: `false`
+**Command line:** `--prefix-date=false`
 
 Whether or not to prepend the post date to the post slug when naming a post's folder or file.
 
@@ -141,27 +121,27 @@ If `--post-folders` is `false`, this affects the file.
 
 ### Save images attached to posts?
 
-- Argument: `--save-attached-images`
-- Type: `boolean`
-- Default: `true`
+**Command line:** `--save-attached-images=true`
 
-Whether or not to download and save images attached to posts. Generally speaking, these are images that were uploaded by using **Add Media** or **Set Featured Image** when editing a post in WordPress. Images are saved into `/images`.
+Whether or not to download and save images attached to posts. Generally speaking, these are images that were uploaded by using **Add Media** or **Set Featured Image** in WordPress. Images are saved into `/images`.
 
 ### Save images scraped from post body content?
 
-- Argument: `--save-scraped-images`
-- Type: `boolean`
-- Default: `true`
+**Command line:** `--save-scraped-images=true`
 
 Whether or not to download and save images scraped from `<img>` tags in post body content. Images are saved into `/images`. The `<img>` tags are updated to point to where the images are saved.
 
 ### Include custom post types and pages?
 
-- Argument: `--include-other-types`
-- Type: `boolean`
-- Default: `false`
+**Command line:** `--include-other-types=false`
 
-Some WordPress sites make use of a `"page"` post type and/or custom post types. Set this to `true` to include these post types in the results. Posts will be organized into post type folders.
+Some WordPress sites make use of a `"page"` post type and/or custom post types. Set this to `true` to include these post types in the output. Posts will be organized into post type folders.
+
+### Use wizard?
+
+**Command line:** `--wizard=true`
+
+Enable to have the script prompt you for each option. Disable to skip the wizard and use default values for any options not specified via the command line.
 
 ## Advanced Settings
 
