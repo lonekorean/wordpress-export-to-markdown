@@ -48,6 +48,8 @@ The wizard will still ask you about any options not specified on the command lin
 
 ## Options
 
+These are the questions asked by the wizard. Command line arguments, along with their default values, are also being provided here if you want to use them.
+
 ### Path to WordPress export file?
 
 **Command line:** `--input=export.xml`
@@ -137,14 +139,12 @@ Whether or not to download and save images scraped from `<img>` tags in post bod
 
 Some WordPress sites make use of a `"page"` post type and/or custom post types. Set this to `true` to include these post types in the output. Posts will be organized into post type folders.
 
-### Use wizard?
+## Customizing Frontmatter and Other Advanced Settings
 
-**Command line:** `--wizard=true`
+You can edit [settings.js](https://github.com/lonekorean/wordpress-export-to-markdown/blob/master/src/settings.js) to configure advanced settings beyond the options above. This includes things like customizing frontmatter, date formatting, throttling image downloads, and more.
 
-Enable to have the script prompt you for each option. Disable to skip the wizard and use default values for any options not specified via the command line.
+You'll need to run the script locally (not using `npx`) to edit these advanced settings.
 
-## Advanced Settings
+## Contributing
 
-You can edit [settings.js](https://github.com/lonekorean/wordpress-export-to-markdown/blob/master/src/settings.js) to tweak advanced settings. This includes things like customizing frontmatter fields and throttling image downloads.
-
-You'll need to run the script locally (not using `npx`) to make use of advanced settings.
+Please read the [contribution guidelines](https://github.com/lonekorean/wordpress-export-to-markdown/blob/master/CONTRIBUTING.md).
