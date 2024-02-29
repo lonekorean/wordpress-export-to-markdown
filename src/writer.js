@@ -41,7 +41,7 @@ async function writeFile(destinationPath, data) {
 	await fs.promises.writeFile(destinationPath, data);
 }
 
-async function writeMarkdownFilesPromise(posts, config ) {
+async function writeMarkdownFilesPromise(posts, config) {
 	// package up posts into payloads
 	let skipCount = 0;
 	let delay = 0;
@@ -146,7 +146,8 @@ async function loadImageFilePromise(imageUrl) {
 			encoding: null, // preserves binary encoding
 			headers: {
 				'User-Agent': 'wordpress-export-to-markdown'
-			}
+			},
+			strictSSL: settings.strict_ssl
 		});
 	} catch (ex) {
 		if (ex.name === 'StatusCodeError') {
