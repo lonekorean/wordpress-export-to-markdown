@@ -18,10 +18,6 @@ exports.image_file_request_delay = 500;
 // overloaded.
 exports.markdown_file_write_delay = 25;
 
-// Specify the timezone used for post dates. See available zone values and examples here:
-// https://moment.github.io/luxon/#/zones?id=specifying-a-zone.
-exports.custom_date_timezone = 'utc';
-
 // Enable this to include time with post dates. For example, "2020-12-25" would become
 // "2020-12-25T11:20:35.000Z".
 exports.include_time_with_date = false;
@@ -31,6 +27,14 @@ exports.include_time_with_date = false;
 // set, this takes precedence over include_time_with_date.
 exports.custom_date_formatting = '';
 
+// Specify the timezone used for post dates. See available zone values and examples here:
+// https://moment.github.io/luxon/#/zones?id=specifying-a-zone.
+exports.custom_date_timezone = 'utc';
+
 // Categories to be excluded from post frontmatter. This does not filter out posts themselves,
 // just the categories listed in their frontmatter.
 exports.filter_categories = ['uncategorized'];
+
+// Strict SSL is enabled as the safe default when downloading images, but will not work with
+// self-signed servers. You can disable it if you're getting a "self-signed certificate" error.
+exports.strict_ssl = true;

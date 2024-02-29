@@ -16,7 +16,7 @@ async function processPayloadsPromise(payloads, loadFunc) {
 	const promises = payloads.map(payload => new Promise((resolve, reject) => {
 		setTimeout(async () => {
 			try {
-				const data = await loadFunc(payload.item, payload.strictSSL);
+				const data = await loadFunc(payload.item);
 				await writeFile(payload.destinationPath, data);
 				console.log(chalk.green('[OK]') + ' ' + payload.name);
 				resolve();
@@ -41,7 +41,7 @@ async function writeFile(destinationPath, data) {
 	await fs.promises.writeFile(destinationPath, data);
 }
 
-async function writeMarkdownFilesPromise(posts, config ) {
+async function writeMarkdownFilesPromise(posts, config) {
 	// package up posts into payloads
 	let skipCount = 0;
 	let delay = 0;
@@ -55,7 +55,6 @@ async function writeMarkdownFilesPromise(posts, config ) {
 			const payload = {
 				item: post,
 				name: (config.includeOtherTypes ? post.meta.type + ' - ' : '') + post.meta.slug,
-				strictSSL: !config.disableStrictSsl,
 				destinationPath,
 				delay
 			};
@@ -73,7 +72,7 @@ async function writeMarkdownFilesPromise(posts, config ) {
 	}
 }
 
-async function loadMarkdownFilePromise(post, strictSSL) {
+async function loadMarkdownFilePromise(post) {
 	let output = '---\n';
 
 	Object.entries(post.frontmatter).forEach(([key, value]) => {
@@ -118,7 +117,6 @@ async function writeImageFilesPromise(posts, config) {
 				const payload = {
 					item: imageUrl,
 					name: filename,
-					strictSSL: !config.disableStrictSsl,
 					destinationPath,
 					delay
 				};
@@ -137,7 +135,7 @@ async function writeImageFilesPromise(posts, config) {
 	}
 }
 
-async function loadImageFilePromise(imageUrl, strictSSL) {
+async function loadImageFilePromise(imageUrl) {
 	// only encode the URL if it doesn't already have encoded characters
 	const url = (/%[\da-f]{2}/i).test(imageUrl) ? imageUrl : encodeURI(imageUrl);
 
@@ -149,7 +147,7 @@ async function loadImageFilePromise(imageUrl, strictSSL) {
 			headers: {
 				'User-Agent': 'wordpress-export-to-markdown'
 			},
-			strictSSL: strictSSL
+			strictSSL: settings.strict_ssl
 		});
 	} catch (ex) {
 		if (ex.name === 'StatusCodeError') {
