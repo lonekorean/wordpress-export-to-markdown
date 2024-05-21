@@ -20,13 +20,12 @@
 		"node": ">= 12.14.0"
 	},
 	"dependencies": {
+		"axios": "^1.7.1",
 		"camelcase": "^6.0.0",
 		"chalk": "^4.0.0",
 		"commander": "^5.0.0",
 		"inquirer": "^7.1.0",
 		"luxon": "^3.4.4",
-		"request": "^2.88.2",
-		"request-promise-native": "^1.0.8",
 		"require-directory": "^2.1.1",
 		"turndown": "^7.1.2",
 		"turndown-plugin-gfm": "^1.0.2",
