@@ -1,9 +1,8 @@
-const http = require('http');
-const https = require('https');
-
+const axios = require('axios');
 const chalk = require('chalk');
 const fs = require('fs');
-const axios = require('axios');
+const http = require('http');
+const https = require('https');
 const luxon = require('luxon');
 const path = require('path');
 
@@ -159,7 +158,7 @@ async function loadImageFilePromise(imageUrl) {
 
 	let buffer;
 	try {
-		const response = await axios(config)
+		const response = await axios(config);
 		buffer = Buffer.from(response.data, 'binary');
 	} catch (ex) {
 		if (ex.response) {
