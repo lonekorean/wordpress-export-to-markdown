@@ -1,8 +1,10 @@
+const axios = require('axios');
 const chalk = require('chalk');
 const fs = require('fs');
+const http = require('http');
+const https = require('https');
 const luxon = require('luxon');
 const path = require('path');
-const requestPromiseNative = require('request-promise-native');
 
 const shared = require('./shared');
 const settings = require('./settings');
@@ -139,22 +141,33 @@ async function loadImageFilePromise(imageUrl) {
 	// only encode the URL if it doesn't already have encoded characters
 	const url = (/%[\da-f]{2}/i).test(imageUrl) ? imageUrl : encodeURI(imageUrl);
 
+	const config = {
+		method: 'get',
+		url,
+		headers: {
+			'User-Agent': 'wordpress-export-to-markdown'
+		},
+		responseType: 'arraybuffer'
+	};
+
+	if (!settings.strict_ssl) {
+		// custom agents to disable SSL errors (adding both http and https, just in case)
+		config.httpAgent = new http.Agent({ rejectUnauthorized: false });
+		config.httpsAgent = new https.Agent({ rejectUnauthorized: false });
+	}
+
 	let buffer;
 	try {
-		buffer = await requestPromiseNative.get({
-			url,
-			encoding: null, // preserves binary encoding
-			headers: {
-				'User-Agent': 'wordpress-export-to-markdown'
-			},
-			strictSSL: settings.strict_ssl
-		});
+		const response = await axios(config);
+		buffer = Buffer.from(response.data, 'binary');
 	} catch (ex) {
-		if (ex.name === 'StatusCodeError') {
-			// these errors contain a lot of noise, simplify to just the status code
-			ex.message = ex.statusCode;
+		if (ex.response) {
+			// request was made, but server responded with an error status code
+			throw 'StatusCodeError: ' + ex.response.status;
+		} else {
+			// something else went wrong, rethrow
+			throw ex;
 		}
-		throw ex;
 	}
 	return buffer;
 }
