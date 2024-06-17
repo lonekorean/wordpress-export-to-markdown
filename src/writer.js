@@ -84,6 +84,8 @@ async function loadMarkdownFilePromise(post) {
 				// array of one or more strings
 				outputValue = value.reduce((list, item) => `${list}\n  - "${item}"`, '');
 			}
+		} else if (value instanceof luxon.DateTime) {
+			outputValue = encodeDate(value);
 		} else {
 			// single string value
 			const escapedValue = (value || '').replace(/"/g, '\\"');
@@ -99,6 +101,16 @@ async function loadMarkdownFilePromise(post) {
 
 	output += `---\n\n${post.content}\n`;
 	return output;
+}
+
+function encodeDate(dateTime) {
+	if (settings.custom_date_formatting) {
+		return dateTime.toFormat(settings.custom_date_formatting);
+	} else if (settings.include_time_with_date) {
+		return dateTime.toISO();
+	} else {
+		return dateTime.toISODate();
+	}
 }
 
 async function writeImageFilesPromise(posts, config) {
