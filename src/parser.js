@@ -69,6 +69,7 @@ function collectPosts(channelData, postTypes, config) {
 				meta: {
 					id: getPostId(postData),
 					slug: getPostSlug(postData),
+					date: undefined, // possibly set later in populateFrontmatter()
 					coverImageId: getPostCoverImageId(postData),
 					coverImage: undefined, // possibly set later in mergeImagesIntoPosts()
 					type: postType,
@@ -186,6 +187,7 @@ function populateFrontmatter(posts) {
 			frontmatter[alias || key] = frontmatterGetter(post);
 		});
 		post.frontmatter = frontmatter;
+		post.meta.date = frontmatterGetters['date'](post);
 	});
 }
 

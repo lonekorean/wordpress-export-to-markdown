@@ -175,9 +175,9 @@ async function loadImageFilePromise(imageUrl) {
 function getPostPath(post, config) {
 	let dt;
 	if (settings.custom_date_formatting) {
-		dt = luxon.DateTime.fromFormat(post.frontmatter.date, settings.custom_date_formatting);
+		dt = luxon.DateTime.fromFormat(post.meta.date, settings.custom_date_formatting);
 	} else {
-		dt = luxon.DateTime.fromISO(post.frontmatter.date);
+		dt = luxon.DateTime.fromISO(post.meta.date);
 	}
 
 	// start with base output dir
