@@ -188,6 +188,10 @@ function getPostPath(post, config) {
 		pathSegments.push(post.meta.type);
 	}
 
+	// if (config.includeDrafts && post.meta.draft) {
+	pathSegments.push(post.meta.status);
+    // }
+
 	if (config.yearFolders) {
 		pathSegments.push(dt.toFormat('yyyy'));
 	}

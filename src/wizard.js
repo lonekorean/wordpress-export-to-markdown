@@ -74,6 +74,13 @@ const options = [
 		type: 'boolean',
 		description: 'Include custom post types and pages',
 		default: false
+	},
+	{
+		name: 'include-drafts',
+		aliases: ['drafts'],
+		type: 'boolean',
+		description: 'Include post drafts',
+		default: false
 	}
 ];
 
