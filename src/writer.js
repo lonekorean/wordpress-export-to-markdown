@@ -188,9 +188,10 @@ function getPostPath(post, config) {
 		pathSegments.push(post.meta.type);
 	}
 
-	// if (config.includeDrafts && post.meta.draft) {
+	// if we include drafts then add one more layer of folders
+	if (config.includeDrafts ) {
 	pathSegments.push(post.meta.status);
-    // }
+    }
 
 	if (config.yearFolders && dt.isValid) {
 		pathSegments.push(dt.toFormat('yyyy'));
