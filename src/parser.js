@@ -60,7 +60,7 @@ function collectPosts(channelData, postTypes, config) {
 	let allPosts = [];
 	postTypes.forEach(postType => {
 		const postsForType = getItemsOfType(channelData, postType)
-			.filter(postData => postData.status[0] !== 'trash' && postData.status[0] !== 'draft')
+			.filter(postData => postData.status[0] !== 'trash' && (config.includeDrafts || postData.status[0] !== 'draft'))
 			.map(postData => ({
 				// raw post data, used by frontmatter getters
 				data: postData,
@@ -72,7 +72,8 @@ function collectPosts(channelData, postTypes, config) {
 					coverImageId: getPostCoverImageId(postData),
 					coverImage: undefined, // possibly set later in mergeImagesIntoPosts()
 					type: postType,
-					imageUrls: [] // possibly set later in mergeImagesIntoPosts()
+					imageUrls: [], // possibly set later in mergeImagesIntoPosts()
+					status: postData.status[0] // include status in meta data
 				},
 
 				// contents of the post in markdown
