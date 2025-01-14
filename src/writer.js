@@ -192,11 +192,11 @@ function getPostPath(post, config) {
 	pathSegments.push(post.meta.status);
     // }
 
-	if (config.yearFolders) {
+	if (config.yearFolders && dt.isValid) {
 		pathSegments.push(dt.toFormat('yyyy'));
 	}
-
-	if (config.monthFolders) {
+	
+	if (config.monthFolders && dt.isValid) {
 		pathSegments.push(dt.toFormat('LL'));
 	}
 
