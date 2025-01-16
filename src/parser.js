@@ -176,7 +176,7 @@ function populateFrontmatter(posts) {
 	posts.forEach(post => {
 		const frontmatter = {};
 		settings.frontmatter_fields.forEach(field => {
-			[key, alias] = field.split(':');
+			const [key, alias] = field.split(':');
 
 			let frontmatterGetter = frontmatterGetters[key];
 			if (!frontmatterGetter) {
