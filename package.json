@@ -17,22 +17,22 @@
 	"author": "Will Boyd <will@codersblock.com> (https://codersblock.com)",
 	"license": "MIT",
 	"engines": {
-		"node": ">= 12.14.0"
+		"node": ">= 18.0.0"
 	},
 	"dependencies": {
-		"axios": "^1.7.1",
-		"camelcase": "^6.0.0",
-		"chalk": "^4.0.0",
-		"commander": "^5.0.0",
-		"inquirer": "^7.1.0",
-		"luxon": "^3.4.4",
+		"axios": "^1.7.9",
+		"camelcase": "^6.3.0",
+		"chalk": "^4.1.2",
+		"commander": "^13.0.0",
+		"inquirer": "^8.2.6",
+		"luxon": "^3.5.0",
 		"require-directory": "^2.1.1",
-		"turndown": "^7.1.2",
+		"turndown": "^7.2.0",
 		"turndown-plugin-gfm": "^1.0.2",
 		"xml2js": "^0.6.2"
 	},
 	"devDependencies": {
-		"eslint": "^6.8.0"
+		"eslint": "^8.57.1"
 	},
 	"bin": {
 		"wordpress-export-to-markdown": "./index.js"

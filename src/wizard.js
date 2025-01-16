@@ -80,10 +80,10 @@ const options = [
 async function getConfig(argv) {
 	extendOptionsData();
 	const unaliasedArgv = replaceAliases(argv);
-	const program = parseCommandLine(unaliasedArgv);
+	const opts = parseCommandLine(unaliasedArgv);
 
 	let answers;
-	if (program.wizard) {
+	if (opts.wizard) {
 		console.log('\nStarting wizard...');
 		const questions = options.map(option => ({
 			when: option.name !== 'wizard' && !option.isProvided,
@@ -102,7 +102,7 @@ async function getConfig(argv) {
 		answers = {};
 	}
 
-	const config = { ...program.opts(), ...answers };
+	const config = { ...opts, ...answers };
 	return config;
 }
 
@@ -158,13 +158,11 @@ function replaceAliases(argv) {
 
 function parseCommandLine(argv) {
 	// setup for help output
-	commander
+	commander.program
 		.name('node index.js')
 		.version('v' + package.version, '-v, --version', 'Display version number')
 		.helpOption('-h, --help', 'See the thing you\'re looking at right now')
-		.on('--help', () => {
-			console.log('\nMore documentation is at https://github.com/lonekorean/wordpress-export-to-markdown');
-		});
+		.addHelpText('after', '\nMore documentation is at https://github.com/lonekorean/wordpress-export-to-markdown');
 
 	options.forEach(input => {
 		const flag = '--' + input.name + ' <' + input.type + '>';
@@ -174,10 +172,11 @@ function parseCommandLine(argv) {
 			input.isProvided = true;
 			return input.coerce(value);
 		};
-		commander.option(flag, input.description, coerce, input.default);
+		commander.program.option(flag, input.description, coerce, input.default);
 	});
 
-	return commander.parse(argv);
+	commander.program.parse(argv);
+	return commander.program.opts();
 }
 
 function coerceBoolean(value) {
