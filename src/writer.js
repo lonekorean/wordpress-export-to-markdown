@@ -1,15 +1,15 @@
-const axios = require('axios');
-const chalk = require('chalk');
-const fs = require('fs');
-const http = require('http');
-const https = require('https');
-const luxon = require('luxon');
-const path = require('path');
+import axios from 'axios';
+import chalk from 'chalk';
+import fs from 'fs';
+import http from 'http';
+import https from 'https';
+import * as luxon from 'luxon';
+import path from 'path';
 
-const shared = require('./shared');
-const settings = require('./settings');
+import * as shared from './shared.js';
+import * as settings from './settings.js';
 
-async function writeFilesPromise(posts, config) {
+export async function writeFilesPromise(posts, config) {
 	await writeMarkdownFilesPromise(posts, config);
 	await writeImageFilesPromise(posts, config);
 }
@@ -215,5 +215,3 @@ function getPostPath(post, config) {
 function checkFile(path) {
 	return fs.existsSync(path);
 }
-
-exports.writeFilesPromise = writeFilesPromise;

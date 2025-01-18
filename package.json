@@ -19,12 +19,13 @@
 	"engines": {
 		"node": ">= 18.0.0"
 	},
+	"type": "module",
 	"dependencies": {
 		"axios": "^1.7.9",
-		"camelcase": "^6.3.0",
-		"chalk": "^4.1.2",
+		"camelcase": "^8.0.0",
+		"chalk": "^5.4.1",
 		"commander": "^13.0.0",
-		"inquirer": "^8.2.6",
+		"inquirer": "^12.3.2",
 		"luxon": "^3.5.0",
 		"require-directory": "^2.1.1",
 		"turndown": "^7.2.0",
