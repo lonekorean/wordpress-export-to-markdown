@@ -38,3 +38,14 @@ export const filter_categories = ['uncategorized'];
 // Strict SSL is enabled as the safe default when downloading images, but will not work with
 // self-signed servers. You can disable it if you're getting a "self-signed certificate" error.
 export const strict_ssl = true;
+
+// Post types to exclude from output.
+export const filter_post_types = [
+	'attachment',
+	'revision',
+	'nav_menu_item',
+	'custom_css',
+	'customize_changeset',
+	'wp_global_styles',
+	'wp_navigation'
+];

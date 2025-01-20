@@ -55,7 +55,7 @@ async function writeMarkdownFilesPromise(posts, config) {
 		} else {
 			const payload = {
 				item: post,
-				name: (config.includeOtherTypes ? post.meta.type + ' - ' : '') + post.meta.slug,
+				name: post.meta.type + ' - ' + post.meta.slug,
 				destinationPath,
 				delay
 			};
@@ -179,13 +179,8 @@ function getPostPath(post, config) {
 		dt = luxon.DateTime.fromISO(post.frontmatter.date);
 	}
 
-	// start with base output dir
-	const pathSegments = [config.output];
-
-	// create segment for post type if we're dealing with more than just "post"
-	if (config.includeOtherTypes) {
-		pathSegments.push(post.meta.type);
-	}
+	// start with base output dir and post type
+	const pathSegments = [config.output, post.meta.type];
 
 	if (config.yearFolders) {
 		pathSegments.push(dt.toFormat('yyyy'));
