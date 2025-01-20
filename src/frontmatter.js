@@ -1,5 +1,4 @@
 import * as luxon from 'luxon';
-
 import * as settings from './settings.js';
 
 // get author, without decoding

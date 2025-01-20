@@ -2,9 +2,8 @@
 
 import path from 'path';
 import process from 'process';
-
-import * as wizard from './src/wizard.js';
 import * as parser from './src/parser.js';
+import * as wizard from './src/wizard.js';
 import * as writer from './src/writer.js';
 
 (async () => {

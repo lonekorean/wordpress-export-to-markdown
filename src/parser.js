@@ -1,10 +1,9 @@
 import fs from 'fs';
 import xml2js from 'xml2js';
-
-import * as shared from './shared.js';
-import * as settings from './settings.js';
-import * as translator from './translator.js';
 import * as frontmatter from './frontmatter.js';
+import * as settings from './settings.js';
+import * as shared from './shared.js';
+import * as translator from './translator.js';
 
 export async function parseFilePromise(config) {
 	console.log('\nParsing...');

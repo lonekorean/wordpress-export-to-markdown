@@ -5,9 +5,8 @@ import http from 'http';
 import https from 'https';
 import * as luxon from 'luxon';
 import path from 'path';
-
-import * as shared from './shared.js';
 import * as settings from './settings.js';
+import * as shared from './shared.js';
 
 export async function writeFilesPromise(posts, config) {
 	await writeMarkdownFilesPromise(posts, config);
