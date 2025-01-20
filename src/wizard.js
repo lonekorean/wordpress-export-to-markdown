@@ -27,42 +27,36 @@ const options = [
 	},
 	{
 		name: 'year-folders',
-		aliases: ['yearfolders', 'yearmonthfolders'],
 		type: 'boolean',
 		description: 'Create year folders',
 		default: false
 	},
 	{
 		name: 'month-folders',
-		aliases: ['yearmonthfolders'],
 		type: 'boolean',
 		description: 'Create month folders',
 		default: false
 	},
 	{
 		name: 'post-folders',
-		aliases: ['postfolders'],
 		type: 'boolean',
 		description: 'Create a folder for each post',
 		default: true
 	},
 	{
 		name: 'prefix-date',
-		aliases: ['prefixdate'],
 		type: 'boolean',
 		description: 'Prefix post folders/files with date',
 		default: false
 	},
 	{
 		name: 'save-attached-images',
-		aliases: ['saveimages'],
 		type: 'boolean',
 		description: 'Save images attached to posts',
 		default: true
 	},
 	{
 		name: 'save-scraped-images',
-		aliases: ['addcontentimages'],
 		type: 'boolean',
 		description: 'Save images scraped from post body content',
 		default: true
@@ -77,8 +71,7 @@ const options = [
 
 export async function getConfig(argv) {
 	extendOptionsData();
-	const unaliasedArgv = replaceAliases(argv);
-	const opts = parseCommandLine(unaliasedArgv);
+	const opts = parseCommandLine(argv);
 
 	let answers;
 	if (opts.wizard) {
@@ -125,33 +118,6 @@ function extendOptionsData() {
 	options.forEach(option => {
 		Object.assign(option, map[option.type]);
 	});
-}
-
-function replaceAliases(argv) {
-	let paths = argv.slice(0, 2);
-	let replaced = [];
-	let unmodified = [];
-
-	argv.slice(2).forEach(arg => {
-		let aliasFound = false;
-
-		// this loop does not short circuit because an alias can map to multiple options
-		options.forEach(option => {
-			const aliases = option.aliases || [];
-			aliases.forEach(alias => {
-				if (arg.includes('--' + alias)) {
-					replaced.push(arg.replace('--' + alias, '--' + option.name));
-					aliasFound = true;
-				}	
-			});
-		});
-
-		if (!aliasFound) {
-			unmodified.push(arg);
-		}
-	});
-
-	return [...paths, ...replaced, ...unmodified];
 }
 
 function parseCommandLine(argv) {
