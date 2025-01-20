@@ -16,8 +16,6 @@ Keeping the wizard as short as possible is a priority. Pull requests that add op
 
 ## Adding Frontmatter Fields
 
-Similarly, default frontmatter output is limited to just a few widely used fields to avoid bloat. However, you may add new optional frontmatter fields.
-
-To do so, follow the instructions in [/src/frontmatter/example.js](https://github.com/lonekorean/wordpress-export-to-markdown/blob/master/src/frontmatter/example.js).
+Similarly, default frontmatter output is limited to just a few widely used fields to avoid bloat. However, you may add new optional frontmatter fields to [/src/frontmatter.js](https://github.com/lonekorean/wordpress-export-to-markdown/blob/master/src/frontmatter.js).
 
 Users will be able to include your new frontmatter field by editing `frontmatter_fields` in [settings.js](https://github.com/lonekorean/wordpress-export-to-markdown/blob/master/src/settings.js).

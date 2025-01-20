@@ -1,4 +1,4 @@
-function getFilenameFromUrl(url) {
+export function getFilenameFromUrl(url) {
 	let filename = url.split('/').slice(-1)[0];
 	try {
 		filename = decodeURIComponent(filename)
@@ -8,5 +8,3 @@ function getFilenameFromUrl(url) {
 	}
 	return filename;
 }
-
-exports.getFilenameFromUrl = getFilenameFromUrl;

@@ -1,7 +1,7 @@
-const turndown = require('turndown');
-const turndownPluginGfm = require('turndown-plugin-gfm');
+import turndown from 'turndown';
+import turndownPluginGfm from 'turndown-plugin-gfm';
 
-function initTurndownService() {
+export function initTurndownService() {
 	const turndownService = new turndown({
 		headingStyle: 'atx',
 		bulletListMarker: '-',
@@ -73,7 +73,7 @@ function initTurndownService() {
 	// preserve <figcaption>
 	turndownService.addRule('figcaption', {
 		filter: 'figcaption',
-		replacement: (content, node) => {
+		replacement: (content) => {
 			// extra newlines are necessary for markdown and HTML to render correctly together
 			return '\n\n<figcaption>\n\n' + content + '\n\n</figcaption>\n\n';
 		}
@@ -94,7 +94,7 @@ function initTurndownService() {
 	return turndownService;
 }
 
-function getPostContent(postData, turndownService, config) {
+export function getPostContent(postData, turndownService, config) {
 	let content = postData.encoded[0];
 
 	// insert an empty div element between double line breaks
@@ -124,6 +124,3 @@ function getPostContent(postData, turndownService, config) {
 
 	return content;
 }
-
-exports.initTurndownService = initTurndownService;
-exports.getPostContent = getPostContent;

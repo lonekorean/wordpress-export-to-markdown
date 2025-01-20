@@ -1,10 +1,8 @@
-const camelcase = require('camelcase');
-const commander = require('commander');
-const fs = require('fs');
-const inquirer = require('inquirer');
-const path = require('path');
-
-const package = require('../package.json');
+import camelcase from 'camelcase';
+import * as commander from 'commander';
+import fs from 'fs';
+import inquirer from 'inquirer';
+import path from 'path';
 
 // all user options for command line and wizard are declared here
 const options = [
@@ -77,7 +75,7 @@ const options = [
 	}
 ];
 
-async function getConfig(argv) {
+export async function getConfig(argv) {
 	extendOptionsData();
 	const unaliasedArgv = replaceAliases(argv);
 	const opts = parseCommandLine(unaliasedArgv);
@@ -160,7 +158,6 @@ function parseCommandLine(argv) {
 	// setup for help output
 	commander.program
 		.name('node index.js')
-		.version('v' + package.version, '-v, --version', 'Display version number')
 		.helpOption('-h, --help', 'See the thing you\'re looking at right now')
 		.addHelpText('after', '\nMore documentation is at https://github.com/lonekorean/wordpress-export-to-markdown');
 
@@ -180,7 +177,7 @@ function parseCommandLine(argv) {
 }
 
 function coerceBoolean(value) {
-	return !['false', 'no', '0'].includes(value.toLowerCase());
+	return !['false', 'no', '0'].includes(value.toString().toLowerCase());
 }
 
 function coercePath(value) {
@@ -197,5 +194,3 @@ function validateFile(value) {
 
 	return isValid ? true : 'Unable to find file: ' + path.resolve(value);
 }
-
-exports.getConfig = getConfig;

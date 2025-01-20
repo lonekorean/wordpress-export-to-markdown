@@ -1,15 +1,11 @@
-const fs = require('fs');
-const requireDirectory = require('require-directory');
-const xml2js = require('xml2js');
+import fs from 'fs';
+import xml2js from 'xml2js';
+import * as frontmatter from './frontmatter.js';
+import * as settings from './settings.js';
+import * as shared from './shared.js';
+import * as translator from './translator.js';
 
-const shared = require('./shared');
-const settings = require('./settings');
-const translator = require('./translator');
-
-// dynamically requires all frontmatter getters
-const frontmatterGetters = requireDirectory(module, './frontmatter', { recurse: false });
-
-async function parseFilePromise(config) {
+export async function parseFilePromise(config) {
 	console.log('\nParsing...');
 	const content = await fs.promises.readFile(config.input, 'utf8');
 	const allData = await xml2js.parseStringPromise(content, {
@@ -174,19 +170,17 @@ function mergeImagesIntoPosts(images, posts) {
 
 function populateFrontmatter(posts) {
 	posts.forEach(post => {
-		const frontmatter = {};
+		post.frontmatter = {};
 		settings.frontmatter_fields.forEach(field => {
 			const [key, alias] = field.split(':');
 
-			let frontmatterGetter = frontmatterGetters[key];
+			let frontmatterGetter = frontmatter['get' + key.replace(/^./, (match) => match.toUpperCase())];
 			if (!frontmatterGetter) {
 				throw `Could not find a frontmatter getter named "${key}".`;
 			}
 
-			frontmatter[alias || key] = frontmatterGetter(post);
+			post.frontmatter[alias || key] = frontmatterGetter(post);
 		});
-		post.frontmatter = frontmatter;
 	});
 }
 
-exports.parseFilePromise = parseFilePromise;

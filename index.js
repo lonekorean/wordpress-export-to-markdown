@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 
-const path = require('path');
-const process = require('process');
-
-const wizard = require('./src/wizard');
-const parser = require('./src/parser');
-const writer = require('./src/writer');
+import path from 'path';
+import process from 'process';
+import * as parser from './src/parser.js';
+import * as wizard from './src/wizard.js';
+import * as writer from './src/writer.js';
 
 (async () => {
 	// parse any command line arguments and run wizard
