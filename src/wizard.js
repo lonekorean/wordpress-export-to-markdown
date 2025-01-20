@@ -20,12 +20,6 @@ const options = [
 		default: 'export.xml'
 	},
 	{
-		name: 'output',
-		type: 'folder',
-		description: 'Path to output folder',
-		default: 'output'
-	},
-	{
 		name: 'year-folders',
 		type: 'boolean',
 		description: 'Create year folders',

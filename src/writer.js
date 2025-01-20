@@ -180,7 +180,7 @@ function getPostPath(post, config) {
 	}
 
 	// start with base output dir and post type
-	const pathSegments = [config.output, post.meta.type];
+	const pathSegments = [settings.output_directory, post.meta.type];
 
 	if (config.yearFolders) {
 		pathSegments.push(dt.toFormat('yyyy'));
