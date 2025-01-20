@@ -1,4 +1,4 @@
-// Which fields to include in frontmatter. Look in /src/frontmatter to see available fields.
+// Which fields to include in frontmatter. Look in /src/frontmatter.js to see available fields.
 // Order is preserved. If a field has an empty value, it will not be included. You can rename a
 // field by providing an alias after a ':'. For example, 'date:created' will include 'date' in
 // frontmatter, but renamed to 'created'.
