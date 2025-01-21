@@ -1,7 +1,8 @@
+import * as inquirer from '@inquirer/prompts';
 import camelcase from 'camelcase';
+import chalk from 'chalk';
 import * as commander from 'commander';
 import fs from 'fs';
-import inquirer from 'inquirer';
 import path from 'path';
 
 // all user options for command line and wizard are declared here
@@ -61,24 +62,25 @@ export async function getConfig(argv) {
 	extendOptionsData();
 	const opts = parseCommandLine(argv);
 
-	let answers;
+	const answers = {};
 	if (opts.wizard) {
 		console.log('\nStarting wizard...');
-		const questions = options.map(option => ({
-			when: option.name !== 'wizard' && !option.isProvided,
-			name: camelcase(option.name),
-			type: option.prompt,
-			message: option.description + '?',
-			default: option.default,
-	
-			// these are not used for all option types and that's fine
-			filter: option.coerce,
-			validate: option.validate
-		}));
-		answers = await inquirer.prompt(questions);
+		const questions = options.filter(option => (option.name !== 'wizard' && !option.isProvided));
+		for (const question of questions) {
+			answers[camelcase(question.name)] = await inquirer[question.prompt]({
+				message: question.description + '?',
+				default: question.default,
+				validate: question.validate, // not all questions have this, which is fine
+				theme: {
+					prefix: {
+						idle: chalk.cyan('?'),
+						done: chalk.green('✓')
+					}
+				}
+			});
+		}
 	} else {
 		console.log('\nSkipping wizard...');
-		answers = {};
 	}
 
 	const config = { ...opts, ...answers };
