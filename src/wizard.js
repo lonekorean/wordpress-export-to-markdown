@@ -148,23 +148,41 @@ export async function getConfig(argv) {
 		console.log('\nStarting wizard...');
 		const questions = options.filter(option => (option.name !== 'wizard' && !option.isProvided));
 		for (const question of questions) {
-			let answer = await question.prompt({
+			const promptConfig = {
 				message: question.description + '?',
-				choices: question.choices,
-				loop: false,
 				default: question.default,
-				validate: question.validate, // not all questions have this, which is fine
 
 				theme: {
 					prefix: {
-						idle: chalk.cyan('\n?'),
+						idle: chalk.gray('\n?'),
 						done: chalk.green('✓')
 					},
 					style: {
 						description: (text) => chalk.gray('example: ' + text)
 					}
 				}
-			}).catch((ex) => {
+			};
+
+			if (question.choices) {
+				promptConfig.choices = question.choices;
+				promptConfig.loop = false;
+			} else {
+				const validator = validators[question.type];
+				if (validator) {
+					promptConfig.validate = (value) => {
+						try {
+							normalized = validator(value);
+						} catch (ex) {
+							return ex.toString();
+						}
+
+						return true;
+					}
+				}
+			}
+
+			let normalized = undefined;
+			let answer = await question.prompt(promptConfig).catch((ex) => {
 				if (ex instanceof Error && ex.name === 'ExitPromptError') {
 					console.log('\nUser quit wizard early.');
 					process.exit(0);
@@ -173,11 +191,9 @@ export async function getConfig(argv) {
 				}
 			});
 
-			if (question.normalize) {
-				answer = question.normalize(answer);
-			}
+			console.log(normalized, answer);
 
-			answers[camelcase(question.name)] = answer;
+			answers[camelcase(question.name)] = normalized ?? answer;
 		}
 	} else {
 		console.log('\nSkipping wizard...');
