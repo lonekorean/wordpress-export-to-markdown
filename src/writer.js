@@ -182,11 +182,11 @@ function getPostPath(post, config) {
 	// start with base output dir and post type
 	const pathSegments = [settings.output_directory, post.meta.type];
 
-	if (config.yearFolders) {
+	if (config.dateFolders === 'year' || config.dateFolders === 'year-month') {
 		pathSegments.push(dt.toFormat('yyyy'));
 	}
 
-	if (config.monthFolders) {
+	if (config.dateFolders === 'year-month') {
 		pathSegments.push(dt.toFormat('LL'));
 	}
 

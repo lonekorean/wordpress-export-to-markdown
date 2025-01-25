@@ -2,8 +2,7 @@ import * as inquirer from '@inquirer/prompts';
 import camelcase from 'camelcase';
 import chalk from 'chalk';
 import * as commander from 'commander';
-import fs from 'fs';
-import path from 'path';
+import * as normalizers from './normalizers.js';
 
 // all user options for command line and wizard are declared here
 const options = [
@@ -109,37 +108,6 @@ const options = [
 	}
 ];
 
-const validators = {
-	'boolean': (value) => {
-		if (typeof value === 'boolean') {
-			return value;
-		} else if (value === 'true') {
-			return true;
-		} else if (value === 'false') {
-			return false;
-		}
-
-		throw 'Must be true or false.';
-	},
-	'file-path': (value) => {
-		const unwrapped = value.replace(/"(.*?)"/, '$1');
-		const absolute = path.resolve(unwrapped);
-
-		let fileExists;
-		try {
-			fileExists = fs.existsSync(absolute) && fs.statSync(absolute).isFile();
-		} catch (ex) {
-			fileExists = false;
-		}
-
-		if (fileExists) {
-			return absolute;
-		} else {
-			throw 'File not found at ' + absolute + '.';
-		}
-	}
-};
-
 export async function getConfig(argv) {
 	const opts = parseCommandLine(argv);
 
@@ -148,6 +116,8 @@ export async function getConfig(argv) {
 		console.log('\nStarting wizard...');
 		const questions = options.filter(option => (option.name !== 'wizard' && !option.isProvided));
 		for (const question of questions) {
+			let normalizedAnswer = undefined;
+
 			const promptConfig = {
 				message: question.description + '?',
 				default: question.default,
@@ -167,11 +137,11 @@ export async function getConfig(argv) {
 				promptConfig.choices = question.choices;
 				promptConfig.loop = false;
 			} else {
-				const validator = validators[question.type];
-				if (validator) {
+				const normalizer = normalizers[camelcase(question.type)];
+				if (normalizer) {
 					promptConfig.validate = (value) => {
 						try {
-							normalized = validator(value);
+							normalizedAnswer = normalizer(value);
 						} catch (ex) {
 							return ex.toString();
 						}
@@ -181,7 +151,6 @@ export async function getConfig(argv) {
 				}
 			}
 
-			let normalized = undefined;
 			let answer = await question.prompt(promptConfig).catch((ex) => {
 				if (ex instanceof Error && ex.name === 'ExitPromptError') {
 					console.log('\nUser quit wizard early.');
@@ -191,9 +160,7 @@ export async function getConfig(argv) {
 				}
 			});
 
-			console.log(normalized, answer);
-
-			answers[camelcase(question.name)] = normalized ?? answer;
+			answers[camelcase(question.name)] = normalizedAnswer ?? answer;
 		}
 	} else {
 		console.log('\nSkipping wizard...');
@@ -222,13 +189,13 @@ function parseCommandLine() {
 			option.choices(input.choices.map((choice) => choice.value));
 		} else {
 			option.argParser((value) => {
-				const validator = validators[input.type];
-				if (!validator) {
+				const normalizer = normalizers[camelcase(input.type)];
+				if (!normalizer) {
 					return value;
 				}
 
 				try {
-					return validator(value);
+					return normalizer(value);
 				} catch (ex) {
 					commander.program.error(`error: option '${flag}' argument '${value}' is invalid. ${ex.toString()}`);
 				}

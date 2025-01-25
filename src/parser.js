@@ -18,10 +18,10 @@ export async function parseFilePromise(config) {
 	const posts = collectPosts(channelData, postTypes, config);
 
 	const images = [];
-	if (config.saveAttachedImages) {
+	if (config.saveImages === 'attached' || config.saveImages === 'all') {
 		images.push(...collectAttachedImages(channelData));
 	}
-	if (config.saveScrapedImages) {
+	if (config.saveImages === 'scraped' || config.saveImages === 'all') {
 		images.push(...collectScrapedImages(channelData, postTypes));
 	}
 
