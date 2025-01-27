@@ -2,7 +2,7 @@ import camelcase from 'camelcase';
 import chalk from 'chalk';
 import * as commander from 'commander';
 import * as normalizers from './normalizers.js';
-import * as options from './options.js';
+import * as questions from './questions.js';
 
 const promptTheme = {
 	prefix: {
@@ -17,13 +17,13 @@ const promptTheme = {
 export async function getConfig() {
 	const config = {};
 
-	const commandLineOptions = options.all;
-	Object.assign(config, getCommandLineAnswers(commandLineOptions));
+	const commandLineQuestions = questions.all;
+	Object.assign(config, getCommandLineAnswers(commandLineQuestions));
 
 	if (config.wizard) {
 		console.log('\nStarting wizard...');
-		const wizardOptions = options.all.filter((option) => option.name !== 'wizard' && !(camelcase(option.name) in config));
-		Object.assign(config, await getWizardAnswers(wizardOptions));
+		const wizardQuestions = questions.all.filter((question) => question.name !== 'wizard' && !(camelcase(question.name) in config));
+		Object.assign(config, await getWizardAnswers(wizardQuestions));
 	} else {
 		console.log('\nSkipping wizard...');
 	}
@@ -31,24 +31,15 @@ export async function getConfig() {
 	return config;
 }
 
-function getCommandLineAnswers(options) {
-	commander.program
-		.name('node index.js')
-		.helpOption('-h, --help', 'See the thing you\'re looking at right now')
-		.addHelpText('after', '\nMore documentation is at https://github.com/lonekorean/wordpress-export-to-markdown')
-		.configureOutput({
-			outputError: (str, write) => write(chalk.red(str))
-		});
+function getCommandLineAnswers(questions) {
+	questions.forEach((question) => {
+		const option = new commander.Option('--' + question.name + ' <' + question.type + '>', question.description);
+		option.default(question.default);
 
-
-	options.forEach((input) => {
-		const option = new commander.Option('--' + input.name + ' <' + input.type + '>', input.description);
-		option.default(input.default);
-
-		if (input.choices && input.type !== 'boolean') {
-			option.choices(input.choices.map((choice) => choice.value));
+		if (question.choices && question.type !== 'boolean') {
+			option.choices(question.choices.map((choice) => choice.value));
 		} else {
-			option.argParser((value) => normalize(value, input.type, (errorMessage) => {
+			option.argParser((value) => normalize(value, question.type, (errorMessage) => {
 				throw new commander.InvalidArgumentError(errorMessage);
 			}));
 		}
@@ -56,29 +47,29 @@ function getCommandLineAnswers(options) {
 		commander.program.addOption(option);
 	});
 
-	const opts = commander.program.parse().opts();
+	const answers = commander.program.parse().opts();
 
-	for (const [key, value] of Object.entries(opts)) {
+	for (const [key, value] of Object.entries(answers)) {
 		if (key === 'wizard' || commander.program.getOptionValueSource(key) !== 'default') {
 			continue;
 		}
 
-		if (opts.wizard) {
-			delete opts[key];
+		if (answers.wizard) {
+			delete answers[key];
 		} else {
-			const option = options.find((option) => camelcase(option.name) === key);
-			opts[key] = normalize(value, option.type, (errorMessage) => {
+			const option = questions.find((option) => camelcase(option.name) === key);
+			answers[key] = normalize(value, option.type, (errorMessage) => {
 				commander.program.error(`error: option '--${option.name} <${option.type}>' argument '${value}' is invalid. ${errorMessage}`);
 			});
 		}
 	}
 
-	return opts;
+	return answers;
 }
 
-export async function getWizardAnswers(options) {
+export async function getWizardAnswers(questions) {
 	const answers = {};
-	for (const question of options) {
+	for (const question of questions) {
 		let normalizedAnswer = undefined;
 
 		const promptConfig = {
