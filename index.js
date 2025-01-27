@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import chalk from 'chalk';
 import * as commander from 'commander';
 import path from 'path';
 import * as parser from './src/parser.js';
@@ -9,13 +8,11 @@ import * as wizard from './src/wizard.js';
 import * as writer from './src/writer.js';
 
 (async () => {
+	// configure command line help output
 	commander.program
 		.name('node index.js')
 		.helpOption('-h, --help', 'See the thing you\'re looking at right now')
 		.addHelpText('after', '\nMore documentation is at https://github.com/lonekorean/wordpress-export-to-markdown')
-		.configureOutput({
-			outputError: (str, write) => write(chalk.red(str))
-		});
 		
 	// gather config options from command line and wizard
 	const config = await wizard.getConfig();

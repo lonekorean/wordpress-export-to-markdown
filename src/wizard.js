@@ -4,6 +4,7 @@ import * as commander from 'commander';
 import * as normalizers from './normalizers.js';
 import * as questions from './questions.js';
 
+// visual formatting for wizard
 const promptTheme = {
 	prefix: {
 		idle: chalk.gray('\n?'),
@@ -17,12 +18,15 @@ const promptTheme = {
 export async function getConfig() {
 	const config = {};
 
+	// check command line for any config options
 	const commandLineQuestions = questions.all;
 	Object.assign(config, getCommandLineAnswers(commandLineQuestions));
 
 	if (config.wizard) {
 		console.log('\nStarting wizard...');
-		const wizardQuestions = questions.all.filter((question) => question.name !== 'wizard' && !(camelcase(question.name) in config));
+
+		// run wizard for remaining config options
+		const wizardQuestions = questions.all.filter((question) => !(camelcase(question.name) in config));
 		Object.assign(config, await getWizardAnswers(wizardQuestions));
 	} else {
 		console.log('\nSkipping wizard...');
@@ -32,11 +36,17 @@ export async function getConfig() {
 }
 
 function getCommandLineAnswers(questions) {
+	// show errors in red
+	commander.program.configureOutput({
+		outputError: (str, write) => write(chalk.red(str))
+	});
+	
 	questions.forEach((question) => {
 		const option = new commander.Option('--' + question.name + ' <' + question.type + '>', question.description);
 		option.default(question.default);
 
 		if (question.choices && question.type !== 'boolean') {
+			// let commander handle non-boolean multiple choice validation
 			option.choices(question.choices.map((choice) => choice.value));
 		} else {
 			option.argParser((value) => normalize(value, question.type, (errorMessage) => {
@@ -49,17 +59,21 @@ function getCommandLineAnswers(questions) {
 
 	const answers = commander.program.parse().opts();
 
+	// do some post-processing on the answers
 	for (const [key, value] of Object.entries(answers)) {
+		// the "wizard" answer and any user-provided (not defaulted) answers are left alone
 		if (key === 'wizard' || commander.program.getOptionValueSource(key) !== 'default') {
 			continue;
 		}
 
 		if (answers.wizard) {
+			// remove this default answer so the wizard will ask about it later
 			delete answers[key];
 		} else {
-			const option = questions.find((option) => camelcase(option.name) === key);
-			answers[key] = normalize(value, option.type, (errorMessage) => {
-				commander.program.error(`error: option '--${option.name} <${option.type}>' argument '${value}' is invalid. ${errorMessage}`);
+			// normalize and validate default answer
+			const question = questions.find((question) => camelcase(question.name) === key);
+			answers[key] = normalize(value, question.type, (errorMessage) => {
+				commander.program.error(`error: option '--${question.name} <${question.type}>' argument '${value}' is invalid. ${errorMessage}`);
 			});
 		}
 	}
@@ -70,7 +84,8 @@ function getCommandLineAnswers(questions) {
 export async function getWizardAnswers(questions) {
 	const answers = {};
 	for (const question of questions) {
-		let normalizedAnswer = undefined;
+		// this will be set to the normalized answer during validation
+		let normalizedAnswer;
 
 		const promptConfig = {
 			theme: promptTheme,
@@ -83,15 +98,17 @@ export async function getWizardAnswers(questions) {
 			promptConfig.loop = false;
 		} else {
 			promptConfig.validate = (value) => {
-				let validationResult;
+				let validationErrorMessage;
 				normalizedAnswer = normalize(value, question.type, (errorMessage) => {
-					validationResult = errorMessage;
+					validationErrorMessage = errorMessage;
 				});
-				return validationResult ?? true;
+				return validationErrorMessage ?? true;
 			}
 		}
 
-		let answer = await question.prompt(promptConfig).catch((ex) => {
+		// don't care about the return value of prompt() because normalizedAnswer will be used
+		await question.prompt(promptConfig).catch((ex) => {
+			// exit gracefully if user hits ctrl + c during wizard
 			if (ex instanceof Error && ex.name === 'ExitPromptError') {
 				console.log('\nUser quit wizard early.');
 				process.exit(0);
@@ -100,7 +117,7 @@ export async function getWizardAnswers(questions) {
 			}
 		});
 
-		answers[camelcase(question.name)] = normalizedAnswer ?? answer;
+		answers[camelcase(question.name)] = normalizedAnswer;
 	}
 
 	return answers;
