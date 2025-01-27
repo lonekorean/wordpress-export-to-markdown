@@ -114,7 +114,9 @@ export async function getConfig(argv) {
 	const answers = {};
 	if (opts.wizard) {
 		console.log('\nStarting wizard...');
-		const questions = options.filter(option => (option.name !== 'wizard' && !option.isProvided));
+		const questions = options
+			.filter((option) => option.name !== 'wizard')
+			.filter((option) => !opts[camelcase(option.name)]);
 		for (const question of questions) {
 			let normalizedAnswer = undefined;
 
@@ -180,37 +182,47 @@ function parseCommandLine() {
 		});
 
 
-	options.forEach(input => {
-		const flag = '--' + input.name + ' <' + input.type + '>';
-		const option = new commander.Option(flag, input.description);
+	options.forEach((input) => {
+		const option = new commander.Option('--' + input.name + ' <' + input.type + '>', input.description);
 		option.default(input.default);
 
 		if (input.choices && input.type !== 'boolean') {
 			option.choices(input.choices.map((choice) => choice.value));
 		} else {
-			option.argParser((value) => {
-				const normalizer = normalizers[camelcase(input.type)];
-				if (!normalizer) {
-					return value;
-				}
-
-				try {
-					return normalizer(value);
-				} catch (ex) {
-					commander.program.error(`error: option '${flag}' argument '${value}' is invalid. ${ex.toString()}`);
-				}
-			});
+			option.argParser((value) => normalizeCommandLineArg(input.type, input.name, value));
 		}
 
 		commander.program.addOption(option);
 	});
 
-	commander.program.parse();
+	const opts = commander.program.parse().opts();
 
-	options.forEach((option) => {
-		const opt = camelcase(option.name);
-		option.isProvided = commander.program.getOptionValueSource(opt) === 'cli';
-	});
+	for (const [key, value] of Object.entries(opts)) {
+		if (key === 'wizard' || commander.program.getOptionValueSource(key) !== 'default') {
+			continue;
+		}
 
-	return commander.program.opts();
+		if (opts.wizard) {
+			delete opts[key];
+		} else {
+			const option = options.find((option) => camelcase(option.name) === key);
+			opts[key] = normalizeCommandLineArg(option.type, option.name, value);
+		}
+	}
+
+	return opts;
+}
+
+function normalizeCommandLineArg(type, name, value) {
+	const normalizer = normalizers[camelcase(type)];
+	if (!normalizer) {
+		return value;
+	}
+
+	try {
+		return normalizer(value);
+	} catch (ex) {
+		commander.program.error(`error: option '--${name} <${type}>' argument '${value}' is invalid. ${ex.toString()}`);
+		// throw new commander.InvalidArgumentError('potato');
+	}
 }
