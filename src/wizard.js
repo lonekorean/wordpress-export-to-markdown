@@ -1,8 +1,8 @@
-import * as inquirer from '@inquirer/prompts';
 import camelcase from 'camelcase';
 import chalk from 'chalk';
 import * as commander from 'commander';
 import * as normalizers from './normalizers.js';
+import * as options from './options.js';
 
 const promptTheme = {
 	prefix: {
@@ -14,161 +14,26 @@ const promptTheme = {
 	}
 };
 
-// all user options for command line and wizard are declared here
-const options = [
-	{
-		name: 'wizard',
-		type: 'boolean',
-		description: 'Use wizard',
-		default: true
-	},
-	{
-		name: 'input',
-		type: 'file-path',
-		description: 'Path to WordPress export file',
-		default: 'export.xml',
-		prompt: inquirer.input
-	},
-	{
-		name: 'post-folders',
-		type: 'boolean',
-		description: 'Put each post into its own folder',
-		default: true,
-		choices: [
-			{
-				name: 'Yes',
-				value: true,
-				description: '/my-post/index.md'
-			},
-			{
-				name: 'No',
-				value: false,
-				description: '/my-post.md'
-			}
-		],
-		prompt: inquirer.select
-	},
-	{
-		name: 'prefix-date',
-		type: 'boolean',
-		description: 'Prefix with date',
-		default: false,
-		choices: [
-			{
-				name: 'Yes',
-				value: true,
-				description: ''
-			},
-			{
-				name: 'No',
-				value: false,
-				description: ''
-			}
-		],
-		prompt: inquirer.select
-	},
-	{
-		name: 'date-folders',
-		type: 'choice',
-		description: 'Organize into folders based on date',
-		default: 'none',
-		choices: [
-			{
-				name: 'Year folders',
-				value: 'year',
-				description: ''
-			},
-			{
-				name: 'Year and month folders',
-				value: 'year-month',
-				description: ''
-			},
-			{
-				name: 'No',
-				value: 'none',
-				description: ''
-			}
-		],
-		prompt: inquirer.select
-	},
-	{
-		name: 'save-images',
-		type: 'choice',
-		description: 'Save images',
-		default: 'all',
-		choices: [
-			{
-				name: 'Images attached to posts',
-				value: 'attached'
-			},
-			{
-				name: 'Images scraped from post body content',
-				value: 'scraped'
-			},
-			{
-				name: 'Both',
-				value: 'all'
-			},
-			{
-				name: 'No',
-				value: 'none'
-			}
-		],
-		prompt: inquirer.select
-	}
-];
+export async function getConfig() {
+	const config = {};
 
-export async function getConfig(argv) {
-	const opts = parseCommandLine(argv);
+	const commandLineOptions = options.all;
+	Object.assign(config, getCommandLineAnswers(commandLineOptions));
+	console.log(1, config);
 
-	const answers = {};
-	if (opts.wizard) {
+	if (config.wizard) {
 		console.log('\nStarting wizard...');
-		const questions = options
-			.filter((option) => option.name !== 'wizard')
-			.filter((option) => !opts[camelcase(option.name)]);
-		for (const question of questions) {
-			let normalizedAnswer = undefined;
-
-			const promptConfig = {
-				theme: promptTheme,
-				message: question.description + '?',
-				default: question.default,
-			};
-
-			if (question.choices) {
-				promptConfig.choices = question.choices;
-				promptConfig.loop = false;
-			} else {
-				promptConfig.validate = (value) => {
-					let validationResult;
-					normalizedAnswer = normalize(value, question.type, (errorMessage) => {
-						validationResult = errorMessage;
-					});
-					return validationResult ?? true;
-				}
-			}
-
-			let answer = await question.prompt(promptConfig).catch((ex) => {
-				if (ex instanceof Error && ex.name === 'ExitPromptError') {
-					console.log('\nUser quit wizard early.');
-					process.exit(0);
-				} else {
-					throw ex;
-				}
-			});
-
-			answers[camelcase(question.name)] = normalizedAnswer ?? answer;
-		}
+		const wizardOptions = options.all.filter((option) => option.name !== 'wizard' && !(camelcase(option.name) in config));
+		Object.assign(config, await getWizardAnswers(wizardOptions));
 	} else {
 		console.log('\nSkipping wizard...');
 	}
 
-	const config = { ...opts, ...answers };
+	console.log(2, config);
 	return config;
 }
 
-function parseCommandLine() {
+function getCommandLineAnswers(options) {
 	commander.program
 		.name('node index.js')
 		.helpOption('-h, --help', 'See the thing you\'re looking at right now')
@@ -212,6 +77,45 @@ function parseCommandLine() {
 	}
 
 	return opts;
+}
+
+export async function getWizardAnswers(options) {
+	const answers = {};
+	for (const question of options) {
+		let normalizedAnswer = undefined;
+
+		const promptConfig = {
+			theme: promptTheme,
+			message: question.description + '?',
+			default: question.default,
+		};
+
+		if (question.choices) {
+			promptConfig.choices = question.choices;
+			promptConfig.loop = false;
+		} else {
+			promptConfig.validate = (value) => {
+				let validationResult;
+				normalizedAnswer = normalize(value, question.type, (errorMessage) => {
+					validationResult = errorMessage;
+				});
+				return validationResult ?? true;
+			}
+		}
+
+		let answer = await question.prompt(promptConfig).catch((ex) => {
+			if (ex instanceof Error && ex.name === 'ExitPromptError') {
+				console.log('\nUser quit wizard early.');
+				process.exit(0);
+			} else {
+				throw ex;
+			}
+		});
+
+		answers[camelcase(question.name)] = normalizedAnswer ?? answer;
+	}
+
+	return answers;
 }
 
 function normalize(value, type, onError) {
