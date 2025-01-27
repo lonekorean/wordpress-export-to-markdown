@@ -10,7 +10,7 @@ export function boolean(value) {
         return false;
     }
 
-    throw 'Must be true or false.';
+    throw new Error('Must be true or false.');
 }
 
 export function filePath(value) {
@@ -27,6 +27,6 @@ export function filePath(value) {
     if (fileExists) {
         return absolute;
     } else {
-        throw 'File not found at ' + absolute + '.';
+        throw new Error('File not found at ' + absolute + '.');
     }
 }

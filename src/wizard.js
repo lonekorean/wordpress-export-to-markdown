@@ -4,6 +4,16 @@ import chalk from 'chalk';
 import * as commander from 'commander';
 import * as normalizers from './normalizers.js';
 
+const promptTheme = {
+	prefix: {
+		idle: chalk.gray('\n?'),
+		done: chalk.green('✓')
+	},
+	style: {
+		description: (text) => chalk.gray('example: ' + text)
+	}
+};
+
 // all user options for command line and wizard are declared here
 const options = [
 	{
@@ -121,35 +131,21 @@ export async function getConfig(argv) {
 			let normalizedAnswer = undefined;
 
 			const promptConfig = {
+				theme: promptTheme,
 				message: question.description + '?',
 				default: question.default,
-
-				theme: {
-					prefix: {
-						idle: chalk.gray('\n?'),
-						done: chalk.green('✓')
-					},
-					style: {
-						description: (text) => chalk.gray('example: ' + text)
-					}
-				}
 			};
 
 			if (question.choices) {
 				promptConfig.choices = question.choices;
 				promptConfig.loop = false;
 			} else {
-				const normalizer = normalizers[camelcase(question.type)];
-				if (normalizer) {
-					promptConfig.validate = (value) => {
-						try {
-							normalizedAnswer = normalizer(value);
-						} catch (ex) {
-							return ex.toString();
-						}
-
-						return true;
-					}
+				promptConfig.validate = (value) => {
+					let validationResult;
+					normalizedAnswer = normalize(value, question.type, (errorMessage) => {
+						validationResult = errorMessage;
+					});
+					return validationResult ?? true;
 				}
 			}
 
@@ -189,7 +185,9 @@ function parseCommandLine() {
 		if (input.choices && input.type !== 'boolean') {
 			option.choices(input.choices.map((choice) => choice.value));
 		} else {
-			option.argParser((value) => normalizeCommandLineArg(input.type, input.name, value));
+			option.argParser((value) => normalize(value, input.type, (errorMessage) => {
+				throw new commander.InvalidArgumentError(errorMessage);
+			}));
 		}
 
 		commander.program.addOption(option);
@@ -198,6 +196,7 @@ function parseCommandLine() {
 	const opts = commander.program.parse().opts();
 
 	for (const [key, value] of Object.entries(opts)) {
+		console.log(key, value);
 		if (key === 'wizard' || commander.program.getOptionValueSource(key) !== 'default') {
 			continue;
 		}
@@ -206,14 +205,16 @@ function parseCommandLine() {
 			delete opts[key];
 		} else {
 			const option = options.find((option) => camelcase(option.name) === key);
-			opts[key] = normalizeCommandLineArg(option.type, option.name, value);
+			opts[key] = normalize(value, option.type, (errorMessage) => {
+				commander.program.error(`error: option '--${option.name} <${option.type}>' argument '${value}' is invalid. ${errorMessage}`);
+			});
 		}
 	}
 
 	return opts;
 }
 
-function normalizeCommandLineArg(type, name, value) {
+function normalize(value, type, onError) {
 	const normalizer = normalizers[camelcase(type)];
 	if (!normalizer) {
 		return value;
@@ -222,7 +223,6 @@ function normalizeCommandLineArg(type, name, value) {
 	try {
 		return normalizer(value);
 	} catch (ex) {
-		commander.program.error(`error: option '--${name} <${type}>' argument '${value}' is invalid. ${ex.toString()}`);
-		// throw new commander.InvalidArgumentError('potato');
+		onError(ex.message);
 	}
 }
