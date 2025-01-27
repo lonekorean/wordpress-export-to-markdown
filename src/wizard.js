@@ -19,7 +19,6 @@ export async function getConfig() {
 
 	const commandLineOptions = options.all;
 	Object.assign(config, getCommandLineAnswers(commandLineOptions));
-	console.log(1, config);
 
 	if (config.wizard) {
 		console.log('\nStarting wizard...');
@@ -29,7 +28,6 @@ export async function getConfig() {
 		console.log('\nSkipping wizard...');
 	}
 
-	console.log(2, config);
 	return config;
 }
 
@@ -61,7 +59,6 @@ function getCommandLineAnswers(options) {
 	const opts = commander.program.parse().opts();
 
 	for (const [key, value] of Object.entries(opts)) {
-		console.log(key, value);
 		if (key === 'wizard' || commander.program.getOptionValueSource(key) !== 'default') {
 			continue;
 		}
