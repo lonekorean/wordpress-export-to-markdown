@@ -16,23 +16,22 @@ const promptTheme = {
 };
 
 export async function getConfig() {
-	const config = {};
-
 	// check command line for any config options
 	const commandLineQuestions = questions.all;
-	Object.assign(config, getCommandLineAnswers(commandLineQuestions));
+	const commandLineAnswers = getCommandLineAnswers(commandLineQuestions);
 
-	if (config.wizard) {
+	let wizardAnswers;
+	if (commandLineAnswers.wizard) {
 		console.log('\nStarting wizard...');
 
 		// run wizard for remaining config options
-		const wizardQuestions = questions.all.filter((question) => !(camelcase(question.name) in config));
-		Object.assign(config, await getWizardAnswers(wizardQuestions));
+		const wizardQuestions = questions.all.filter((question) => !(camelcase(question.name) in commandLineAnswers));
+		wizardAnswers = await getWizardAnswers(wizardQuestions, commandLineAnswers);
 	} else {
 		console.log('\nSkipping wizard...');
 	}
 
-	return config;
+	return { ...commandLineAnswers, ...wizardAnswers };
 }
 
 function getCommandLineAnswers(questions) {
@@ -81,9 +80,10 @@ function getCommandLineAnswers(questions) {
 	return answers;
 }
 
-export async function getWizardAnswers(questions) {
+export async function getWizardAnswers(questions, commandLineAnswers) {
 	const answers = {};
 	for (const question of questions) {
+		let answerKey = camelcase(question.name);
 		let normalizedAnswer;
 
 		const promptConfig = {
@@ -95,6 +95,17 @@ export async function getWizardAnswers(questions) {
 		if (question.choices) {
 			promptConfig.choices = question.choices;
 			promptConfig.loop = false;
+
+			if (question.isPathQuestion) {
+				// create a snapshot config of command line answers and wizard answers so far
+				const config = { ...commandLineAnswers, ...answers };
+
+				promptConfig.choices.forEach((choice) => {
+					// show example path if this choice is selected
+					config[answerKey] = choice.value;
+					choice.description = buildExamplePath(config);
+				});
+			}
 		} else {
 			promptConfig.validate = (value) => {
 				let validationErrorMessage;
@@ -115,7 +126,7 @@ export async function getWizardAnswers(questions) {
 			}
 		});
 
-		answers[camelcase(question.name)] = normalizedAnswer ?? answer;
+		answers[answerKey] = normalizedAnswer ?? answer;
 	}
 
 	return answers;
@@ -134,7 +145,7 @@ function normalize(value, type, onError) {
 	}
 }
 
-function buildSamplePath(config) {
+function buildExamplePath(config) {
 	const pathSegments = [];
 
 	if (config.dateFolders === 'year' || config.dateFolders === 'year-month') {

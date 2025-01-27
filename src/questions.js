@@ -29,6 +29,7 @@ export const all = [
 				value: false
 			}
 		],
+		isPathQuestion: true,
 		prompt: inquirer.select
 	},
 	{
@@ -46,6 +47,7 @@ export const all = [
 				value: false
 			}
 		],
+		isPathQuestion: true,
 		prompt: inquirer.select
 	},
 	{
@@ -67,6 +69,7 @@ export const all = [
 				value: 'none'
 			}
 		],
+		isPathQuestion: true,
 		prompt: inquirer.select
 	},
 	{
@@ -92,6 +95,7 @@ export const all = [
 				value: 'none'
 			}
 		],
+		isPathQuestion: true,
 		prompt: inquirer.select
 	}
 ];
