@@ -22,7 +22,7 @@ async function processPayloadsPromise(payloads, loadFunc) {
 				console.log(chalk.green('[OK]') + ' ' + payload.name);
 				resolve();
 			} catch (ex) {
-				console.log(chalk.red('[FAILED]') + ' ' + payload.name + ' ' + chalk.red('(' + ex.toString() + ')'));
+				console.log(chalk.red('[FAILED]') + ' ' + payload.name + ' ' + chalk.red('(' + ex.message + ')'));
 				reject();
 			}
 		}, payload.delay);
@@ -162,7 +162,7 @@ async function loadImageFilePromise(imageUrl) {
 	} catch (ex) {
 		if (ex.response) {
 			// request was made, but server responded with an error status code
-			throw 'StatusCodeError: ' + ex.response.status;
+			throw new Error('StatusCodeError: ' + ex.response.status);
 		} else {
 			// something else went wrong, rethrow
 			throw ex;
