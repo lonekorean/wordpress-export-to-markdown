@@ -84,7 +84,6 @@ function getCommandLineAnswers(questions) {
 export async function getWizardAnswers(questions) {
 	const answers = {};
 	for (const question of questions) {
-		// this will be set to the normalized answer during validation
 		let normalizedAnswer;
 
 		const promptConfig = {
@@ -106,8 +105,7 @@ export async function getWizardAnswers(questions) {
 			}
 		}
 
-		// don't care about the return value of prompt() because normalizedAnswer will be used
-		await question.prompt(promptConfig).catch((ex) => {
+		const answer = await question.prompt(promptConfig).catch((ex) => {
 			// exit gracefully if user hits ctrl + c during wizard
 			if (ex instanceof Error && ex.name === 'ExitPromptError') {
 				console.log('\nUser quit wizard early.');
@@ -117,7 +115,7 @@ export async function getWizardAnswers(questions) {
 			}
 		});
 
-		answers[camelcase(question.name)] = normalizedAnswer;
+		answers[camelcase(question.name)] = normalizedAnswer ?? answer;
 	}
 
 	return answers;
@@ -134,4 +132,29 @@ function normalize(value, type, onError) {
 	} catch (ex) {
 		onError(ex.message);
 	}
+}
+
+function buildSamplePath(config) {
+	const pathSegments = [];
+
+	if (config.dateFolders === 'year' || config.dateFolders === 'year-month') {
+		pathSegments.push('2025');
+	}
+
+	if (config.dateFolders === 'year-month') {
+		pathSegments.push('01');
+	}
+
+	let slugFragment = 'my-post';
+	if (config.prefixDate) {
+		slugFragment = '2025-01-31-' + slugFragment;
+	}
+
+	if (config.postFolders) {
+		pathSegments.push(slugFragment, 'index.md');
+	} else {
+		pathSegments.push(slugFragment + '.md');
+	}
+
+	return '/' + pathSegments.join('/');
 }

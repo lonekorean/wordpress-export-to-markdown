@@ -22,13 +22,11 @@ export const all = [
 		choices: [
 			{
 				name: 'Yes',
-				value: true,
-				description: '/my-post/index.md'
+				value: true
 			},
 			{
 				name: 'No',
-				value: false,
-				description: '/my-post.md'
+				value: false
 			}
 		],
 		prompt: inquirer.select
@@ -41,13 +39,11 @@ export const all = [
 		choices: [
 			{
 				name: 'Yes',
-				value: true,
-				description: ''
+				value: true
 			},
 			{
 				name: 'No',
-				value: false,
-				description: ''
+				value: false
 			}
 		],
 		prompt: inquirer.select
@@ -60,18 +56,15 @@ export const all = [
 		choices: [
 			{
 				name: 'Year folders',
-				value: 'year',
-				description: ''
+				value: 'year'
 			},
 			{
 				name: 'Year and month folders',
-				value: 'year-month',
-				description: ''
+				value: 'year-month'
 			},
 			{
 				name: 'No',
-				value: 'none',
-				description: ''
+				value: 'none'
 			}
 		],
 		prompt: inquirer.select
