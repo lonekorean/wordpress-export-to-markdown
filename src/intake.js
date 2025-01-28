@@ -151,7 +151,7 @@ function normalize(value, type, onError) {
 
 export function buildSamplePostPath(config) {
 	const outputDir = path.sep;
-	const type = ''
+	const type = '';
 	const date = luxon.DateTime.now().toFormat('yyyy-LL-dd');
 	const slug = 'my-post';
 
