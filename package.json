@@ -21,11 +21,11 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@inquirer/prompts": "^7.2.3",
 		"axios": "^1.7.9",
 		"camelcase": "^8.0.0",
 		"chalk": "^5.4.1",
 		"commander": "^13.0.0",
-		"inquirer": "^10.2.2",
 		"luxon": "^3.5.0",
 		"turndown": "^7.2.0",
 		"turndown-plugin-gfm": "^1.0.2",

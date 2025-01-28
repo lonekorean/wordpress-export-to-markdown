@@ -14,14 +14,14 @@ export async function parseFilePromise(config) {
 	});
 	const channelData = allData.rss.channel[0].item;
 
-	const postTypes = getPostTypes(channelData, config);
+	const postTypes = getPostTypes(channelData);
 	const posts = collectPosts(channelData, postTypes, config);
 
 	const images = [];
-	if (config.saveAttachedImages) {
+	if (config.saveImages === 'attached' || config.saveImages === 'all') {
 		images.push(...collectAttachedImages(channelData));
 	}
-	if (config.saveScrapedImages) {
+	if (config.saveImages === 'scraped' || config.saveImages === 'all') {
 		images.push(...collectScrapedImages(channelData, postTypes));
 	}
 
@@ -31,18 +31,12 @@ export async function parseFilePromise(config) {
 	return posts;
 }
 
-function getPostTypes(channelData, config) {
-	if (config.includeOtherTypes) {
-		// search export file for all post types minus some default types we don't want
-		// effectively this will be 'post', 'page', and custom post types
-		const types = channelData
-			.map(item => item.post_type[0])
-			.filter(type => !['attachment', 'revision', 'nav_menu_item', 'custom_css', 'customize_changeset'].includes(type));
-		return [...new Set(types)]; // remove duplicates
-	} else {
-		// just plain old vanilla "post" posts
-		return ['post'];
-	}
+function getPostTypes(channelData) {
+	// search export file for all post types minus some specific types we don't want
+	const types = channelData
+		.map(item => item.post_type[0])
+		.filter(type => !settings.filter_post_types.includes(type));
+	return [...new Set(types)]; // remove duplicates
 }
 
 function getItemsOfType(channelData, type) {

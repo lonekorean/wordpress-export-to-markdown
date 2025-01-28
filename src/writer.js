@@ -3,7 +3,6 @@ import chalk from 'chalk';
 import fs from 'fs';
 import http from 'http';
 import https from 'https';
-import * as luxon from 'luxon';
 import path from 'path';
 import * as settings from './settings.js';
 import * as shared from './shared.js';
@@ -22,7 +21,7 @@ async function processPayloadsPromise(payloads, loadFunc) {
 				console.log(chalk.green('[OK]') + ' ' + payload.name);
 				resolve();
 			} catch (ex) {
-				console.log(chalk.red('[FAILED]') + ' ' + payload.name + ' ' + chalk.red('(' + ex.toString() + ')'));
+				console.log(chalk.red('[FAILED]') + ' ' + payload.name + ' ' + chalk.red('(' + ex.message + ')'));
 				reject();
 			}
 		}, payload.delay);
@@ -47,7 +46,7 @@ async function writeMarkdownFilesPromise(posts, config) {
 	let skipCount = 0;
 	let delay = 0;
 	const payloads = posts.flatMap(post => {
-		const destinationPath = getPostPath(post, config);
+		const destinationPath = buildPostPath(post, config);
 		if (checkFile(destinationPath)) {
 			// already exists, don't need to save again
 			skipCount++;
@@ -55,7 +54,7 @@ async function writeMarkdownFilesPromise(posts, config) {
 		} else {
 			const payload = {
 				item: post,
-				name: (config.includeOtherTypes ? post.meta.type + ' - ' : '') + post.meta.slug,
+				name: post.meta.type + ' - ' + post.meta.slug,
 				destinationPath,
 				delay
 			};
@@ -105,7 +104,7 @@ async function writeImageFilesPromise(posts, config) {
 	let skipCount = 0;
 	let delay = 0;
 	const payloads = posts.flatMap(post => {
-		const postPath = getPostPath(post, config);
+		const postPath = buildPostPath(post, config);
 		const imagesDir = path.join(path.dirname(postPath), 'images');
 		return post.meta.imageUrls.flatMap(imageUrl => {
 			const filename = shared.getFilenameFromUrl(imageUrl);
@@ -162,7 +161,7 @@ async function loadImageFilePromise(imageUrl) {
 	} catch (ex) {
 		if (ex.response) {
 			// request was made, but server responded with an error status code
-			throw 'StatusCodeError: ' + ex.response.status;
+			throw new Error('StatusCodeError: ' + ex.response.status);
 		} else {
 			// something else went wrong, rethrow
 			throw ex;
@@ -171,44 +170,13 @@ async function loadImageFilePromise(imageUrl) {
 	return buffer;
 }
 
-function getPostPath(post, config) {
-	let dt;
-	if (settings.custom_date_formatting) {
-		dt = luxon.DateTime.fromFormat(post.frontmatter.date, settings.custom_date_formatting);
-	} else {
-		dt = luxon.DateTime.fromISO(post.frontmatter.date);
-	}
+function buildPostPath(post, config) {
+	const outputDir = settings.output_directory;
+	const type = post.meta.type;
+	const date = post.frontmatter.date;
+	const slug = post.meta.slug;
 
-	// start with base output dir
-	const pathSegments = [config.output];
-
-	// create segment for post type if we're dealing with more than just "post"
-	if (config.includeOtherTypes) {
-		pathSegments.push(post.meta.type);
-	}
-
-	if (config.yearFolders) {
-		pathSegments.push(dt.toFormat('yyyy'));
-	}
-
-	if (config.monthFolders) {
-		pathSegments.push(dt.toFormat('LL'));
-	}
-
-	// create slug fragment, possibly date prefixed
-	let slugFragment = post.meta.slug;
-	if (config.prefixDate) {
-		slugFragment = dt.toFormat('yyyy-LL-dd') + '-' + slugFragment;
-	}
-
-	// use slug fragment as folder or filename as specified
-	if (config.postFolders) {
-		pathSegments.push(slugFragment, 'index.md');
-	} else {
-		pathSegments.push(slugFragment + '.md');
-	}
-
-	return path.join(...pathSegments);
+	return shared.buildPostPath(outputDir, type, date, slug, config);
 }
 
 function checkFile(path) {
