@@ -4,7 +4,7 @@ import * as commander from 'commander';
 import path from 'path';
 import * as parser from './src/parser.js';
 import * as settings from './src/settings.js';
-import * as wizard from './src/wizard.js';
+import * as intake from './src/intake.js';
 import * as writer from './src/writer.js';
 
 (async () => {
@@ -15,7 +15,7 @@ import * as writer from './src/writer.js';
 		.addHelpText('after', '\nMore documentation is at https://github.com/lonekorean/wordpress-export-to-markdown')
 		
 	// gather config options from command line and wizard
-	const config = await wizard.getConfig();
+	const config = await intake.getConfig();
 
 	// parse data from XML and do Markdown translations
 	const posts = await parser.parseFilePromise(config)
