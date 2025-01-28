@@ -75,6 +75,7 @@ function getCommandLineAnswers(questions) {
 			// normalize and validate default answer
 			const question = questions.find((question) => camelcase(question.name) === key);
 			answers[key] = normalize(value, question.type, (errorMessage) => {
+				// this is formatted to match how commander displays other errors
 				commander.program.error(`error: option '--${question.name} <${question.type}>' argument '${value}' is invalid. ${errorMessage}`);
 			});
 		}

@@ -3,7 +3,6 @@ import chalk from 'chalk';
 import fs from 'fs';
 import http from 'http';
 import https from 'https';
-import * as luxon from 'luxon';
 import path from 'path';
 import * as settings from './settings.js';
 import * as shared from './shared.js';
@@ -47,7 +46,7 @@ async function writeMarkdownFilesPromise(posts, config) {
 	let skipCount = 0;
 	let delay = 0;
 	const payloads = posts.flatMap(post => {
-		const destinationPath = getPostPath(post, config);
+		const destinationPath = buildPostPath(post, config);
 		if (checkFile(destinationPath)) {
 			// already exists, don't need to save again
 			skipCount++;
@@ -105,7 +104,7 @@ async function writeImageFilesPromise(posts, config) {
 	let skipCount = 0;
 	let delay = 0;
 	const payloads = posts.flatMap(post => {
-		const postPath = getPostPath(post, config);
+		const postPath = buildPostPath(post, config);
 		const imagesDir = path.join(path.dirname(postPath), 'images');
 		return post.meta.imageUrls.flatMap(imageUrl => {
 			const filename = shared.getFilenameFromUrl(imageUrl);
@@ -171,39 +170,13 @@ async function loadImageFilePromise(imageUrl) {
 	return buffer;
 }
 
-function getPostPath(post, config) {
-	let dt;
-	if (settings.custom_date_formatting) {
-		dt = luxon.DateTime.fromFormat(post.frontmatter.date, settings.custom_date_formatting);
-	} else {
-		dt = luxon.DateTime.fromISO(post.frontmatter.date);
-	}
+function buildPostPath(post, config) {
+	const outputDir = settings.output_directory;
+	const type = post.meta.type;
+	const date = post.frontmatter.date;
+	const slug = post.meta.slug;
 
-	// start with base output dir and post type
-	const pathSegments = [settings.output_directory, post.meta.type];
-
-	if (config.dateFolders === 'year' || config.dateFolders === 'year-month') {
-		pathSegments.push(dt.toFormat('yyyy'));
-	}
-
-	if (config.dateFolders === 'year-month') {
-		pathSegments.push(dt.toFormat('LL'));
-	}
-
-	// create slug fragment, possibly date prefixed
-	let slugFragment = post.meta.slug;
-	if (config.prefixDate) {
-		slugFragment = dt.toFormat('yyyy-LL-dd') + '-' + slugFragment;
-	}
-
-	// use slug fragment as folder or filename as specified
-	if (config.postFolders) {
-		pathSegments.push(slugFragment, 'index.md');
-	} else {
-		pathSegments.push(slugFragment + '.md');
-	}
-
-	return path.join(...pathSegments);
+	return shared.buildPostPath(outputDir, type, date, slug, config);
 }
 
 function checkFile(path) {
