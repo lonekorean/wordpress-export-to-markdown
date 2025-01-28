@@ -1,8 +1,11 @@
 import camelcase from 'camelcase';
 import chalk from 'chalk';
 import * as commander from 'commander';
+import * as luxon from 'luxon';
+import path from 'path';
 import * as normalizers from './normalizers.js';
 import * as questions from './questions.js';
+import * as shared from './shared.js';
 
 // visual formatting for wizard
 const promptTheme = {
@@ -84,7 +87,7 @@ export async function getWizardAnswers(questions, commandLineAnswers) {
 	const answers = {};
 	for (const question of questions) {
 		let answerKey = camelcase(question.name);
-		let normalizedAnswer;
+		let normalizedAnswer; // holds normalized answer value potentially returned during validation
 
 		const promptConfig = {
 			theme: promptTheme,
@@ -103,7 +106,7 @@ export async function getWizardAnswers(questions, commandLineAnswers) {
 				promptConfig.choices.forEach((choice) => {
 					// show example path if this choice is selected
 					config[answerKey] = choice.value;
-					choice.description = buildExamplePath(config);
+					choice.description = buildSamplePostPath(config);
 				});
 			}
 		} else {
@@ -145,27 +148,11 @@ function normalize(value, type, onError) {
 	}
 }
 
-function buildExamplePath(config) {
-	const pathSegments = [];
+export function buildSamplePostPath(config) {
+	const outputDir = path.sep;
+	const type = ''
+	const date = luxon.DateTime.now().toFormat('yyyy-LL-dd');
+	const slug = 'my-post';
 
-	if (config.dateFolders === 'year' || config.dateFolders === 'year-month') {
-		pathSegments.push('2025');
-	}
-
-	if (config.dateFolders === 'year-month') {
-		pathSegments.push('01');
-	}
-
-	let slugFragment = 'my-post';
-	if (config.prefixDate) {
-		slugFragment = '2025-01-31-' + slugFragment;
-	}
-
-	if (config.postFolders) {
-		pathSegments.push(slugFragment, 'index.md');
-	} else {
-		pathSegments.push(slugFragment + '.md');
-	}
-
-	return '/' + pathSegments.join('/');
+	return shared.buildPostPath(outputDir, type, date, slug, config);
 }

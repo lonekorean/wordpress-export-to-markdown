@@ -95,7 +95,6 @@ export const all = [
 				value: 'none'
 			}
 		],
-		isPathQuestion: true,
 		prompt: inquirer.select
 	}
 ];
