@@ -21,6 +21,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@guyplusplus/turndown-plugin-gfm": "^1.0.7",
 		"@inquirer/prompts": "^7.2.3",
 		"axios": "^1.7.9",
 		"camelcase": "^8.0.0",
@@ -28,7 +29,6 @@
 		"commander": "^13.0.0",
 		"luxon": "^3.5.0",
 		"turndown": "^7.2.0",
-		"turndown-plugin-gfm": "^1.0.2",
 		"xml2js": "^0.6.2"
 	},
 	"devDependencies": {

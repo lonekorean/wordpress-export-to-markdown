@@ -1,5 +1,5 @@
 import turndown from 'turndown';
-import turndownPluginGfm from 'turndown-plugin-gfm';
+import turndownPluginGfm from '@guyplusplus/turndown-plugin-gfm';
 
 export function initTurndownService() {
 	const turndownService = new turndown({
