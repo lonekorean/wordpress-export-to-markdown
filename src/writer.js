@@ -171,7 +171,7 @@ async function loadImageFilePromise(imageUrl) {
 }
 
 function buildPostPath(post, config) {
-	const outputDir = settings.output_directory;
+	const outputDir = config.output;
 	const type = post.meta.type;
 	const date = post.frontmatter.date;
 	const slug = post.meta.slug;

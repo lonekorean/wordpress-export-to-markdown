@@ -27,8 +27,10 @@ export async function getConfig() {
 	if (commandLineAnswers.wizard) {
 		console.log('\nStarting wizard...');
 
-		// run wizard for remaining config options
-		const wizardQuestions = questions.all.filter((question) => !(camelcase(question.name) in commandLineAnswers));
+		// run wizard for questions with prompts that were not answered via the command line
+		const wizardQuestions = questions.all.filter((question) => {
+			return question.prompt && !(camelcase(question.name) in commandLineAnswers);
+		});
 		wizardAnswers = await getWizardAnswers(wizardQuestions, commandLineAnswers);
 	} else {
 		console.log('\nSkipping wizard...');
@@ -46,6 +48,10 @@ function getCommandLineAnswers(questions) {
 	questions.forEach((question) => {
 		const option = new commander.Option('--' + question.name + ' <' + question.type + '>', question.description);
 		option.default(question.default);
+
+		if (!question.description) {
+			option.hideHelp();
+		}
 
 		if (question.choices && question.type !== 'boolean') {
 			// let commander handle non-boolean multiple choice validation
@@ -68,12 +74,12 @@ function getCommandLineAnswers(questions) {
 			continue;
 		}
 
-		if (answers.wizard) {
-			// remove this default answer so the wizard will ask about it later
+		const question = questions.find((question) => camelcase(question.name) === key);
+		if (answers.wizard && question.prompt) {
+			// remove this default answer, allowing the wizard to ask about it later
 			delete answers[key];
 		} else {
 			// normalize and validate default answer
-			const question = questions.find((question) => camelcase(question.name) === key);
 			answers[key] = normalize(value, question.type, (errorMessage) => {
 				// this is formatted to match how commander displays other errors
 				commander.program.error(`error: option '--${question.name} <${question.type}>' argument '${value}' is invalid. ${errorMessage}`);

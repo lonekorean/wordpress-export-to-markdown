@@ -2,12 +2,6 @@ import * as inquirer from '@inquirer/prompts';
 
 export const all = [
 	{
-		name: 'wizard',
-		type: 'boolean',
-		description: 'Use wizard',
-		default: true
-	},
-	{
 		name: 'input',
 		type: 'file-path',
 		description: 'Path to WordPress export file',
@@ -96,5 +90,17 @@ export const all = [
 			}
 		],
 		prompt: inquirer.select
+	},
+	{
+		name: 'wizard',
+		type: 'boolean',
+		description: 'Use wizard',
+		default: true
+	},
+	{
+		name: 'output',
+		type: 'folder-path',
+		description: 'Path to output folder',
+		default: 'output'
 	}
 ];

@@ -3,7 +3,6 @@
 import * as commander from 'commander';
 import path from 'path';
 import * as parser from './src/parser.js';
-import * as settings from './src/settings.js';
 import * as intake from './src/intake.js';
 import * as writer from './src/writer.js';
 
@@ -25,7 +24,7 @@ import * as writer from './src/writer.js';
 
 	// happy goodbye
 	console.log('\nAll done!');
-	console.log('Look for your output files in: ' + path.resolve(settings.output_directory));
+	console.log('Look for your output files in: ' + path.resolve(config.output));
 })().catch((ex) => {
 	// sad goodbye
 	console.log('\nSomething went wrong, execution halted early.');

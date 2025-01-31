@@ -49,6 +49,3 @@ export const filter_post_types = [
 	'wp_global_styles',
 	'wp_navigation'
 ];
-
-// Output directory.
-export const output_directory = 'output';
