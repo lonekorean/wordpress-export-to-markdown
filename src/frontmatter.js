@@ -9,15 +9,15 @@ export function getAuthor(post) {
 
 // get array of decoded category names, filtered as specified in settings
 export function getCategories(post) {
-    if (!post.data.category) {
-        return [];
-    }
+	if (!post.data.category) {
+		return [];
+	}
 
-    const categories = post.data.category
-        .filter(category => category.$.domain === 'category')
-        .map(({ $: attributes }) => decodeURIComponent(attributes.nicename));
+	const categories = post.data.category
+		.filter(category => category.$.domain === 'category')
+		.map(({ $: attributes }) => decodeURIComponent(attributes.nicename));
 
-    return categories.filter(category => !settings.filter_categories.includes(category));
+	return categories.filter(category => !settings.filter_categories.includes(category));
 }
 
 // get cover image filename, previously decoded and set on post.meta
@@ -29,15 +29,15 @@ export function getCoverImage(post) {
 // get post date, optionally formatted as specified in settings
 // this value is also used for year/month folders, date prefixes, etc. as needed
 export function getDate(post) {
-    const dateTime = luxon.DateTime.fromRFC2822(post.data.pubDate[0], { zone: settings.custom_date_timezone });
+	const dateTime = luxon.DateTime.fromRFC2822(post.data.pubDate[0], { zone: settings.custom_date_timezone });
 
-    if (settings.custom_date_formatting) {
-        return dateTime.toFormat(settings.custom_date_formatting);
-    } else if (settings.include_time_with_date) {
-        return dateTime.toISO();
-    } else {
-        return dateTime.toISODate();
-    }
+	if (settings.custom_date_formatting) {
+		return dateTime.toFormat(settings.custom_date_formatting);
+	} else if (settings.include_time_with_date) {
+		return dateTime.toISO();
+	} else {
+		return dateTime.toISODate();
+	}
 }
 
 // get excerpt, not decoded, newlines collapsed

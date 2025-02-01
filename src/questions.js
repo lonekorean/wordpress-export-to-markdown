@@ -1,6 +1,14 @@
 import * as inquirer from '@inquirer/prompts';
 
+// questions with a description are displayed in command line help
+// questions with a prompt are included in the wizard (if not set on the command line)
 export const all = [
+	{
+		name: 'wizard',
+		type: 'boolean',
+		description: 'Use wizard',
+		default: true
+	},
 	{
 		name: 'input',
 		type: 'file-path',
@@ -92,15 +100,19 @@ export const all = [
 		prompt: inquirer.select
 	},
 	{
-		name: 'wizard',
-		type: 'boolean',
-		description: 'Use wizard',
-		default: true
-	},
-	{
 		name: 'output',
 		type: 'folder-path',
 		description: 'Path to output folder',
 		default: 'output'
-	}
+	},
+	{
+		name: 'frontmatter-fields',
+		type: 'list',
+		default: ['title', 'date', 'categories', 'tags', 'coverImage']
+	},
+	{
+		name: 'image-file-request-delay',
+		type: 'integer',
+		default: 500
+	},
 ];

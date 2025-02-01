@@ -2,17 +2,17 @@
 // Order is preserved. If a field has an empty value, it will not be included. You can rename a
 // field by providing an alias after a ':'. For example, 'date:created' will include 'date' in
 // frontmatter, but renamed to 'created'.
-export const frontmatter_fields = [
-	'title',
-	'date',
-	'categories',
-	'tags',
-	'coverImage'
-];
+// export const frontmatter_fields = [
+// 	'title',
+// 	'date',
+// 	'categories',
+// 	'tags',
+// 	'coverImage'
+// ];
 
 // Time in ms to wait between requesting image files. Increase this if you see timeouts or
 // server errors.
-export const image_file_request_delay = 500;
+// export const image_file_request_delay = 500;
 
 // Time in ms to wait between saving Markdown files. Increase this if your file system becomes
 // overloaded.

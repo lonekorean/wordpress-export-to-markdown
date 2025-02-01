@@ -120,7 +120,7 @@ async function writeImageFilesPromise(posts, config) {
 					destinationPath,
 					delay
 				};
-				delay += settings.image_file_request_delay;
+				delay += config.imageFileRequestDelay;
 				return [payload];
 			}
 		});

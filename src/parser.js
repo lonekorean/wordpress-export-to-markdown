@@ -26,7 +26,7 @@ export async function parseFilePromise(config) {
 	}
 
 	mergeImagesIntoPosts(images, posts);
-	populateFrontmatter(posts);
+	populateFrontmatter(posts, config);
 
 	return posts;
 }
@@ -162,10 +162,10 @@ function mergeImagesIntoPosts(images, posts) {
 	});
 }
 
-function populateFrontmatter(posts) {
+function populateFrontmatter(posts, config) {
 	posts.forEach(post => {
 		post.frontmatter = {};
-		settings.frontmatter_fields.forEach(field => {
+		config.frontmatterFields.forEach(field => {
 			const [key, alias] = field.split(':');
 
 			let frontmatterGetter = frontmatter['get' + key.replace(/^./, (match) => match.toUpperCase())];
