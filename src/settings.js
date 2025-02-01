@@ -16,11 +16,11 @@
 
 // Time in ms to wait between saving Markdown files. Increase this if your file system becomes
 // overloaded.
-export const markdown_file_write_delay = 25;
+// export const markdown_file_write_delay = 25;
 
 // Enable this to include time with post dates. For example, "2020-12-25" would become
 // "2020-12-25T11:20:35.000Z".
-export const include_time_with_date = false;
+// export const include_time_with_date = false;
 
 // Override post date formatting with a custom formatting string (for example: 'yyyy LLL dd').
 // Tokens are documented here: https://moment.github.io/luxon/#/parsing?id=table-of-tokens. If

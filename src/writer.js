@@ -58,7 +58,7 @@ async function writeMarkdownFilesPromise(posts, config) {
 				destinationPath,
 				delay
 			};
-			delay += settings.markdown_file_write_delay;
+			delay += config.markdownFileWriteDelay;
 			return [payload];
 		}
 	});

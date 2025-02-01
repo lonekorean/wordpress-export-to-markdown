@@ -115,4 +115,14 @@ export const all = [
 		type: 'integer',
 		default: 500
 	},
+	{
+		name: 'markdown-file-write-delay',
+		type: 'integer',
+		default: 25
+	},
+	{
+		name: 'include-time-with-date',
+		type: 'boolean',
+		default: false
+	},
 ];

@@ -168,12 +168,12 @@ function populateFrontmatter(posts, config) {
 		config.frontmatterFields.forEach(field => {
 			const [key, alias] = field.split(':');
 
-			let frontmatterGetter = frontmatter['get' + key.replace(/^./, (match) => match.toUpperCase())];
+			let frontmatterGetter = frontmatter[key];
 			if (!frontmatterGetter) {
 				throw `Could not find a frontmatter getter named "${key}".`;
 			}
 
-			post.frontmatter[alias || key] = frontmatterGetter(post);
+			post.frontmatter[alias || key] = frontmatterGetter(post, config);
 		});
 	});
 }
