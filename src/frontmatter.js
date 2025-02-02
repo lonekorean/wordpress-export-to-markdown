@@ -7,8 +7,8 @@ export function author(post) {
 	return post.data.creator[0];
 }
 
-// get array of decoded category names, filtered as specified in settings
-export function categories(post, config) {
+// get array of decoded category names, excluding 'uncategorized'
+export function categories(post) {
 	if (!post.data.category) {
 		return [];
 	}
@@ -17,7 +17,7 @@ export function categories(post, config) {
 		.filter(category => category.$.domain === 'category')
 		.map(({ $: attributes }) => decodeURIComponent(attributes.nicename));
 
-	return categories.filter((category) => !config.filterCategories.includes(category));
+	return categories.filter((category) => category !== 'uncategorized');
 }
 
 // get cover image filename, previously decoded and set on post.meta

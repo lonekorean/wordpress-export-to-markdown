@@ -1,7 +1,6 @@
 import fs from 'fs';
 import xml2js from 'xml2js';
 import * as frontmatter from './frontmatter.js';
-import * as settings from './settings.js';
 import * as shared from './shared.js';
 import * as translator from './translator.js';
 
@@ -35,7 +34,15 @@ function getPostTypes(channelData) {
 	// search export file for all post types minus some specific types we don't want
 	const types = channelData
 		.map(item => item.post_type[0])
-		.filter(type => !settings.filter_post_types.includes(type));
+		.filter(type => ![
+			'attachment',
+			'revision',
+			'nav_menu_item',
+			'custom_css',
+			'customize_changeset',
+			'wp_global_styles',
+			'wp_navigation'
+		].includes(type));
 	return [...new Set(types)]; // remove duplicates
 }
 

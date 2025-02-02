@@ -33,19 +33,19 @@ export const custom_date_timezone = 'utc';
 
 // Categories to be excluded from post frontmatter. This does not filter out posts themselves,
 // just the categories listed in their frontmatter.
-export const filter_categories = ['uncategorized'];
+// export const filter_categories = ['uncategorized'];
 
 // Strict SSL is enabled as the safe default when downloading images, but will not work with
 // self-signed servers. You can disable it if you're getting a "self-signed certificate" error.
-export const strict_ssl = true;
+// export const strict_ssl = true;
 
 // Post types to exclude from output.
-export const filter_post_types = [
-	'attachment',
-	'revision',
-	'nav_menu_item',
-	'custom_css',
-	'customize_changeset',
-	'wp_global_styles',
-	'wp_navigation'
-];
+// export const filter_post_types = [
+// 	'attachment',
+// 	'revision',
+// 	'nav_menu_item',
+// 	'custom_css',
+// 	'customize_changeset',
+// 	'wp_global_styles',
+// 	'wp_navigation'
+// ];
