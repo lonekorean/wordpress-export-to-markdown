@@ -126,11 +126,6 @@ export const all = [
 		default: false
 	},
 	{
-		name: 'filter-categories',
-		type: 'list',
-		default: ['uncategorized']
-	},
-	{
 		name: 'strict-ssl',
 		type: 'boolean',
 		default: true
