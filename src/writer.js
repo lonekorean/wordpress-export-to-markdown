@@ -4,7 +4,6 @@ import fs from 'fs';
 import http from 'http';
 import https from 'https';
 import path from 'path';
-import * as settings from './settings.js';
 import * as shared from './shared.js';
 
 export async function writeFilesPromise(posts, config) {
@@ -12,11 +11,11 @@ export async function writeFilesPromise(posts, config) {
 	await writeImageFilesPromise(posts, config);
 }
 
-async function processPayloadsPromise(payloads, loadFunc) {
+async function processPayloadsPromise(payloads, loadFunc, config) {
 	const promises = payloads.map(payload => new Promise((resolve, reject) => {
 		setTimeout(async () => {
 			try {
-				const data = await loadFunc(payload.item);
+				const data = await loadFunc(payload.item, config);
 				await writeFile(payload.destinationPath, data);
 				console.log(chalk.green('[OK]') + ' ' + payload.name);
 				resolve();
@@ -68,7 +67,7 @@ async function writeMarkdownFilesPromise(posts, config) {
 		console.log('\nNo posts to save...');
 	} else {
 		console.log(`\nSaving ${remainingCount} posts (${skipCount} already exist)...`);
-		await processPayloadsPromise(payloads, loadMarkdownFilePromise);
+		await processPayloadsPromise(payloads, loadMarkdownFilePromise, config);
 	}
 }
 
@@ -131,15 +130,15 @@ async function writeImageFilesPromise(posts, config) {
 		console.log('\nNo images to download and save...');
 	} else {
 		console.log(`\nDownloading and saving ${remainingCount} images (${skipCount} already exist)...`);
-		await processPayloadsPromise(payloads, loadImageFilePromise);
+		await processPayloadsPromise(payloads, loadImageFilePromise, config);
 	}
 }
 
-async function loadImageFilePromise(imageUrl) {
+async function loadImageFilePromise(imageUrl, config) {
 	// only encode the URL if it doesn't already have encoded characters
 	const url = (/%[\da-f]{2}/i).test(imageUrl) ? imageUrl : encodeURI(imageUrl);
 
-	const config = {
+	const requestConfig = {
 		method: 'get',
 		url,
 		headers: {
@@ -148,15 +147,15 @@ async function loadImageFilePromise(imageUrl) {
 		responseType: 'arraybuffer'
 	};
 
-	if (!settings.strict_ssl) {
+	if (!config.strictSsl) {
 		// custom agents to disable SSL errors (adding both http and https, just in case)
-		config.httpAgent = new http.Agent({ rejectUnauthorized: false });
-		config.httpsAgent = new https.Agent({ rejectUnauthorized: false });
+		requestConfig.httpAgent = new http.Agent({ rejectUnauthorized: false });
+		requestConfig.httpsAgent = new https.Agent({ rejectUnauthorized: false });
 	}
 
 	let buffer;
 	try {
-		const response = await axios(config);
+		const response = await axios(requestConfig);
 		buffer = Buffer.from(response.data, 'binary');
 	} catch (ex) {
 		if (ex.response) {

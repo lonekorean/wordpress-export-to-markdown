@@ -8,7 +8,7 @@ export function author(post) {
 }
 
 // get array of decoded category names, filtered as specified in settings
-export function categories(post) {
+export function categories(post, config) {
 	if (!post.data.category) {
 		return [];
 	}
@@ -17,7 +17,7 @@ export function categories(post) {
 		.filter(category => category.$.domain === 'category')
 		.map(({ $: attributes }) => decodeURIComponent(attributes.nicename));
 
-	return categories.filter(category => !settings.filter_categories.includes(category));
+	return categories.filter((category) => !config.filterCategories.includes(category));
 }
 
 // get cover image filename, previously decoded and set on post.meta

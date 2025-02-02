@@ -125,4 +125,14 @@ export const all = [
 		type: 'boolean',
 		default: false
 	},
+	{
+		name: 'filter-categories',
+		type: 'list',
+		default: ['uncategorized']
+	},
+	{
+		name: 'strict-ssl',
+		type: 'boolean',
+		default: true
+	}
 ];
