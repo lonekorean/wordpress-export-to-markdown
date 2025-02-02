@@ -58,6 +58,7 @@ function collectPosts(channelData, postTypes, config) {
 	postTypes.forEach(postType => {
 		const postsForType = getItemsOfType(channelData, postType)
 			.filter(postData => postData.status[0] !== 'trash' && postData.status[0] !== 'draft')
+			.filter(postData => !(postType === 'page' && postData.post_name[0] === 'sample-page'))
 			.map(postData => ({
 				// raw post data, used by frontmatter getters
 				data: postData,
