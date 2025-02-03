@@ -179,7 +179,7 @@ async function loadImageFilePromise(imageUrl, config) {
 function buildPostPath(post, config) {
 	const outputDir = config.output;
 	const type = post.meta.type;
-	const date = post.frontmatter.date;
+	const date = post.meta.date;
 	const slug = post.meta.slug;
 
 	return shared.buildPostPath(outputDir, type, date, slug, config);
