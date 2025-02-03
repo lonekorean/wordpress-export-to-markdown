@@ -126,6 +126,16 @@ export const all = [
 		default: false
 	},
 	{
+		name: 'custom-date-formatting',
+		type: 'string',
+		default: ''
+	},
+	{
+		name: 'custom-date-timezone',
+		type: 'string',
+		default: 'utc'
+	},
+	{
 		name: 'strict-ssl',
 		type: 'boolean',
 		default: true

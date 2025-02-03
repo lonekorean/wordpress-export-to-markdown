@@ -1,4 +1,5 @@
 import fs from 'fs';
+import * as luxon from 'luxon';
 import xml2js from 'xml2js';
 import * as frontmatter from './frontmatter.js';
 import * as shared from './shared.js';
@@ -65,12 +66,15 @@ function collectPosts(channelData, postTypes, config) {
 
 				// meta data isn't written to file, but is used to help with other things
 				meta: {
+					type: postType,
 					id: getPostId(postData),
 					slug: getPostSlug(postData),
+					date: getPostDate(postData, config),
 					coverImageId: getPostCoverImageId(postData),
-					coverImage: undefined, // possibly set later in mergeImagesIntoPosts()
-					type: postType,
-					imageUrls: [] // possibly set later in mergeImagesIntoPosts()
+
+					// these are possibly set later in mergeImagesIntoPosts()
+					coverImage: undefined,
+					imageUrls: []
 				},
 
 				// contents of the post in markdown
@@ -96,6 +100,10 @@ function getPostId(postData) {
 
 function getPostSlug(postData) {
 	return decodeURIComponent(postData.post_name[0]);
+}
+
+function getPostDate(postData, config) {
+	return luxon.DateTime.fromRFC2822(postData.pubDate[0], { zone: config.customDateTimezone });
 }
 
 function getPostCoverImageId(postData) {

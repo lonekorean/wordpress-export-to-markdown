@@ -3,6 +3,7 @@ import chalk from 'chalk';
 import fs from 'fs';
 import http from 'http';
 import https from 'https';
+import * as luxon from 'luxon';
 import path from 'path';
 import * as shared from './shared.js';
 
@@ -71,7 +72,7 @@ async function writeMarkdownFilesPromise(posts, config) {
 	}
 }
 
-async function loadMarkdownFilePromise(post) {
+async function loadMarkdownFilePromise(post, config) {
 	let output = '---\n';
 
 	Object.entries(post.frontmatter).forEach(([key, value]) => {
@@ -82,7 +83,11 @@ async function loadMarkdownFilePromise(post) {
 				outputValue = value.reduce((list, item) => `${list}\n  - "${item}"`, '');
 			}
 		} else if (value instanceof luxon.DateTime) {
-			outputValue = encodeDate(value);
+			if (config.customDateFormatting) {
+				outputValue = value.toFormat(config.customDateFormatting);
+			} else {
+				outputValue = config.includeTimeWithDate ? value.toISO() : value.toISODate();
+			}
 		} else {
 			// single string value
 			const escapedValue = (value || '').replace(/"/g, '\\"');
@@ -98,16 +103,6 @@ async function loadMarkdownFilePromise(post) {
 
 	output += `---\n\n${post.content}\n`;
 	return output;
-}
-
-function encodeDate(dateTime) {
-	if (settings.custom_date_formatting) {
-		return dateTime.toFormat(settings.custom_date_formatting);
-	} else if (settings.include_time_with_date) {
-		return dateTime.toISO();
-	} else {
-		return dateTime.toISODate();
-	}
 }
 
 async function writeImageFilesPromise(posts, config) {
