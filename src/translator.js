@@ -102,7 +102,7 @@ export function getPostContent(postData, turndownService, config) {
 	// without mucking up content inside of other elements (like <code> blocks)
 	content = content.replace(/(\r?\n){2}/g, '\n<div></div>\n');
 
-	if (config.saveScrapedImages) {
+	if (config.saveImages === 'scraped' || config.saveImages === 'all') {
 		// writeImageFile() will save all content images to a relative /images
 		// folder so update references in post content to match
 		content = content.replace(/(<img[^>]*src=").*?([^/"]+\.(?:gif|jpe?g|png|webp))("[^>]*>)/gi, '$1images/$2$3');
