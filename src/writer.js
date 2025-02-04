@@ -3,6 +3,7 @@ import chalk from 'chalk';
 import fs from 'fs';
 import http from 'http';
 import https from 'https';
+import * as luxon from 'luxon';
 import path from 'path';
 import * as shared from './shared.js';
 
@@ -71,7 +72,7 @@ async function writeMarkdownFilesPromise(posts, config) {
 	}
 }
 
-async function loadMarkdownFilePromise(post) {
+async function loadMarkdownFilePromise(post, config) {
 	let output = '---\n';
 
 	Object.entries(post.frontmatter).forEach(([key, value]) => {
@@ -80,6 +81,12 @@ async function loadMarkdownFilePromise(post) {
 			if (value.length > 0) {
 				// array of one or more strings
 				outputValue = value.reduce((list, item) => `${list}\n  - "${item}"`, '');
+			}
+		} else if (value instanceof luxon.DateTime) {
+			if (config.customDateFormatting) {
+				outputValue = value.toFormat(config.customDateFormatting);
+			} else {
+				outputValue = config.includeTimeWithDate ? value.toISO() : value.toISODate();
 			}
 		} else {
 			// single string value
@@ -172,7 +179,7 @@ async function loadImageFilePromise(imageUrl, config) {
 function buildPostPath(post, config) {
 	const outputDir = config.output;
 	const type = post.meta.type;
-	const date = post.frontmatter.date;
+	const date = post.meta.date;
 	const slug = post.meta.slug;
 
 	return shared.buildPostPath(outputDir, type, date, slug, config);

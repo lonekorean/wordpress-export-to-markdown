@@ -1,6 +1,3 @@
-import * as luxon from 'luxon';
-import * as settings from './settings.js';
-
 // get author, without decoding
 // WordPress doesn't allow funky characters in usernames anyway
 export function author(post) {
@@ -26,18 +23,10 @@ export function coverImage(post) {
 	return post.meta.coverImage;
 }
 
-// get post date, optionally formatted as specified in settings
+// get post date, previously saved as a luxon datetime object on post.meta
 // this value is also used for year/month folders, date prefixes, etc. as needed
-export function date(post, config) {
-	const dateTime = luxon.DateTime.fromRFC2822(post.data.pubDate[0], { zone: settings.custom_date_timezone });
-
-	if (settings.custom_date_formatting) {
-		return dateTime.toFormat(settings.custom_date_formatting);
-	} else if (config.includeTimeWithDate) {
-		return dateTime.toISO();
-	} else {
-		return dateTime.toISODate();
-	}
+export function date(post) {
+	return post.meta.date;
 }
 
 // get excerpt, not decoded, newlines collapsed
