@@ -54,7 +54,7 @@ async function writeMarkdownFilesPromise(posts, config) {
 		} else {
 			const payload = {
 				item: post,
-				name: post.meta.type + ' - ' + post.meta.slug,
+				name: post.type + ' - ' + post.slug,
 				destinationPath,
 				delay
 			};
@@ -112,7 +112,7 @@ async function writeImageFilesPromise(posts, config) {
 	const payloads = posts.flatMap(post => {
 		const postPath = buildPostPath(post, config);
 		const imagesDir = path.join(path.dirname(postPath), 'images');
-		return post.meta.imageUrls.flatMap(imageUrl => {
+		return post.imageUrls.flatMap(imageUrl => {
 			const filename = shared.getFilenameFromUrl(imageUrl);
 			const destinationPath = path.join(imagesDir, filename);
 			if (checkFile(destinationPath)) {
@@ -177,12 +177,7 @@ async function loadImageFilePromise(imageUrl, config) {
 }
 
 function buildPostPath(post, config) {
-	const outputDir = config.output;
-	const type = post.meta.type;
-	const date = post.meta.date;
-	const slug = post.meta.slug;
-
-	return shared.buildPostPath(outputDir, type, date, slug, config);
+	return shared.buildPostPath(config.output, post.type, post.date, post.slug, config);
 }
 
 function checkFile(path) {

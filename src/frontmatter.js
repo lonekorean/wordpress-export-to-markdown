@@ -17,16 +17,16 @@ export function categories(post) {
 	return categories.filter((category) => category !== 'uncategorized');
 }
 
-// get cover image filename, previously decoded and set on post.meta
+// get cover image filename, previously decoded and set on post
 // this one is unique as it relies on special logic executed by the parser
 export function coverImage(post) {
-	return post.meta.coverImage;
+	return post.coverImage;
 }
 
-// get post date, previously saved as a luxon datetime object on post.meta
+// get post date, previously saved as a luxon datetime object on post
 // this value is also used for year/month folders, date prefixes, etc. as needed
 export function date(post) {
-	return post.meta.date;
+	return post.date;
 }
 
 // get excerpt, not decoded, newlines collapsed
@@ -39,9 +39,9 @@ export function id(post) {
 	return post.data.post_id[0];
 }
 
-// get slug, previously decoded and set on post.meta
+// get slug, previously decoded and set on post
 export function slug(post) {
-	return post.meta.slug;
+	return post.slug;
 }
 
 // get array of decoded tag names

@@ -60,26 +60,7 @@ function collectPosts(channelData, postTypes, config) {
 		const postsForType = getItemsOfType(channelData, postType)
 			.filter(postData => postData.status[0] !== 'trash' && postData.status[0] !== 'draft')
 			.filter(postData => !(postType === 'page' && postData.post_name[0] === 'sample-page'))
-			.map(postData => ({
-				// raw post data, used by frontmatter getters
-				data: postData,
-
-				// meta data isn't written to file, but is used to help with other things
-				meta: {
-					type: postType,
-					id: getPostId(postData),
-					slug: getPostSlug(postData),
-					date: getPostDate(postData, config),
-					coverImageId: getPostCoverImageId(postData),
-
-					// these are possibly set later in mergeImagesIntoPosts()
-					coverImage: undefined,
-					imageUrls: []
-				},
-
-				// contents of the post in markdown
-				content: translator.getPostContent(postData, turndownService, config)
-			}));
+			.map(postData => buildPost(postData, turndownService, config));
 
 		if (postTypes.length > 1) {
 			console.log(`${postsForType.length} "${postType}" posts found.`);
@@ -94,26 +75,30 @@ function collectPosts(channelData, postTypes, config) {
 	return allPosts;
 }
 
-function getPostId(postData) {
-	return postData.post_id[0];
+function buildPost(data, turndownService, config) {
+	return {
+		// full raw post data, used by some frontmatter getters
+		data,
+
+		// contents of the post in markdown
+		content: translator.getPostContent(data, turndownService, config),
+
+		// these are not written to file, but help with other things
+		type: data.post_type[0],
+		id: data.post_id[0],
+		slug: decodeURIComponent(data.post_name[0]),
+		date: luxon.DateTime.fromRFC2822(data.pubDate[0], { zone: config.customDateTimezone }),
+		coverImageId: getPostMetaValue(data.postmeta, '_thumbnail_id'),
+
+		// these are possibly set later in mergeImagesIntoPosts()
+		coverImage: undefined,
+		imageUrls: []
+	};
 }
 
-function getPostSlug(postData) {
-	return decodeURIComponent(postData.post_name[0]);
-}
-
-function getPostDate(postData, config) {
-	return luxon.DateTime.fromRFC2822(postData.pubDate[0], { zone: config.customDateTimezone });
-}
-
-function getPostCoverImageId(postData) {
-	if (postData.postmeta === undefined) {
-		return undefined;
-	}
-
-	const postmeta = postData.postmeta.find(postmeta => postmeta.meta_key[0] === '_thumbnail_id');
-	const id = postmeta ? postmeta.meta_value[0] : undefined;
-	return id;
+function getPostMetaValue(metas, key) {
+	const meta = metas && metas.find((meta) => meta.meta_key[0] === key);
+	return meta ? meta.meta_value[0] : undefined;
 }
 
 function collectAttachedImages(channelData) {
@@ -161,18 +146,18 @@ function mergeImagesIntoPosts(images, posts) {
 			let shouldAttach = false;
 
 			// this image was uploaded as an attachment to this post
-			if (image.postId === post.meta.id) {
+			if (image.postId === post.id) {
 				shouldAttach = true;
 			}
 
 			// this image was set as the featured image for this post
-			if (image.id === post.meta.coverImageId) {
+			if (image.id === post.coverImageId) {
 				shouldAttach = true;
-				post.meta.coverImage = shared.getFilenameFromUrl(image.url);
+				post.coverImage = shared.getFilenameFromUrl(image.url);
 			}
 
-			if (shouldAttach && !post.meta.imageUrls.includes(image.url)) {
-				post.meta.imageUrls.push(image.url);
+			if (shouldAttach && !post.imageUrls.includes(image.url)) {
+				post.imageUrls.push(image.url);
 			}
 		});
 	});
