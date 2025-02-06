@@ -1,5 +1,9 @@
 import path from 'path';
 
+export function camelCase(str) {
+	return str.replace(/-(.)/g, (match) => match[1].toUpperCase());
+}
+
 export function buildPostPath(outputDir, type, date, slug, config) {
 	// start with base output dir and post type
 	const pathSegments = [outputDir, type];

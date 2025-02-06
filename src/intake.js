@@ -1,4 +1,3 @@
-import camelcase from 'camelcase';
 import chalk from 'chalk';
 import * as commander from 'commander';
 import * as luxon from 'luxon';
@@ -29,7 +28,7 @@ export async function getConfig() {
 
 		// run wizard for questions with prompts that were not answered via the command line
 		const wizardQuestions = questions.all.filter((question) => {
-			return question.prompt && !(camelcase(question.name) in commandLineAnswers);
+			return question.prompt && !(shared.camelCase(question.name) in commandLineAnswers);
 		});
 		wizardAnswers = await getWizardAnswers(wizardQuestions, commandLineAnswers);
 	} else {
@@ -74,7 +73,7 @@ function getCommandLineAnswers(questions) {
 			continue;
 		}
 
-		const question = questions.find((question) => camelcase(question.name) === key);
+		const question = questions.find((question) => shared.camelCase(question.name) === key);
 		if (answers.wizard && question.prompt) {
 			// remove this default answer, allowing the wizard to ask about it later
 			delete answers[key];
@@ -93,7 +92,7 @@ function getCommandLineAnswers(questions) {
 export async function getWizardAnswers(questions, commandLineAnswers) {
 	const answers = {};
 	for (const question of questions) {
-		let answerKey = camelcase(question.name);
+		let answerKey = shared.camelCase(question.name);
 		let normalizedAnswer; // holds normalized answer value potentially returned during validation
 
 		const promptConfig = {
@@ -143,7 +142,7 @@ export async function getWizardAnswers(questions, commandLineAnswers) {
 }
 
 function normalize(value, type, onError) {
-	const normalizer = normalizers[camelcase(type)];
+	const normalizer = normalizers[shared.camelCase(type)];
 	if (!normalizer) {
 		return value;
 	}
