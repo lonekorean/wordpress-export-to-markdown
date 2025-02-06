@@ -62,16 +62,13 @@ function collectPosts(channelData, postTypes, config) {
 			.filter(postData => !(postType === 'page' && postData.post_name[0] === 'sample-page'))
 			.map(postData => buildPost(postData, turndownService, config));
 
-		if (postTypes.length > 1) {
-			console.log(`${postsForType.length} "${postType}" posts found.`);
+		if (postsForType.length > 0) {
+			console.log(`${postsForType.length} posts of type "${postType}" found.`);
 		}
 
 		allPosts.push(...postsForType);
 	});
 
-	if (postTypes.length === 1) {
-		console.log(allPosts.length + ' posts found.');
-	}
 	return allPosts;
 }
 

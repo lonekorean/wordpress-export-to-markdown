@@ -18,10 +18,10 @@ async function processPayloadsPromise(payloads, loadFunc, config) {
 			try {
 				const data = await loadFunc(payload.item, config);
 				await writeFile(payload.destinationPath, data);
-				console.log(chalk.green('[OK]') + ' ' + payload.name);
+				logPayloadResult(payload);
 				resolve();
 			} catch (ex) {
-				console.log(chalk.red('[FAILED]') + ' ' + payload.name + ' ' + chalk.red('(' + ex.message + ')'));
+				logPayloadResult(payload, ex.message);
 				reject();
 			}
 		}, payload.delay);
@@ -54,7 +54,8 @@ async function writeMarkdownFilesPromise(posts, config) {
 		} else {
 			const payload = {
 				item: post,
-				name: post.type + ' - ' + post.slug,
+				type: post.type,
+				name: post.slug,
 				destinationPath,
 				delay
 			};
@@ -87,6 +88,10 @@ async function loadMarkdownFilePromise(post, config) {
 				outputValue = value.toFormat(config.customDateFormatting);
 			} else {
 				outputValue = config.includeTimeWithDate ? value.toISO() : value.toISODate();
+			}
+
+			if (config.quoteDate) {
+				outputValue = `"${outputValue}"`;
 			}
 		} else {
 			// single string value
@@ -122,6 +127,7 @@ async function writeImageFilesPromise(posts, config) {
 			} else {
 				const payload = {
 					item: imageUrl,
+					type: 'image',
 					name: filename,
 					destinationPath,
 					delay
@@ -182,4 +188,17 @@ function buildPostPath(post, config) {
 
 function checkFile(path) {
 	return fs.existsSync(path);
+}
+
+function logPayloadResult(payload, errorMessage) {
+	const messageBits = [
+		errorMessage ? chalk.red('✗') : chalk.green('✓'),
+		chalk.gray(`[${payload.type}]`),
+		payload.name
+	];
+	if (errorMessage) {
+		messageBits.push(chalk.red(`(${errorMessage})`));
+	}
+
+	console.log(messageBits.join(' '));
 }

@@ -136,6 +136,11 @@ export const all = [
 		default: 'utc'
 	},
 	{
+		name: 'quote-date',
+		type: 'boolean',
+		default: false
+	},
+	{
 		name: 'strict-ssl',
 		type: 'boolean',
 		default: true
