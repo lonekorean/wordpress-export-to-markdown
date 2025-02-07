@@ -2,8 +2,9 @@
 
 import * as commander from 'commander';
 import path from 'path';
-import * as parser from './src/parser.js';
 import * as intake from './src/intake.js';
+import * as parser from './src/parser.js';
+import * as shared from './src/shared.js';
 import * as writer from './src/writer.js';
 
 (async () => {
@@ -14,17 +15,17 @@ import * as writer from './src/writer.js';
 		.addHelpText('after', '\nMore documentation is at https://github.com/lonekorean/wordpress-export-to-markdown')
 		
 	// gather config options from command line and wizard
-	const config = await intake.getConfig();
+	await intake.getConfig();
 
 	// parse data from XML and do Markdown translations
-	const posts = await parser.parseFilePromise(config)
+	const posts = await parser.parseFilePromise()
 
 	// write files and download images
-	await writer.writeFilesPromise(posts, config);
+	await writer.writeFilesPromise(posts);
 
 	// happy goodbye
 	console.log('\nAll done!');
-	console.log('Look for your output files in: ' + path.resolve(config.output));
+	console.log('Look for your output files in: ' + path.resolve(shared.config.output));
 })().catch((ex) => {
 	// sad goodbye
 	console.log('\nSomething went wrong, execution halted early.');
