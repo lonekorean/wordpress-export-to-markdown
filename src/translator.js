@@ -1,5 +1,6 @@
-import turndown from 'turndown';
 import turndownPluginGfm from '@guyplusplus/turndown-plugin-gfm';
+import turndown from 'turndown';
+import * as shared from './shared.js';
 
 export function initTurndownService() {
 	const turndownService = new turndown({
@@ -94,7 +95,7 @@ export function initTurndownService() {
 	return turndownService;
 }
 
-export function getPostContent(postData, turndownService, config) {
+export function getPostContent(postData, turndownService) {
 	let content = postData.encoded[0];
 
 	// insert an empty div element between double line breaks
@@ -102,7 +103,7 @@ export function getPostContent(postData, turndownService, config) {
 	// without mucking up content inside of other elements (like <code> blocks)
 	content = content.replace(/(\r?\n){2}/g, '\n<div></div>\n');
 
-	if (config.saveImages === 'scraped' || config.saveImages === 'all') {
+	if (shared.config.saveImages === 'scraped' || shared.config.saveImages === 'all') {
 		// writeImageFile() will save all content images to a relative /images
 		// folder so update references in post content to match
 		content = content.replace(/(<img[^>]*src=").*?([^/"]+\.(?:gif|jpe?g|png|webp))("[^>]*>)/gi, '$1images/$2$3');

@@ -7,16 +7,16 @@ import * as luxon from 'luxon';
 import path from 'path';
 import * as shared from './shared.js';
 
-export async function writeFilesPromise(posts, config) {
-	await writeMarkdownFilesPromise(posts, config);
-	await writeImageFilesPromise(posts, config);
+export async function writeFilesPromise(posts) {
+	await writeMarkdownFilesPromise(posts);
+	await writeImageFilesPromise(posts);
 }
 
-async function processPayloadsPromise(payloads, loadFunc, config) {
+async function processPayloadsPromise(payloads, loadFunc) {
 	const promises = payloads.map(payload => new Promise((resolve, reject) => {
 		setTimeout(async () => {
 			try {
-				const data = await loadFunc(payload.item, config);
+				const data = await loadFunc(payload.item);
 				await writeFile(payload.destinationPath, data);
 				logPayloadResult(payload);
 				resolve();
@@ -41,12 +41,12 @@ async function writeFile(destinationPath, data) {
 	await fs.promises.writeFile(destinationPath, data);
 }
 
-async function writeMarkdownFilesPromise(posts, config) {
+async function writeMarkdownFilesPromise(posts) {
 	// package up posts into payloads
 	let skipCount = 0;
 	let delay = 0;
 	const payloads = posts.flatMap(post => {
-		const destinationPath = buildPostPath(post, config);
+		const destinationPath = buildPostPath(post);
 		if (checkFile(destinationPath)) {
 			// already exists, don't need to save again
 			skipCount++;
@@ -59,7 +59,7 @@ async function writeMarkdownFilesPromise(posts, config) {
 				destinationPath,
 				delay
 			};
-			delay += config.markdownFileWriteDelay;
+			delay += shared.config.markdownFileWriteDelay;
 			return [payload];
 		}
 	});
@@ -69,11 +69,11 @@ async function writeMarkdownFilesPromise(posts, config) {
 		console.log('\nNo posts to save...');
 	} else {
 		console.log(`\nSaving ${remainingCount} posts (${skipCount} already exist)...`);
-		await processPayloadsPromise(payloads, loadMarkdownFilePromise, config);
+		await processPayloadsPromise(payloads, loadMarkdownFilePromise);
 	}
 }
 
-async function loadMarkdownFilePromise(post, config) {
+async function loadMarkdownFilePromise(post) {
 	let output = '---\n';
 
 	Object.entries(post.frontmatter).forEach(([key, value]) => {
@@ -84,13 +84,13 @@ async function loadMarkdownFilePromise(post, config) {
 				outputValue = value.reduce((list, item) => `${list}\n  - "${item}"`, '');
 			}
 		} else if (value instanceof luxon.DateTime) {
-			if (config.customDateFormatting) {
-				outputValue = value.toFormat(config.customDateFormatting);
+			if (shared.config.customDateFormatting) {
+				outputValue = value.toFormat(shared.config.customDateFormatting);
 			} else {
-				outputValue = config.includeTimeWithDate ? value.toISO() : value.toISODate();
+				outputValue = shared.config.includeTimeWithDate ? value.toISO() : value.toISODate();
 			}
 
-			if (config.quoteDate) {
+			if (shared.config.quoteDate) {
 				outputValue = `"${outputValue}"`;
 			}
 		} else {
@@ -110,12 +110,12 @@ async function loadMarkdownFilePromise(post, config) {
 	return output;
 }
 
-async function writeImageFilesPromise(posts, config) {
+async function writeImageFilesPromise(posts) {
 	// collect image data from all posts into a single flattened array of payloads
 	let skipCount = 0;
 	let delay = 0;
 	const payloads = posts.flatMap(post => {
-		const postPath = buildPostPath(post, config);
+		const postPath = buildPostPath(post);
 		const imagesDir = path.join(path.dirname(postPath), 'images');
 		return post.imageUrls.flatMap(imageUrl => {
 			const filename = shared.getFilenameFromUrl(imageUrl);
@@ -132,7 +132,7 @@ async function writeImageFilesPromise(posts, config) {
 					destinationPath,
 					delay
 				};
-				delay += config.imageFileRequestDelay;
+				delay += shared.config.imageFileRequestDelay;
 				return [payload];
 			}
 		});
@@ -143,11 +143,11 @@ async function writeImageFilesPromise(posts, config) {
 		console.log('\nNo images to download and save...');
 	} else {
 		console.log(`\nDownloading and saving ${remainingCount} images (${skipCount} already exist)...`);
-		await processPayloadsPromise(payloads, loadImageFilePromise, config);
+		await processPayloadsPromise(payloads, loadImageFilePromise);
 	}
 }
 
-async function loadImageFilePromise(imageUrl, config) {
+async function loadImageFilePromise(imageUrl) {
 	// only encode the URL if it doesn't already have encoded characters
 	const url = (/%[\da-f]{2}/i).test(imageUrl) ? imageUrl : encodeURI(imageUrl);
 
@@ -160,7 +160,7 @@ async function loadImageFilePromise(imageUrl, config) {
 		responseType: 'arraybuffer'
 	};
 
-	if (!config.strictSsl) {
+	if (!shared.config.strictSsl) {
 		// custom agents to disable SSL errors (adding both http and https, just in case)
 		requestConfig.httpAgent = new http.Agent({ rejectUnauthorized: false });
 		requestConfig.httpsAgent = new https.Agent({ rejectUnauthorized: false });
@@ -182,8 +182,8 @@ async function loadImageFilePromise(imageUrl, config) {
 	return buffer;
 }
 
-function buildPostPath(post, config) {
-	return shared.buildPostPath(config.output, post.type, post.date, post.slug, config);
+function buildPostPath(post) {
+	return shared.buildPostPath(post.type, post.date, post.slug);
 }
 
 function checkFile(path) {

@@ -19,7 +19,7 @@ const promptTheme = {
 
 export async function getConfig() {
 	// check command line for any config options
-	const commandLineQuestions = questions.all;
+	const commandLineQuestions = questions.load();
 	const commandLineAnswers = getCommandLineAnswers(commandLineQuestions);
 
 	let wizardAnswers;
@@ -27,15 +27,15 @@ export async function getConfig() {
 		console.log('\nStarting wizard...');
 
 		// run wizard for questions with prompts that were not answered via the command line
-		const wizardQuestions = questions.all.filter((question) => {
+		const wizardQuestions = questions.load().filter((question) => {
 			return question.prompt && !(shared.camelCase(question.name) in commandLineAnswers);
 		});
 		wizardAnswers = await getWizardAnswers(wizardQuestions, commandLineAnswers);
 	} else {
-		console.log('\nSkipping wizard...');
+		console.dir('\nSkipping wizard...');
 	}
 
-	return { ...commandLineAnswers, ...wizardAnswers };
+	Object.assign(shared.config, commandLineAnswers, wizardAnswers);
 }
 
 function getCommandLineAnswers(questions) {
@@ -106,13 +106,14 @@ export async function getWizardAnswers(questions, commandLineAnswers) {
 			promptConfig.loop = false;
 
 			if (question.isPathQuestion) {
-				// create a snapshot config of command line answers and wizard answers so far
-				const config = { ...commandLineAnswers, ...answers };
-
 				promptConfig.choices.forEach((choice) => {
 					// show example path if this choice is selected
-					config[answerKey] = choice.value;
-					choice.description = buildSamplePostPath(config);
+					choice.description = buildSamplePostPath({
+						...commandLineAnswers,		// with command line answers
+						...answers,					// and wizard answers so far
+						output: path.sep,			// and a simplified output folder
+						[answerKey]: choice.value	// and this choice selected
+					});
 				});
 			}
 		} else {
@@ -154,11 +155,6 @@ function normalize(value, type, onError) {
 	}
 }
 
-export function buildSamplePostPath(config) {
-	const outputDir = path.sep;
-	const type = '';
-	const date = luxon.DateTime.now();
-	const slug = 'my-post';
-
-	return shared.buildPostPath(outputDir, type, date, slug, config);
+export function buildSamplePostPath(overrideConfig) {
+	return shared.buildPostPath('', luxon.DateTime.now(), 'my-post', overrideConfig);
 }

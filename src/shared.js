@@ -1,29 +1,34 @@
 import path from 'path';
 
+// simple data store, populated via intake, used everywhere
+export const config = {};
+
 export function camelCase(str) {
 	return str.replace(/-(.)/g, (match) => match[1].toUpperCase());
 }
 
-export function buildPostPath(outputDir, type, date, slug, config) {
-	// start with base output dir and post type
-	const pathSegments = [outputDir, type];
+export function buildPostPath(type, date, slug, overrideConfig) {
+	const pathConfig = overrideConfig ?? config;
 
-	if (config.dateFolders === 'year' || config.dateFolders === 'year-month') {
+	// start with base output dir and post type
+	const pathSegments = [pathConfig.output, type];
+
+	if (pathConfig.dateFolders === 'year' || pathConfig.dateFolders === 'year-month') {
 		pathSegments.push(date.toFormat('yyyy'));
 	}
 
-	if (config.dateFolders === 'year-month') {
+	if (pathConfig.dateFolders === 'year-month') {
 		pathSegments.push(date.toFormat('LL'));
 	}
 
 	// create slug fragment, possibly date prefixed
 	let slugFragment = slug;
-	if (config.prefixDate) {
+	if (pathConfig.prefixDate) {
 		slugFragment = date.toFormat('yyyy-LL-dd') + '-' + slugFragment;
 	}
 
 	// use slug fragment as folder or filename as specified
-	if (config.postFolders) {
+	if (pathConfig.postFolders) {
 		pathSegments.push(slugFragment, 'index.md');
 	} else {
 		pathSegments.push(slugFragment + '.md');

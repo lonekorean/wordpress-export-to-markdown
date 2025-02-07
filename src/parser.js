@@ -5,9 +5,9 @@ import * as frontmatter from './frontmatter.js';
 import * as shared from './shared.js';
 import * as translator from './translator.js';
 
-export async function parseFilePromise(config) {
+export async function parseFilePromise() {
 	console.log('\nParsing...');
-	const content = await fs.promises.readFile(config.input, 'utf8');
+	const content = await fs.promises.readFile(shared.config.input, 'utf8');
 	const allData = await xml2js.parseStringPromise(content, {
 		trim: true,
 		tagNameProcessors: [xml2js.processors.stripPrefix]
@@ -15,18 +15,18 @@ export async function parseFilePromise(config) {
 	const channelData = allData.rss.channel[0].item;
 
 	const postTypes = getPostTypes(channelData);
-	const posts = collectPosts(channelData, postTypes, config);
+	const posts = collectPosts(channelData, postTypes);
 
 	const images = [];
-	if (config.saveImages === 'attached' || config.saveImages === 'all') {
+	if (shared.config.saveImages === 'attached' || shared.config.saveImages === 'all') {
 		images.push(...collectAttachedImages(channelData));
 	}
-	if (config.saveImages === 'scraped' || config.saveImages === 'all') {
+	if (shared.config.saveImages === 'scraped' || shared.config.saveImages === 'all') {
 		images.push(...collectScrapedImages(channelData, postTypes));
 	}
 
 	mergeImagesIntoPosts(images, posts);
-	populateFrontmatter(posts, config);
+	populateFrontmatter(posts);
 
 	return posts;
 }
@@ -51,7 +51,7 @@ function getItemsOfType(channelData, type) {
 	return channelData.filter(item => item.post_type[0] === type);
 }
 
-function collectPosts(channelData, postTypes, config) {
+function collectPosts(channelData, postTypes) {
 	// this is passed into getPostContent() for the markdown conversion
 	const turndownService = translator.initTurndownService();
 
@@ -60,7 +60,7 @@ function collectPosts(channelData, postTypes, config) {
 		const postsForType = getItemsOfType(channelData, postType)
 			.filter(postData => postData.status[0] !== 'trash' && postData.status[0] !== 'draft')
 			.filter(postData => !(postType === 'page' && postData.post_name[0] === 'sample-page'))
-			.map(postData => buildPost(postData, turndownService, config));
+			.map(postData => buildPost(postData, turndownService));
 
 		if (postsForType.length > 0) {
 			console.log(`${postsForType.length} posts of type "${postType}" found.`);
@@ -72,19 +72,19 @@ function collectPosts(channelData, postTypes, config) {
 	return allPosts;
 }
 
-function buildPost(data, turndownService, config) {
+function buildPost(data, turndownService) {
 	return {
 		// full raw post data, used by some frontmatter getters
 		data,
 
 		// contents of the post in markdown
-		content: translator.getPostContent(data, turndownService, config),
+		content: translator.getPostContent(data, turndownService),
 
 		// these are not written to file, but help with other things
 		type: data.post_type[0],
 		id: data.post_id[0],
 		slug: decodeURIComponent(data.post_name[0]),
-		date: luxon.DateTime.fromRFC2822(data.pubDate[0], { zone: config.customDateTimezone }),
+		date: luxon.DateTime.fromRFC2822(data.pubDate[0], { zone: shared.config.customDateTimezone }),
 		coverImageId: getPostMetaValue(data.postmeta, '_thumbnail_id'),
 
 		// these are possibly set later in mergeImagesIntoPosts()
@@ -160,10 +160,10 @@ function mergeImagesIntoPosts(images, posts) {
 	});
 }
 
-function populateFrontmatter(posts, config) {
+function populateFrontmatter(posts) {
 	posts.forEach(post => {
 		post.frontmatter = {};
-		config.frontmatterFields.forEach(field => {
+		shared.config.frontmatterFields.forEach(field => {
 			const [key, alias] = field.split(':');
 
 			let frontmatterGetter = frontmatter[key];
@@ -171,7 +171,7 @@ function populateFrontmatter(posts, config) {
 				throw `Could not find a frontmatter getter named "${key}".`;
 			}
 
-			post.frontmatter[alias || key] = frontmatterGetter(post, config);
+			post.frontmatter[alias || key] = frontmatterGetter(post);
 		});
 	});
 }
