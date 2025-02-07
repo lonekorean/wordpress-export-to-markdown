@@ -32,7 +32,7 @@ export async function getConfig() {
 		});
 		wizardAnswers = await getWizardAnswers(wizardQuestions, commandLineAnswers);
 	} else {
-		console.dir('\nSkipping wizard...');
+		console.log('\nSkipping wizard...');
 	}
 
 	Object.assign(shared.config, commandLineAnswers, wizardAnswers);
