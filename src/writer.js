@@ -83,6 +83,9 @@ async function loadMarkdownFilePromise(post) {
 				// array of one or more strings
 				outputValue = value.reduce((list, item) => `${list}\n  - "${item}"`, '');
 			}
+		} else if (Number.isInteger(value)) {
+			// output unquoted
+			outputValue = value.toString();
 		} else if (value instanceof luxon.DateTime) {
 			if (shared.config.customDateFormatting) {
 				outputValue = value.toFormat(shared.config.customDateFormatting);

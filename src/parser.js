@@ -74,7 +74,7 @@ function collectPosts(channelData, postTypes) {
 
 function buildPost(data, turndownService) {
 	return {
-		// full raw post data, used by some frontmatter getters
+		// full raw post data
 		data,
 
 		// contents of the post in markdown

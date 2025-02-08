@@ -34,9 +34,9 @@ export function excerpt(post) {
 	return post.data.encoded[1].replace(/[\r\n]+/gm, ' ');
 }
 
-// get ID
+// get ID, as an integer
 export function id(post) {
-	return post.data.post_id[0];
+	return parseInt(post.id);
 }
 
 // get slug, previously decoded and set on post
@@ -65,5 +65,5 @@ export function title(post) {
 // get type, often this will always be "post"
 // but can also be "page" or other custom types
 export function type(post) {
-	return post.data.post_type[0];
+	return post.type;
 }
