@@ -109,7 +109,7 @@ export function load() {
 		{
 			name: 'frontmatter-fields',
 			type: 'list',
-			default: ['title', 'date', 'categories', 'tags', 'coverImage']
+			default: ['title', 'date', 'categories', 'tags', 'coverImage', 'draft']
 		},
 		{
 			name: 'image-file-request-delay',

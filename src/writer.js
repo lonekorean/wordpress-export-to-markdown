@@ -46,7 +46,7 @@ async function writeMarkdownFilesPromise(posts) {
 	let skipCount = 0;
 	let delay = 0;
 	const payloads = posts.flatMap(post => {
-		const destinationPath = buildPostPath(post);
+		const destinationPath = shared.buildPostPath(post);
 		if (checkFile(destinationPath)) {
 			// already exists, don't need to save again
 			skipCount++;
@@ -96,9 +96,12 @@ async function loadMarkdownFilePromise(post) {
 			if (shared.config.quoteDate) {
 				outputValue = `"${outputValue}"`;
 			}
+		} else if (typeof value === 'boolean') {
+			// output unquoted
+			outputValue = value.toString();
 		} else {
 			// single string value
-			const escapedValue = (value || '').replace(/"/g, '\\"');
+			const escapedValue = (value ?? '').replace(/"/g, '\\"');
 			if (escapedValue.length > 0) {
 				outputValue = `"${escapedValue}"`;
 			}
@@ -118,7 +121,7 @@ async function writeImageFilesPromise(posts) {
 	let skipCount = 0;
 	let delay = 0;
 	const payloads = posts.flatMap(post => {
-		const postPath = buildPostPath(post);
+		const postPath = shared.buildPostPath(post);
 		const imagesDir = path.join(path.dirname(postPath), 'images');
 		return post.imageUrls.flatMap(imageUrl => {
 			const filename = shared.getFilenameFromUrl(imageUrl);
@@ -183,10 +186,6 @@ async function loadImageFilePromise(imageUrl) {
 		}
 	}
 	return buffer;
-}
-
-function buildPostPath(post) {
-	return shared.buildPostPath(post.type, post.date, post.slug);
 }
 
 function checkFile(path) {

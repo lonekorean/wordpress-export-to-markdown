@@ -156,5 +156,10 @@ function normalize(value, type, onError) {
 }
 
 export function buildSamplePostPath(overrideConfig) {
-	return shared.buildPostPath('', luxon.DateTime.now(), 'my-post', overrideConfig);
+	const samplePost = {
+		date: luxon.DateTime.now(),
+		slug: 'my-post'
+	};
+
+	return shared.buildPostPath(samplePost, overrideConfig);
 }

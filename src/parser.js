@@ -58,7 +58,7 @@ function collectPosts(channelData, postTypes) {
 	let allPosts = [];
 	postTypes.forEach(postType => {
 		const postsForType = getItemsOfType(channelData, postType)
-			.filter(postData => postData.status[0] !== 'trash' && postData.status[0] !== 'draft')
+			.filter(postData => postData.status[0] !== 'trash')
 			.filter(postData => !(postType === 'page' && postData.post_name[0] === 'sample-page'))
 			.map(postData => buildPost(postData, turndownService));
 
@@ -83,8 +83,9 @@ function buildPost(data, turndownService) {
 		// these are not written to file, but help with other things
 		type: data.post_type[0],
 		id: data.post_id[0],
+		isDraft: data.status[0] === 'draft',
 		slug: decodeURIComponent(data.post_name[0]),
-		date: luxon.DateTime.fromRFC2822(data.pubDate[0], { zone: shared.config.customDateTimezone }),
+		date: data.pubDate[0] ? luxon.DateTime.fromRFC2822(data.pubDate[0], { zone: shared.config.customDateTimezone }) : undefined,
 		coverImageId: getPostMetaValue(data.postmeta, '_thumbnail_id'),
 
 		// these are possibly set later in mergeImagesIntoPosts()
@@ -171,7 +172,7 @@ function populateFrontmatter(posts) {
 				throw `Could not find a frontmatter getter named "${key}".`;
 			}
 
-			post.frontmatter[alias || key] = frontmatterGetter(post);
+			post.frontmatter[alias ?? key] = frontmatterGetter(post);
 		});
 	});
 }
