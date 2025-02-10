@@ -74,21 +74,26 @@ function buildPost(data) {
 		// full raw post data
 		data,
 
-		// contents of the post in markdown
+		// body content converted to markdown
 		content: translator.getPostContent(data.encoded[0]),
 
-		// these are not written to file, but help with other things
+		// particularly useful values for all sorts of things
 		type: data.post_type[0],
 		id: data.post_id[0],
 		isDraft: data.status[0] === 'draft',
 		slug: decodeURIComponent(data.post_name[0]),
-		date: data.pubDate[0] ? luxon.DateTime.fromRFC2822(data.pubDate[0], { zone: shared.config.customDateTimezone }) : undefined,
+		date: getPostDate(data),
 		coverImageId: getPostMetaValue(data.postmeta, '_thumbnail_id'),
 
 		// these are possibly set later in mergeImagesIntoPosts()
 		coverImage: undefined,
 		imageUrls: []
 	};
+}
+
+function getPostDate(data) {
+	const date = luxon.DateTime.fromRFC2822(data.pubDate[0] ?? '', { zone: shared.config.customDateTimezone });
+	return date.isValid ? date : undefined;
 }
 
 function getPostMetaValue(metas, key) {
