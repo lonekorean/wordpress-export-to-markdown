@@ -52,15 +52,12 @@ function getItemsOfType(channelData, type) {
 }
 
 function collectPosts(channelData, postTypes) {
-	// this is passed into getPostContent() for the markdown conversion
-	const turndownService = translator.initTurndownService();
-
 	let allPosts = [];
 	postTypes.forEach(postType => {
 		const postsForType = getItemsOfType(channelData, postType)
 			.filter(postData => postData.status[0] !== 'trash')
 			.filter(postData => !(postType === 'page' && postData.post_name[0] === 'sample-page'))
-			.map(postData => buildPost(postData, turndownService));
+			.map(postData => buildPost(postData));
 
 		if (postsForType.length > 0) {
 			console.log(`${postsForType.length} posts of type "${postType}" found.`);
@@ -72,13 +69,13 @@ function collectPosts(channelData, postTypes) {
 	return allPosts;
 }
 
-function buildPost(data, turndownService) {
+function buildPost(data) {
 	return {
 		// full raw post data
 		data,
 
 		// contents of the post in markdown
-		content: translator.getPostContent(data, turndownService),
+		content: translator.getPostContent(data.encoded[0]),
 
 		// these are not written to file, but help with other things
 		type: data.post_type[0],
