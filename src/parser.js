@@ -41,8 +41,13 @@ function getPostTypes(channelData) {
 			'nav_menu_item',
 			'custom_css',
 			'customize_changeset',
+			'oembed_cache',
+			'user_request',
+			'wp_block',
 			'wp_global_styles',
-			'wp_navigation'
+			'wp_navigation',
+			'wp_template',
+			'wp_template_part'
 		].includes(type));
 	return [...new Set(types)]; // remove duplicates
 }
