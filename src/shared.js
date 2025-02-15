@@ -7,31 +7,50 @@ export function camelCase(str) {
 	return str.replace(/-(.)/g, (match) => match[1].toUpperCase());
 }
 
-export function buildPostPath(type, date, slug, overrideConfig) {
+export function getSlugWithFallback(post) {
+	return post.slug ? post.slug : 'id-' + post.id;
+}
+
+export function buildPostPath(post, overrideConfig) {
 	const pathConfig = overrideConfig ?? config;
 
-	// start with base output dir and post type
-	const pathSegments = [pathConfig.output, type];
+	// start with output folder
+	const pathSegments = [pathConfig.output];
 
-	if (pathConfig.dateFolders === 'year' || pathConfig.dateFolders === 'year-month') {
-		pathSegments.push(date.toFormat('yyyy'));
+	// add folder for post type if exists
+	if (post.type) {
+		pathSegments.push(post.type);
 	}
 
-	if (pathConfig.dateFolders === 'year-month') {
-		pathSegments.push(date.toFormat('LL'));
+	// add drafts folder if this is a draft post
+	if (post.isDraft) {
+		pathSegments.push('_drafts');
 	}
 
-	// create slug fragment, possibly date prefixed
-	let slugFragment = slug;
-	if (pathConfig.prefixDate) {
-		slugFragment = date.toFormat('yyyy-LL-dd') + '-' + slugFragment;
+	// add folders for date year/month as appropriate
+	if (post.date) {
+		if (pathConfig.dateFolders === 'year' || pathConfig.dateFolders === 'year-month') {
+			pathSegments.push(post.date.toFormat('yyyy'));
+		}
+
+		if (pathConfig.dateFolders === 'year-month') {
+			pathSegments.push(post.date.toFormat('LL'));
+		}
 	}
 
-	// use slug fragment as folder or filename as specified
+	// get slug with fallback
+	let slug = getSlugWithFallback(post);
+
+	// prepend date to slug as appropriate
+	if (pathConfig.prefixDate && post.date) {
+		slug = post.date.toFormat('yyyy-LL-dd') + '-' + slug;
+	}
+
+	// use slug as folder or filename as specified
 	if (pathConfig.postFolders) {
-		pathSegments.push(slugFragment, 'index.md');
+		pathSegments.push(slug, 'index.md');
 	} else {
-		pathSegments.push(slugFragment + '.md');
+		pathSegments.push(slug + '.md');
 	}
 
 	return path.join(...pathSegments);

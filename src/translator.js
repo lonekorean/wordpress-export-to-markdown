@@ -2,7 +2,10 @@ import turndownPluginGfm from '@guyplusplus/turndown-plugin-gfm';
 import turndown from 'turndown';
 import * as shared from './shared.js';
 
-export function initTurndownService() {
+// init single reusable turndown service object upon import
+const turndownService = initTurndownService();
+
+function initTurndownService() {
 	const turndownService = new turndown({
 		headingStyle: 'atx',
 		bulletListMarker: '-',
@@ -87,7 +90,7 @@ export function initTurndownService() {
 			return node.nodeName === 'PRE' && !node.querySelector('code');
 		},
 		replacement: (content, node) => {
-			const language = node.getAttribute('data-wetm-language') || '';
+			const language = node.getAttribute('data-wetm-language') ?? '';
 			return '\n\n```' + language + '\n' + node.textContent + '\n```\n\n';
 		}
 	});
@@ -95,9 +98,7 @@ export function initTurndownService() {
 	return turndownService;
 }
 
-export function getPostContent(postData, turndownService) {
-	let content = postData.encoded[0];
-
+export function getPostContent(content) {
 	// insert an empty div element between double line breaks
 	// this nifty trick causes turndown to keep adjacent paragraphs separated
 	// without mucking up content inside of other elements (like <code> blocks)

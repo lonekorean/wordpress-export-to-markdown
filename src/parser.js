@@ -41,8 +41,13 @@ function getPostTypes(channelData) {
 			'nav_menu_item',
 			'custom_css',
 			'customize_changeset',
+			'oembed_cache',
+			'user_request',
+			'wp_block',
 			'wp_global_styles',
-			'wp_navigation'
+			'wp_navigation',
+			'wp_template',
+			'wp_template_part'
 		].includes(type));
 	return [...new Set(types)]; // remove duplicates
 }
@@ -52,15 +57,12 @@ function getItemsOfType(channelData, type) {
 }
 
 function collectPosts(channelData, postTypes) {
-	// this is passed into getPostContent() for the markdown conversion
-	const turndownService = translator.initTurndownService();
-
 	let allPosts = [];
 	postTypes.forEach(postType => {
 		const postsForType = getItemsOfType(channelData, postType)
-			.filter(postData => postData.status[0] !== 'trash' && postData.status[0] !== 'draft')
+			.filter(postData => postData.status[0] !== 'trash')
 			.filter(postData => !(postType === 'page' && postData.post_name[0] === 'sample-page'))
-			.map(postData => buildPost(postData, turndownService));
+			.map(postData => buildPost(postData));
 
 		if (postsForType.length > 0) {
 			console.log(`${postsForType.length} posts of type "${postType}" found.`);
@@ -72,25 +74,31 @@ function collectPosts(channelData, postTypes) {
 	return allPosts;
 }
 
-function buildPost(data, turndownService) {
+function buildPost(data) {
 	return {
 		// full raw post data
 		data,
 
-		// contents of the post in markdown
-		content: translator.getPostContent(data, turndownService),
+		// body content converted to markdown
+		content: translator.getPostContent(data.encoded[0]),
 
-		// these are not written to file, but help with other things
+		// particularly useful values for all sorts of things
 		type: data.post_type[0],
 		id: data.post_id[0],
+		isDraft: data.status[0] === 'draft',
 		slug: decodeURIComponent(data.post_name[0]),
-		date: luxon.DateTime.fromRFC2822(data.pubDate[0], { zone: shared.config.customDateTimezone }),
+		date: getPostDate(data),
 		coverImageId: getPostMetaValue(data.postmeta, '_thumbnail_id'),
 
 		// these are possibly set later in mergeImagesIntoPosts()
 		coverImage: undefined,
 		imageUrls: []
 	};
+}
+
+function getPostDate(data) {
+	const date = luxon.DateTime.fromRFC2822(data.pubDate[0] ?? '', { zone: shared.config.customDateTimezone });
+	return date.isValid ? date : undefined;
 }
 
 function getPostMetaValue(metas, key) {
@@ -171,7 +179,7 @@ function populateFrontmatter(posts) {
 				throw `Could not find a frontmatter getter named "${key}".`;
 			}
 
-			post.frontmatter[alias || key] = frontmatterGetter(post);
+			post.frontmatter[alias ?? key] = frontmatterGetter(post);
 		});
 	});
 }

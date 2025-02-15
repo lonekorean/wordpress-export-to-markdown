@@ -24,9 +24,14 @@ export function coverImage(post) {
 }
 
 // get post date, previously saved as a luxon datetime object on post
-// this value is also used for year/month folders, date prefixes, etc. as needed
 export function date(post) {
 	return post.date;
+}
+
+// get boolean indicating if post is a draft
+// this will only be included if true, otherwise it's left off
+export function draft(post) {
+	return post.isDraft ? true : undefined;
 }
 
 // get excerpt, not decoded, newlines collapsed
