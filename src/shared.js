@@ -7,6 +7,10 @@ export function camelCase(str) {
 	return str.replace(/-(.)/g, (match) => match[1].toUpperCase());
 }
 
+export function getSlugWithFallback(post) {
+	return post.slug ? post.slug : 'id-' + post.id;
+}
+
 export function buildPostPath(post, overrideConfig) {
 	const pathConfig = overrideConfig ?? config;
 
@@ -35,7 +39,7 @@ export function buildPostPath(post, overrideConfig) {
 	}
 
 	// get slug with fallback
-	let slug = post.slug ? post.slug : 'id-' + post.id;
+	let slug = getSlugWithFallback(post);
 
 	// prepend date to slug as appropriate
 	if (pathConfig.prefixDate && post.date) {

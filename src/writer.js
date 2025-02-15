@@ -55,7 +55,7 @@ async function writeMarkdownFilesPromise(posts) {
 			const payload = {
 				item: post,
 				type: post.type,
-				name: post.slug,
+				name: shared.getSlugWithFallback(post),
 				destinationPath,
 				delay
 			};
