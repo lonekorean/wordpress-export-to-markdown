@@ -8,21 +8,33 @@ import * as translator from './translator.js';
 export async function parseFilePromise() {
 	console.log('\nParsing...');
 	const content = await fs.promises.readFile(shared.config.input, 'utf8');
-	const allData = await xml2js.parseStringPromise(content, {
+
+	const rootData = await xml2js.parseStringPromise(content, {
 		trim: true,
 		tagNameProcessors: [xml2js.processors.stripPrefix]
+	}).catch((ex) => {
+		ex.message = 'Could not parse XML. This likely means your import file is malformed.\n\n' + ex.message;
+		throw ex;
 	});
-	const channelData = allData.rss.channel[0].item;
 
-	const postTypes = getPostTypes(channelData);
-	const posts = collectPosts(channelData, postTypes);
+	const rssData = rootData.rss;
+	if (rssData === undefined) {
+		throw new Error('Could not find <rss> root node. This likely means your import file is malformed.')
+	}
+	rssData['wetm-expression'] = 'rss'; 	
+
+	const channelData = shared.getValue(rssData, 'channel', 0);
+	const allPostData = shared.getValue(channelData, 'item');
+
+	const postTypes = getPostTypes(allPostData);
+	const posts = collectPosts(allPostData, postTypes);
 
 	const images = [];
 	if (shared.config.saveImages === 'attached' || shared.config.saveImages === 'all') {
-		images.push(...collectAttachedImages(channelData));
+		images.push(...collectAttachedImages(allPostData));
 	}
 	if (shared.config.saveImages === 'scraped' || shared.config.saveImages === 'all') {
-		images.push(...collectScrapedImages(channelData, postTypes));
+		images.push(...collectScrapedImages(allPostData, postTypes));
 	}
 
 	mergeImagesIntoPosts(images, posts);
@@ -31,9 +43,9 @@ export async function parseFilePromise() {
 	return posts;
 }
 
-function getPostTypes(channelData) {
+function getPostTypes(allPostData) {
 	// search export file for all post types minus some specific types we don't want
-	const types = channelData
+	const types = allPostData
 		.map(item => item.post_type[0])
 		.filter(type => ![
 			'attachment',
@@ -52,14 +64,14 @@ function getPostTypes(channelData) {
 	return [...new Set(types)]; // remove duplicates
 }
 
-function getItemsOfType(channelData, type) {
-	return channelData.filter(item => item.post_type[0] === type);
+function getItemsOfType(allPostData, type) {
+	return allPostData.filter(item => item.post_type[0] === type);
 }
 
-function collectPosts(channelData, postTypes) {
+function collectPosts(allPostData, postTypes) {
 	let allPosts = [];
 	postTypes.forEach(postType => {
-		const postsForType = getItemsOfType(channelData, postType)
+		const postsForType = getItemsOfType(allPostData, postType)
 			.filter(postData => postData.status[0] !== 'trash')
 			.filter(postData => !(postType === 'page' && postData.post_name[0] === 'sample-page'))
 			.map(postData => buildPost(postData));
@@ -106,8 +118,8 @@ function getPostMetaValue(metas, key) {
 	return meta ? meta.meta_value[0] : undefined;
 }
 
-function collectAttachedImages(channelData) {
-	const images = getItemsOfType(channelData, 'attachment')
+function collectAttachedImages(allPostData) {
+	const images = getItemsOfType(allPostData, 'attachment')
 		// filter to certain image file types
 		.filter(attachment => attachment.attachment_url && (/\.(gif|jpe?g|png|webp)$/i).test(attachment.attachment_url[0]))
 		.map(attachment => ({
@@ -120,10 +132,10 @@ function collectAttachedImages(channelData) {
 	return images;
 }
 
-function collectScrapedImages(channelData, postTypes) {
+function collectScrapedImages(allPostData, postTypes) {
 	const images = [];
 	postTypes.forEach(postType => {
-		getItemsOfType(channelData, postType).forEach(postData => {
+		getItemsOfType(allPostData, postType).forEach(postData => {
 			const postId = postData.post_id[0];
 			const postContent = postData.encoded[0];
 			const postLink = postData.link[0];
