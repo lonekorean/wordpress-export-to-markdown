@@ -22,6 +22,7 @@ export function getValue(obj, propName, index) {
 	if (index === undefined) {
 		values.forEach((value, index) => {
 			value['wetm-expression'] = `${expression}[${index}]`;
+			// console.log('>>>', value['wetm-expression']);
 		});
 		return values;
 	} else {
@@ -32,7 +33,10 @@ export function getValue(obj, propName, index) {
 			throw new Error(`Could not find ${expression}.`)
 		}
 
-		value['wetm-expression'] = expression;
+		if (typeof value === 'object') {
+			value['wetm-expression'] = expression;
+			// console.log('>>>', value['wetm-expression']);
+		}
 		return value;
 	}
 }
