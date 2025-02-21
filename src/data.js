@@ -27,31 +27,30 @@ class Data {
 		return expression;
 	}
 
-	#getPropArray(propName, isRequired) {
-		const propArray = this.#obj[propName];
-		if (propArray === undefined && isRequired) {
+	children(propName) {
+		const nodes = this.#obj[propName] ?? [];
+		return nodes.map((value, index) => new Data(value, this.#buildExpression(propName, index)));
+	}
+
+	child(propName, index = 0) {
+		const nodes = this.#obj[propName];
+		if (nodes === undefined) {
 			throw new Error(`Could not find ${this.#buildExpression(propName)}.`);
 		}
 
-		return propArray;
-	}
-
-	getAll(propName, isRequired = true) {
-		const propArray = this.#getPropArray(propName, isRequired);
-		return propArray !== undefined ? propArray.map((value, index) => new Data(value, this.#buildExpression(propName, index))) : undefined;
-	}
-
-	getSingle(propName, index, isRequired = true) {
-		const prop = (this.#getPropArray(propName, isRequired) ?? [])[index];
-
-		if (prop === undefined && isRequired) {
-			throw new Error(`Could not find ${this.#buildExpression(propName, index)}.`)
+		const node = nodes[index];
+		if (node === undefined) {
+			throw new Error(`Could not find ${this.#buildExpression(propName, index)}.`);
 		}
 
-		return prop !== undefined ? new Data(prop, this.#buildExpression(propName, index)) : undefined;
+		return new Data(node, this.#buildExpression(propName, index));
 	}
 
-	getAttribute(attrName) {
+	childValue(propName, index = 0) {
+		return this.child(propName, index).value;
+	}
+
+	attribute(attrName) {
 		const attribute = this.#obj.$?.[attrName];
 		if (attribute === undefined) {
 			throw new Error(`Could not get attribute ${attrName} from ${this.#expression}.`);

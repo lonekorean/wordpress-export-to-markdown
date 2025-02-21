@@ -1,14 +1,14 @@
 export function author(post) {
 	// not decoded, WordPress doesn't allow funky characters in usernames anyway
-	return post.data.getSingle('creator', 0).value;
+	return post.data.childValue('creator');
 }
 
 export function categories(post) {
 	// array of decoded category names, excluding 'uncategorized'
-	const categories = post.data.getAll('category', false) ?? [];
+	const categories = post.data.children('category');
 	return categories
-		.filter((category) => category.getAttribute('domain') === 'category' && category.getAttribute('nicename') !== 'uncategorized')
-		.map((category) => decodeURIComponent(category.getAttribute('nicename')));
+		.filter((category) => category.attribute('domain') === 'category' && category.attribute('nicename') !== 'uncategorized')
+		.map((category) => decodeURIComponent(category.attribute('nicename')));
 }
 
 export function coverImage(post) {
@@ -28,7 +28,7 @@ export function draft(post) {
 
 export function excerpt(post) {
 	// not decoded, newlines collapsed
-	return post.data.getSingle('encoded', 1).value.replace(/[\r\n]+/gm, ' ');
+	return post.data.childValue('encoded', 1).replace(/[\r\n]+/gm, ' ');
 }
 
 export function id(post) {
@@ -43,15 +43,15 @@ export function slug(post) {
 
 export function tags(post) {
 	// array of decoded tag names (yes, they come from <category> nodes, not a typo)
-	const categories = post.data.getAll('category', false) ?? [];
+	const categories = post.data.children('category');
 	return categories
-		.filter((category) => category.getAttribute('domain') === 'post_tag')
-		.map((category) => decodeURIComponent(category.getAttribute('nicename')));
+		.filter((category) => category.attribute('domain') === 'post_tag')
+		.map((category) => decodeURIComponent(category.attribute('nicename')));
 }
 
 export function title(post) {
 	// not decoded
-	return post.data.getSingle('title', 0).value;
+	return post.data.childValue('title');
 }
 
 export function type(post) {

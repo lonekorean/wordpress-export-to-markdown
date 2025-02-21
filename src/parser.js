@@ -10,8 +10,8 @@ export async function parseFilePromise() {
 	const content = await fs.promises.readFile(shared.config.input, 'utf8');
 	const rssData = await data.load(content);
 
-	const channelData = rssData.getSingle('channel', 0);
-	const allPostData = channelData.getAll('item');
+	const channelData = rssData.child('channel');
+	const allPostData = channelData.children('item');
 
 	const postTypes = getPostTypes(allPostData);
 	const posts = collectPosts(allPostData, postTypes);
@@ -33,7 +33,7 @@ export async function parseFilePromise() {
 function getPostTypes(allPostData) {
 	// search export file for all post types minus some specific types we don't want
 	const postTypes = allPostData
-		.map((postData) => postData.getSingle('post_type', 0).value)
+		.map((postData) => postData.childValue('post_type'))
 		.filter((postType) => ![
 			'attachment',
 			'revision',
@@ -52,15 +52,15 @@ function getPostTypes(allPostData) {
 }
 
 function getItemsOfType(allPostData, type) {
-	return allPostData.filter(item => item.getSingle('post_type', 0).value === type);
+	return allPostData.filter(item => item.childValue('post_type') === type);
 }
 
 function collectPosts(allPostData, postTypes) {
 	let allPosts = [];
 	postTypes.forEach(postType => {
 		const postsForType = getItemsOfType(allPostData, postType)
-			.filter(postData => postData.getSingle('status', 0).value !== 'trash')
-			.filter(postData => !(postType === 'page' && postData.getSingle('post_name', 0).value === 'sample-page'))
+			.filter(postData => postData.childValue('status') !== 'trash')
+			.filter(postData => !(postType === 'page' && postData.childValue('post_name') === 'sample-page'))
 			.map(postData => buildPost(postData));
 
 		if (postsForType.length > 0) {
@@ -79,13 +79,13 @@ function buildPost(data) {
 		data,
 
 		// body content converted to markdown
-		content: translator.getPostContent(data.getSingle('encoded', 0).value),
+		content: translator.getPostContent(data.childValue('encoded')),
 
 		// particularly useful values for all sorts of things
-		type: data.getSingle('post_type', 0).value,
-		id: data.getSingle('post_id', 0).value,
-		isDraft: data.getSingle('status', 0).value === 'draft',
-		slug: decodeURIComponent(data.getSingle('post_name', 0).value),
+		type: data.childValue('post_type'),
+		id: data.childValue('post_id'),
+		isDraft: data.childValue('status') === 'draft',
+		slug: decodeURIComponent(data.childValue('post_name')),
 		date: getPostDate(data),
 		coverImageId: getPostMetaValue(data, '_thumbnail_id'),
 
@@ -96,27 +96,27 @@ function buildPost(data) {
 }
 
 function getPostDate(data) {
-	const date = luxon.DateTime.fromRFC2822(data.getSingle('pubDate', 0).value ?? '', { zone: shared.config.customDateTimezone });
+	const date = luxon.DateTime.fromRFC2822(data.childValue('pubDate'), { zone: shared.config.customDateTimezone });
 	return date.isValid ? date : undefined;
 }
 
 function getPostMetaValue(data, key) {
-	const metas = data.getAll('postmeta', false) ?? [];
-	const meta = metas.find((meta) => meta.getSingle('meta_key', 0).value === key);
-	return meta ? meta.getSingle('meta_value', 0).value : undefined;
+	const metas = data.children('postmeta');
+	const meta = metas.find((meta) => meta.childValue('meta_key') === key);
+	return meta ? meta.childValue('meta_value') : undefined;
 }
 
 function collectAttachedImages(allPostData) {
 	const images = getItemsOfType(allPostData, 'attachment')
 		// filter to certain image file types
 		.filter(attachment => {
-			const url = attachment.getSingle('attachment_url', 0).value;
+			const url = attachment.childValue('attachment_url');
 			return url && (/\.(gif|jpe?g|png|webp)$/i).test(url);
 		})
 		.map(attachment => ({
-			id: attachment.getSingle('post_id', 0).value,
-			postId: attachment.getSingle('post_parent', 0).value,
-			url: attachment.getSingle('attachment_url', 0).value
+			id: attachment.childValue('post_id'),
+			postId: attachment.childValue('post_parent'),
+			url: attachment.childValue('attachment_url')
 		}));
 
 	console.log(images.length + ' attached images found.');
@@ -127,9 +127,9 @@ function collectScrapedImages(allPostData, postTypes) {
 	const images = [];
 	postTypes.forEach(postType => {
 		getItemsOfType(allPostData, postType).forEach(postData => {
-			const postId = postData.getSingle('post_id', 0).value;
-			const postContent = postData.getSingle('encoded', 0).value;
-			const postLink = postData.getSingle('link', 0).value;
+			const postId = postData.childValue('post_id');
+			const postContent = postData.childValue('encoded');
+			const postLink = postData.childValue('link');
 
 			const matches = [...postContent.matchAll(/<img[^>]*src="(.+?\.(?:gif|jpe?g|png|webp))"[^>]*>/gi)];
 			matches.forEach(match => {
