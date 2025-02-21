@@ -1,6 +1,6 @@
 import fs from 'fs';
 import * as luxon from 'luxon';
-import xml2js from 'xml2js';
+import * as data from './data.js';
 import * as frontmatter from './frontmatter.js';
 import * as shared from './shared.js';
 import * as translator from './translator.js';
@@ -8,23 +8,10 @@ import * as translator from './translator.js';
 export async function parseFilePromise() {
 	console.log('\nParsing...');
 	const content = await fs.promises.readFile(shared.config.input, 'utf8');
+	const rssData = await data.load(content);
 
-	const rootData = await xml2js.parseStringPromise(content, {
-		trim: true,
-		tagNameProcessors: [xml2js.processors.stripPrefix]
-	}).catch((ex) => {
-		ex.message = 'Could not parse XML. This likely means your import file is malformed.\n\n' + ex.message;
-		throw ex;
-	});
-
-	const rssData = rootData.rss;
-	if (rssData === undefined) {
-		throw new Error('Could not find <rss> root node. This likely means your import file is malformed.')
-	}
-	rssData['wetm-expression'] = 'rss';
-
-	const channelData = shared.getValue(rssData, 'channel', 0);
-	const allPostData = shared.getValue(channelData, 'item');
+	const channelData = rssData.getSingle('channel', 0);
+	const allPostData = channelData.getAll('item');
 
 	const postTypes = getPostTypes(allPostData);
 	const posts = collectPosts(allPostData, postTypes);
@@ -45,9 +32,9 @@ export async function parseFilePromise() {
 
 function getPostTypes(allPostData) {
 	// search export file for all post types minus some specific types we don't want
-	const types = allPostData
-		.map(item => shared.getValue(item, 'post_type', 0))
-		.filter(type => ![
+	const postTypes = allPostData
+		.map((postData) => postData.getSingle('post_type', 0).value)
+		.filter((postType) => ![
 			'attachment',
 			'revision',
 			'nav_menu_item',
@@ -60,20 +47,20 @@ function getPostTypes(allPostData) {
 			'wp_navigation',
 			'wp_template',
 			'wp_template_part'
-		].includes(type));
-	return [...new Set(types)]; // remove duplicates
+		].includes(postType));
+	return [...new Set(postTypes)]; // remove duplicates
 }
 
 function getItemsOfType(allPostData, type) {
-	return allPostData.filter(item => shared.getValue(item, 'post_type', 0) === type);
+	return allPostData.filter(item => item.getSingle('post_type', 0).value === type);
 }
 
 function collectPosts(allPostData, postTypes) {
 	let allPosts = [];
 	postTypes.forEach(postType => {
 		const postsForType = getItemsOfType(allPostData, postType)
-			.filter(postData => shared.getValue(postData, 'status', 0) !== 'trash')
-			.filter(postData => !(postType === 'page' && shared.getValue(postData, 'post_name', 0) === 'sample-page'))
+			.filter(postData => postData.getSingle('status', 0).value !== 'trash')
+			.filter(postData => !(postType === 'page' && postData.getSingle('post_name', 0).value === 'sample-page'))
 			.map(postData => buildPost(postData));
 
 		if (postsForType.length > 0) {
@@ -92,13 +79,13 @@ function buildPost(data) {
 		data,
 
 		// body content converted to markdown
-		content: translator.getPostContent(shared.getValue(data, 'encoded', 0)),
+		content: translator.getPostContent(data.getSingle('encoded', 0).value),
 
 		// particularly useful values for all sorts of things
-		type: shared.getValue(data, 'post_type', 0),
-		id: shared.getValue(data, 'post_id', 0),
-		isDraft: shared.getValue(data, 'status', 0) === 'draft',
-		slug: decodeURIComponent(shared.getValue(data, 'post_name', 0)),
+		type: data.getSingle('post_type', 0).value,
+		id: data.getSingle('post_id', 0).value,
+		isDraft: data.getSingle('status', 0).value === 'draft',
+		slug: decodeURIComponent(data.getSingle('post_name', 0).value),
 		date: getPostDate(data),
 		coverImageId: getPostMetaValue(data, '_thumbnail_id'),
 
@@ -109,27 +96,27 @@ function buildPost(data) {
 }
 
 function getPostDate(data) {
-	const date = luxon.DateTime.fromRFC2822(shared.getValue(data, 'pubDate', 0) ?? '', { zone: shared.config.customDateTimezone });
+	const date = luxon.DateTime.fromRFC2822(data.getSingle('pubDate', 0).value ?? '', { zone: shared.config.customDateTimezone });
 	return date.isValid ? date : undefined;
 }
 
 function getPostMetaValue(data, key) {
-	const metas = shared.getOptionalValue(data, 'postmeta');
-	const meta = metas && metas.find((meta) => shared.getValue(meta, 'meta_key', 0) === key);
-	return meta ? shared.getValue(meta, 'meta_value', 0) : undefined;
+	const metas = data.getAll('postmeta', false) ?? [];
+	const meta = metas.find((meta) => meta.getSingle('meta_key', 0).value === key);
+	return meta ? meta.getSingle('meta_value', 0).value : undefined;
 }
 
 function collectAttachedImages(allPostData) {
 	const images = getItemsOfType(allPostData, 'attachment')
 		// filter to certain image file types
 		.filter(attachment => {
-			const url = shared.getOptionalValue(attachment, 'attachment_url', 0);
+			const url = attachment.getSingle('attachment_url', 0).value;
 			return url && (/\.(gif|jpe?g|png|webp)$/i).test(url);
 		})
 		.map(attachment => ({
-			id: shared.getValue(attachment, 'post_id', 0),
-			postId: shared.getValue(attachment, 'post_parent', 0),
-			url: shared.getValue(attachment, 'attachment_url', 0)
+			id: attachment.getSingle('post_id', 0).value,
+			postId: attachment.getSingle('post_parent', 0).value,
+			url: attachment.getSingle('attachment_url', 0).value
 		}));
 
 	console.log(images.length + ' attached images found.');
@@ -140,9 +127,9 @@ function collectScrapedImages(allPostData, postTypes) {
 	const images = [];
 	postTypes.forEach(postType => {
 		getItemsOfType(allPostData, postType).forEach(postData => {
-			const postId = shared.getValue(postData, 'post_id', 0);
-			const postContent = shared.getValue(postData, 'encoded', 0);
-			const postLink = shared.getValue(postData, 'link', 0);
+			const postId = postData.getSingle('post_id', 0).value;
+			const postContent = postData.getSingle('encoded', 0).value;
+			const postLink = postData.getSingle('link', 0).value;
 
 			const matches = [...postContent.matchAll(/<img[^>]*src="(.+?\.(?:gif|jpe?g|png|webp))"[^>]*>/gi)];
 			matches.forEach(match => {

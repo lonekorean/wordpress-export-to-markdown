@@ -7,48 +7,6 @@ export function camelCase(str) {
 	return str.replace(/-(.)/g, (match) => match[1].toUpperCase());
 }
 
-export function getValue(obj, propName, index) {
-	if (obj === undefined) {
-		throw new Error(`Could not find undefined.${propName}.`)
-	}
-
-	let expression = `${obj['wetm-expression'] ?? 'object'}.${propName}`;
-	
-	const values = obj[propName];
-	if (values === undefined) {
-		throw new Error(`Could not find ${expression}.`)
-	}
-
-	if (index === undefined) {
-		values.forEach((value, index) => {
-			value['wetm-expression'] = `${expression}[${index}]`;
-			// console.log('>>>', value['wetm-expression']);
-		});
-		return values;
-	} else {
-		expression += `[${index}]`;
-
-		const value = values[index];
-		if (value === undefined) {
-			throw new Error(`Could not find ${expression}.`)
-		}
-
-		if (typeof value === 'object') {
-			value['wetm-expression'] = expression;
-			// console.log('>>>', value['wetm-expression']);
-		}
-		return value;
-	}
-}
-
-export function getOptionalValue(obj, propName, index) {
-	try {
-		return getValue(obj, propName, index);
-	} catch (ex) {
-		return undefined;
-	}
-}
-
 export function getSlugWithFallback(post) {
 	return post.slug ? post.slug : 'id-' + post.id;
 }
