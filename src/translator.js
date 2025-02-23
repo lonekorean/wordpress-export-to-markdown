@@ -34,6 +34,14 @@ function initTurndownService() {
 		replacement: (content, node) => '\n\n' + node.outerHTML
 	});
 
+	// <div> within <a> can cause extra whitespace that wreck markdown links, so this removes them
+	turndownService.addRule('a', {
+		filter: 'a',
+		replacement: (content) => {
+			return content.replace(/<\/?div[^>]*>/gi, '');
+		}
+	});
+
 	// preserve embedded scripts (for tweets, codepens, gists, etc.)
 	turndownService.addRule('script', {
 		filter: 'script',
