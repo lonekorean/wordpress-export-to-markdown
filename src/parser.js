@@ -115,7 +115,7 @@ function collectAttachedImages(allPostData) {
 		})
 		.map(attachment => ({
 			id: attachment.childValue('post_id'),
-			postId: attachment.childValue('post_parent'),
+			postId: attachment.optionalChildValue('post_parent') ?? 'nope', // may not exist (cover image in a squarespace export, for example)
 			url: attachment.childValue('attachment_url')
 		}));
 
@@ -128,16 +128,25 @@ function collectScrapedImages(allPostData, postTypes) {
 	postTypes.forEach(postType => {
 		getItemsOfType(allPostData, postType).forEach(postData => {
 			const postId = postData.childValue('post_id');
+			
 			const postContent = postData.childValue('encoded');
-			const postLink = postData.childValue('link');
+			const scrapedUrls = [...postContent.matchAll(/<img\s[^>]*?src="(.+?\.(?:gif|jpe?g|png|webp))"[^>]*>/gi)].map((match) => match[1]);
+			scrapedUrls.forEach((scrapedUrl) => {
+				let url;
+				if (isAbsoluteUrl(scrapedUrl)) {
+					url = scrapedUrl;
+				} else {
+					const postLink = postData.childValue('link');
+					if (isAbsoluteUrl(postLink)) {
+						url = new URL(scrapedUrl, postLink).href;
+					} else {
+						throw new Error(`Unable to determine absolute URL from scraped image URL '${scrapedUrl}' and post link URL '${postLink}'.`);
+					}
+				}
 
-			const matches = [...postContent.matchAll(/<img[^>]*src="(.+?\.(?:gif|jpe?g|png|webp))"[^>]*>/gi)];
-			matches.forEach(match => {
-				// base the matched image URL relative to the post URL
-				const url = new URL(match[1], postLink).href;
 				images.push({
-					id: -1,
-					postId: postId,
+					id: 'nope', // scraped images don't have an id
+					postId,
 					url
 				});
 			});
@@ -185,5 +194,9 @@ function populateFrontmatter(posts) {
 			post.frontmatter[alias ?? key] = frontmatterGetter(post);
 		});
 	});
+}
+
+function isAbsoluteUrl(url) {
+	return (/^https?:\/\//i).test(url);
 }
 

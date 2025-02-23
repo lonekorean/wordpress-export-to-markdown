@@ -1,6 +1,7 @@
 export function author(post) {
-	// not decoded, WordPress doesn't allow funky characters in usernames anyway
-	return post.data.childValue('creator');
+	// not decoded (WordPress doesn't allow funky characters in usernames anyway)
+	// surprisingly, does not always exist (squarespace exports, for example)
+	return post.data.optionalChildValue('creator');
 }
 
 export function categories(post) {
@@ -28,7 +29,9 @@ export function draft(post) {
 
 export function excerpt(post) {
 	// not decoded, newlines collapsed
-	return post.data.childValue('encoded', 1).replace(/[\r\n]+/gm, ' ');
+	// does not always exist (squarespace exports, for example)
+	const encoded = post.data.optionalChildValue('encoded', 1);
+	return encoded ? encoded.replace(/[\r\n]+/gm, ' ') : undefined;
 }
 
 export function id(post) {
