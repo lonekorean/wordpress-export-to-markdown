@@ -14,6 +14,8 @@ function initTurndownService() {
 
 	turndownService.use(turndownPluginGfm.tables);
 
+	turndownService.remove(['style']); // <style> contents get dumped as plain text, would rather remove
+
 	// preserve embedded tweets
 	turndownService.addRule('tweet', {
 		filter: node => node.nodeName === 'BLOCKQUOTE' && node.getAttribute('class') === 'twitter-tweet',
@@ -131,6 +133,9 @@ export function getPostContent(content) {
 
 	// clean up extra spaces in list items
 	content = content.replace(/(-|\d+\.) +/g, '$1 ');
+
+	// collapse excessive newlines (can happen with a lot of <div>)
+	content = content.replace(/(\r?\n){3,}/g, '\n\n');
 
 	return content;
 }
