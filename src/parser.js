@@ -9,9 +9,7 @@ export async function parseFilePromise() {
 	console.log('\nParsing...');
 	const content = await fs.promises.readFile(shared.config.input, 'utf8');
 	const rssData = await data.load(content);
-
-	const channelData = rssData.child('channel');
-	const allPostData = channelData.children('item');
+	const allPostData = rssData.child('channel').children('item');
 
 	const postTypes = getPostTypes(allPostData);
 	const posts = collectPosts(allPostData, postTypes);
