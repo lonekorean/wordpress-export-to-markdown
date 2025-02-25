@@ -1,6 +1,6 @@
 import fs from 'fs';
 import * as luxon from 'luxon';
-import xml2js from 'xml2js';
+import * as data from './data.js';
 import * as frontmatter from './frontmatter.js';
 import * as shared from './shared.js';
 import * as translator from './translator.js';
@@ -8,21 +8,18 @@ import * as translator from './translator.js';
 export async function parseFilePromise() {
 	console.log('\nParsing...');
 	const content = await fs.promises.readFile(shared.config.input, 'utf8');
-	const allData = await xml2js.parseStringPromise(content, {
-		trim: true,
-		tagNameProcessors: [xml2js.processors.stripPrefix]
-	});
-	const channelData = allData.rss.channel[0].item;
+	const rssData = await data.load(content);
+	const allPostData = rssData.child('channel').children('item');
 
-	const postTypes = getPostTypes(channelData);
-	const posts = collectPosts(channelData, postTypes);
+	const postTypes = getPostTypes(allPostData);
+	const posts = collectPosts(allPostData, postTypes);
 
 	const images = [];
 	if (shared.config.saveImages === 'attached' || shared.config.saveImages === 'all') {
-		images.push(...collectAttachedImages(channelData));
+		images.push(...collectAttachedImages(allPostData));
 	}
 	if (shared.config.saveImages === 'scraped' || shared.config.saveImages === 'all') {
-		images.push(...collectScrapedImages(channelData, postTypes));
+		images.push(...collectScrapedImages(allPostData, postTypes));
 	}
 
 	mergeImagesIntoPosts(images, posts);
@@ -31,11 +28,11 @@ export async function parseFilePromise() {
 	return posts;
 }
 
-function getPostTypes(channelData) {
+function getPostTypes(allPostData) {
 	// search export file for all post types minus some specific types we don't want
-	const types = channelData
-		.map(item => item.post_type[0])
-		.filter(type => ![
+	const postTypes = allPostData
+		.map((postData) => postData.childValue('post_type'))
+		.filter((postType) => ![
 			'attachment',
 			'revision',
 			'nav_menu_item',
@@ -48,20 +45,20 @@ function getPostTypes(channelData) {
 			'wp_navigation',
 			'wp_template',
 			'wp_template_part'
-		].includes(type));
-	return [...new Set(types)]; // remove duplicates
+		].includes(postType));
+	return [...new Set(postTypes)]; // remove duplicates
 }
 
-function getItemsOfType(channelData, type) {
-	return channelData.filter(item => item.post_type[0] === type);
+function getItemsOfType(allPostData, type) {
+	return allPostData.filter(item => item.childValue('post_type') === type);
 }
 
-function collectPosts(channelData, postTypes) {
+function collectPosts(allPostData, postTypes) {
 	let allPosts = [];
 	postTypes.forEach(postType => {
-		const postsForType = getItemsOfType(channelData, postType)
-			.filter(postData => postData.status[0] !== 'trash')
-			.filter(postData => !(postType === 'page' && postData.post_name[0] === 'sample-page'))
+		const postsForType = getItemsOfType(allPostData, postType)
+			.filter(postData => postData.childValue('status') !== 'trash')
+			.filter(postData => !(postType === 'page' && postData.childValue('post_name') === 'sample-page'))
 			.map(postData => buildPost(postData));
 
 		if (postsForType.length > 0) {
@@ -80,15 +77,15 @@ function buildPost(data) {
 		data,
 
 		// body content converted to markdown
-		content: translator.getPostContent(data.encoded[0]),
+		content: translator.getPostContent(data.childValue('encoded')),
 
 		// particularly useful values for all sorts of things
-		type: data.post_type[0],
-		id: data.post_id[0],
-		isDraft: data.status[0] === 'draft',
-		slug: decodeURIComponent(data.post_name[0]),
+		type: data.childValue('post_type'),
+		id: data.childValue('post_id'),
+		isDraft: data.childValue('status') === 'draft',
+		slug: decodeURIComponent(data.childValue('post_name')),
 		date: getPostDate(data),
-		coverImageId: getPostMetaValue(data.postmeta, '_thumbnail_id'),
+		coverImageId: getPostMetaValue(data, '_thumbnail_id'),
 
 		// these are possibly set later in mergeImagesIntoPosts()
 		coverImage: undefined,
@@ -97,44 +94,57 @@ function buildPost(data) {
 }
 
 function getPostDate(data) {
-	const date = luxon.DateTime.fromRFC2822(data.pubDate[0] ?? '', { zone: shared.config.customDateTimezone });
+	const date = luxon.DateTime.fromRFC2822(data.childValue('pubDate'), { zone: shared.config.customDateTimezone });
 	return date.isValid ? date : undefined;
 }
 
-function getPostMetaValue(metas, key) {
-	const meta = metas && metas.find((meta) => meta.meta_key[0] === key);
-	return meta ? meta.meta_value[0] : undefined;
+function getPostMetaValue(data, key) {
+	const metas = data.children('postmeta');
+	const meta = metas.find((meta) => meta.childValue('meta_key') === key);
+	return meta ? meta.childValue('meta_value') : undefined;
 }
 
-function collectAttachedImages(channelData) {
-	const images = getItemsOfType(channelData, 'attachment')
+function collectAttachedImages(allPostData) {
+	const images = getItemsOfType(allPostData, 'attachment')
 		// filter to certain image file types
-		.filter(attachment => attachment.attachment_url && (/\.(gif|jpe?g|png|webp)$/i).test(attachment.attachment_url[0]))
+		.filter(attachment => {
+			const url = attachment.childValue('attachment_url');
+			return url && (/\.(gif|jpe?g|png|webp)$/i).test(url);
+		})
 		.map(attachment => ({
-			id: attachment.post_id[0],
-			postId: attachment.post_parent[0],
-			url: attachment.attachment_url[0]
+			id: attachment.childValue('post_id'),
+			postId: attachment.optionalChildValue('post_parent') ?? 'nope', // may not exist (cover image in a squarespace export, for example)
+			url: attachment.childValue('attachment_url')
 		}));
 
 	console.log(images.length + ' attached images found.');
 	return images;
 }
 
-function collectScrapedImages(channelData, postTypes) {
+function collectScrapedImages(allPostData, postTypes) {
 	const images = [];
 	postTypes.forEach(postType => {
-		getItemsOfType(channelData, postType).forEach(postData => {
-			const postId = postData.post_id[0];
-			const postContent = postData.encoded[0];
-			const postLink = postData.link[0];
+		getItemsOfType(allPostData, postType).forEach(postData => {
+			const postId = postData.childValue('post_id');
+			
+			const postContent = postData.childValue('encoded');
+			const scrapedUrls = [...postContent.matchAll(/<img\s[^>]*?src="(.+?\.(?:gif|jpe?g|png|webp))"[^>]*>/gi)].map((match) => match[1]);
+			scrapedUrls.forEach((scrapedUrl) => {
+				let url;
+				if (isAbsoluteUrl(scrapedUrl)) {
+					url = scrapedUrl;
+				} else {
+					const postLink = postData.childValue('link');
+					if (isAbsoluteUrl(postLink)) {
+						url = new URL(scrapedUrl, postLink).href;
+					} else {
+						throw new Error(`Unable to determine absolute URL from scraped image URL '${scrapedUrl}' and post link URL '${postLink}'.`);
+					}
+				}
 
-			const matches = [...postContent.matchAll(/<img[^>]*src="(.+?\.(?:gif|jpe?g|png|webp))"[^>]*>/gi)];
-			matches.forEach(match => {
-				// base the matched image URL relative to the post URL
-				const url = new URL(match[1], postLink).href;
 				images.push({
-					id: -1,
-					postId: postId,
+					id: 'nope', // scraped images don't have an id
+					postId,
 					url
 				});
 			});
@@ -182,5 +192,9 @@ function populateFrontmatter(posts) {
 			post.frontmatter[alias ?? key] = frontmatterGetter(post);
 		});
 	});
+}
+
+function isAbsoluteUrl(url) {
+	return (/^https?:\/\//i).test(url);
 }
 

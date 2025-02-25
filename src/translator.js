@@ -14,6 +14,8 @@ function initTurndownService() {
 
 	turndownService.use(turndownPluginGfm.tables);
 
+	turndownService.remove(['style']); // <style> contents get dumped as plain text, would rather remove
+
 	// preserve embedded tweets
 	turndownService.addRule('tweet', {
 		filter: node => node.nodeName === 'BLOCKQUOTE' && node.getAttribute('class') === 'twitter-tweet',
@@ -32,6 +34,14 @@ function initTurndownService() {
 			);
 		},
 		replacement: (content, node) => '\n\n' + node.outerHTML
+	});
+
+	// <div> within <a> can cause extra whitespace that wreck markdown links, so this removes them
+	turndownService.addRule('a', {
+		filter: 'a',
+		replacement: (content) => {
+			return content.replace(/<\/?div[^>]*>/gi, '');
+		}
 	});
 
 	// preserve embedded scripts (for tweets, codepens, gists, etc.)
@@ -107,7 +117,7 @@ export function getPostContent(content) {
 	if (shared.config.saveImages === 'scraped' || shared.config.saveImages === 'all') {
 		// writeImageFile() will save all content images to a relative /images
 		// folder so update references in post content to match
-		content = content.replace(/(<img[^>]*src=").*?([^/"]+\.(?:gif|jpe?g|png|webp))("[^>]*>)/gi, '$1images/$2$3');
+		content = content.replace(/(<img\s[^>]*?src=").*?([^/"]+\.(?:gif|jpe?g|png|webp))("[^>]*>)/gi, '$1images/$2$3');
 	}
 
 	// preserve "more" separator, max one per post, optionally with custom label
@@ -123,6 +133,9 @@ export function getPostContent(content) {
 
 	// clean up extra spaces in list items
 	content = content.replace(/(-|\d+\.) +/g, '$1 ');
+
+	// collapse excessive newlines (can happen with a lot of <div>)
+	content = content.replace(/(\r?\n){3,}/g, '\n\n');
 
 	return content;
 }

@@ -119,7 +119,7 @@ export function load() {
 		{
 			name: 'markdown-file-write-delay',
 			type: 'integer',
-			default: 25
+			default: 10
 		},
 		{
 			name: 'include-time-with-date',
