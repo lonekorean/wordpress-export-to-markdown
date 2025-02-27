@@ -30,9 +30,6 @@
 		"turndown": "^7.2.0",
 		"xml2js": "^0.6.2"
 	},
-	"devDependencies": {
-		"eslint": "^8.57.1"
-	},
 	"bin": {
 		"wordpress-export-to-markdown": "./index.js"
 	}
