@@ -128,7 +128,7 @@ function collectScrapedImages(allPostData, postTypes) {
 			const postId = postData.childValue('post_id');
 			
 			const postContent = postData.childValue('encoded');
-			const scrapedUrls = [...postContent.matchAll(/<img\s[^>]*?src="(.+?\.(?:gif|jpe?g|png|webp))"[^>]*>/gi)].map((match) => match[1]);
+			const scrapedUrls = [...postContent.matchAll(/<img(?=\s)[^>]+?(?<=\s)src="(.+?)"[^>]*>/gi)].map((match) => match[1]);
 			scrapedUrls.forEach((scrapedUrl) => {
 				let url;
 				if (isAbsoluteUrl(scrapedUrl)) {
