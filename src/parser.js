@@ -113,7 +113,7 @@ function getPostCoverImageId(postData) {
 function collectAttachedImages(channelData) {
 	const images = getItemsOfType(channelData, 'attachment')
 		// filter to certain image file types
-		.filter(attachment => attachment.attachment_url && (/\.(gif|jpe?g|png|webp)$/i).test(attachment.attachment_url[0]))
+		.filter(attachment => attachment.attachment_url && (/\.(gif|jpe?g|png|webp|avif)$/i).test(attachment.attachment_url[0]))
 		.map(attachment => ({
 			id: attachment.post_id[0],
 			postId: attachment.post_parent[0],
@@ -132,7 +132,7 @@ function collectScrapedImages(channelData, postTypes) {
 			const postContent = postData.encoded[0];
 			const postLink = postData.link[0];
 
-			const matches = [...postContent.matchAll(/<img[^>]*src="(.+?\.(?:gif|jpe?g|png|webp))"[^>]*>/gi)];
+			const matches = [...postContent.matchAll(/<img[^>]*src="(.+?\.(?:gif|jpe?g|png|webp|avif))"[^>]*>/gi)];
 			matches.forEach(match => {
 				// base the matched image URL relative to the post URL
 				const url = new URL(match[1], postLink).href;
