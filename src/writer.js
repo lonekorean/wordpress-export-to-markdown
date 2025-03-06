@@ -87,8 +87,8 @@ async function loadMarkdownFilePromise(post) {
 			// output unquoted
 			outputValue = value.toString();
 		} else if (value instanceof luxon.DateTime) {
-			if (shared.config.customDateFormatting) {
-				outputValue = value.toFormat(shared.config.customDateFormatting);
+			if (shared.config.dateFormat) {
+				outputValue = value.toFormat(shared.config.dateFormat);
 			} else {
 				outputValue = shared.config.includeTimeWithDate ? value.toISO() : value.toISODate();
 			}

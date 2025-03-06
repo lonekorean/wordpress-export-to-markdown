@@ -38,7 +38,7 @@ export function load() {
 		{
 			name: 'prefix-date',
 			type: 'boolean',
-			description: 'Prefix with date',
+			description: 'Add date prefix to posts',
 			default: false,
 			choices: [
 				{
@@ -56,7 +56,7 @@ export function load() {
 		{
 			name: 'date-folders',
 			type: 'choice',
-			description: 'Organize into folders based on date',
+			description: 'Organize posts into folders by date',
 			default: 'none',
 			choices: [
 				{
@@ -109,41 +109,49 @@ export function load() {
 		{
 			name: 'frontmatter-fields',
 			type: 'list',
-			default: ['title', 'date', 'categories', 'tags', 'coverImage', 'draft']
+			description: 'Frontmatter fields',
+			default: 'title,date,categories,tags,coverImage,draft'
 		},
 		{
 			name: 'image-file-request-delay',
 			type: 'integer',
+			description: 'Delay between image file requests',
 			default: 500
 		},
 		{
 			name: 'markdown-file-write-delay',
 			type: 'integer',
+			description: 'Delay between writing markdown files',
 			default: 10
+		},
+		{
+			name: 'timezone',
+			type: 'string',
+			description: 'Timezone to apply to date',
+			default: 'utc'
 		},
 		{
 			name: 'include-time-with-date',
 			type: 'boolean',
+			description: 'Include time with frontmatter date',
 			default: false
 		},
 		{
-			name: 'custom-date-formatting',
+			name: 'date-format',
 			type: 'string',
+			description: 'Frontmatter date format string',
 			default: ''
-		},
-		{
-			name: 'custom-date-timezone',
-			type: 'string',
-			default: 'utc'
 		},
 		{
 			name: 'quote-date',
 			type: 'boolean',
+			description: 'Wrap frontmatter date in quotes',
 			default: false
 		},
 		{
 			name: 'strict-ssl',
 			type: 'boolean',
+			description: 'Use strict SSL',
 			default: true
 		}
 	];

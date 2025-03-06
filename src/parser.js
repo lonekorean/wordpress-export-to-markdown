@@ -94,7 +94,7 @@ function buildPost(data) {
 }
 
 function getPostDate(data) {
-	const date = luxon.DateTime.fromRFC2822(data.childValue('pubDate'), { zone: shared.config.customDateTimezone });
+	const date = luxon.DateTime.fromRFC2822(data.childValue('pubDate'), { zone: shared.config.timezone });
 	return date.isValid ? date : undefined;
 }
 
