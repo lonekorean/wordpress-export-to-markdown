@@ -172,19 +172,9 @@ async function loadImageFilePromise(imageUrl) {
 		requestConfig.httpsAgent = new https.Agent({ rejectUnauthorized: false });
 	}
 
-	let buffer;
-	try {
-		const response = await axios(requestConfig);
-		buffer = Buffer.from(response.data, 'binary');
-	} catch (ex) {
-		if (ex.response) {
-			// request was made, but server responded with an error status code
-			throw new Error('StatusCodeError: ' + ex.response.status);
-		} else {
-			// something else went wrong, rethrow
-			throw ex;
-		}
-	}
+	const response = await axios(requestConfig);
+	const buffer = Buffer.from(response.data, 'binary');
+
 	return buffer;
 }
 
