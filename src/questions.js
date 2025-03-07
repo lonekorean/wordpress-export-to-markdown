@@ -56,7 +56,7 @@ export function load() {
 		{
 			name: 'date-folders',
 			type: 'choice',
-			description: 'Organize posts into folders by date',
+			description: 'Organize posts into date folders',
 			default: 'none',
 			choices: [
 				{
@@ -113,13 +113,13 @@ export function load() {
 			default: 'title,date,categories,tags,coverImage,draft'
 		},
 		{
-			name: 'image-file-request-delay',
+			name: 'request-delay',
 			type: 'integer',
 			description: 'Delay between image file requests',
 			default: 500
 		},
 		{
-			name: 'markdown-file-write-delay',
+			name: 'write-delay',
 			type: 'integer',
 			description: 'Delay between writing markdown files',
 			default: 10
@@ -131,7 +131,7 @@ export function load() {
 			default: 'utc'
 		},
 		{
-			name: 'include-time-with-date',
+			name: 'include-time',
 			type: 'boolean',
 			description: 'Include time with frontmatter date',
 			default: false

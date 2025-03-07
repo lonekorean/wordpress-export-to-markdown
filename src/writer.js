@@ -59,7 +59,7 @@ async function writeMarkdownFilesPromise(posts) {
 				destinationPath,
 				delay
 			};
-			delay += shared.config.markdownFileWriteDelay;
+			delay += shared.config.writeDelay;
 			return [payload];
 		}
 	});
@@ -90,7 +90,7 @@ async function loadMarkdownFilePromise(post) {
 			if (shared.config.dateFormat) {
 				outputValue = value.toFormat(shared.config.dateFormat);
 			} else {
-				outputValue = shared.config.includeTimeWithDate ? value.toISO() : value.toISODate();
+				outputValue = shared.config.includeTime ? value.toISO() : value.toISODate();
 			}
 
 			if (shared.config.quoteDate) {
@@ -138,7 +138,7 @@ async function writeImageFilesPromise(posts) {
 					destinationPath,
 					delay
 				};
-				delay += shared.config.imageFileRequestDelay;
+				delay += shared.config.requestDelay;
 				return [payload];
 			}
 		});

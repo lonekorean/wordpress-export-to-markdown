@@ -11,7 +11,7 @@ import * as writer from './src/writer.js';
 (async () => {
 	// configure command line help output
 	commander.program
-		.name('node index.js')
+		.name('npx wordpress-export-to-markdown')
 		.helpOption('-h, --help', 'See the thing you\'re looking at right now')
 		.addHelpText('after', '\nMore documentation is at https://github.com/lonekorean/wordpress-export-to-markdown')
 		.configureHelp({
