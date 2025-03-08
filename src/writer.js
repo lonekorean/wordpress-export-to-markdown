@@ -43,13 +43,13 @@ async function writeFile(destinationPath, data) {
 
 async function writeMarkdownFilesPromise(posts) {
 	// package up posts into payloads
-	let skipCount = 0;
+	let existingCount = 0;
 	let delay = 0;
 	const payloads = posts.flatMap(post => {
 		const destinationPath = shared.buildPostPath(post);
 		if (checkFile(destinationPath)) {
 			// already exists, don't need to save again
-			skipCount++;
+			existingCount++;
 			return [];
 		} else {
 			const payload = {
@@ -64,11 +64,8 @@ async function writeMarkdownFilesPromise(posts) {
 		}
 	});
 
-	const remainingCount = payloads.length;
-	if (remainingCount + skipCount === 0) {
-		console.log('\nNo posts to save...');
-	} else {
-		console.log(`\nSaving ${remainingCount} posts (${skipCount} already exist)...`);
+	logSavingMessage('posts', existingCount, payloads.length);
+	if (payloads.length > 0) {
 		await processPayloadsPromise(payloads, loadMarkdownFilePromise);
 	}
 }
@@ -118,7 +115,7 @@ async function loadMarkdownFilePromise(post) {
 
 async function writeImageFilesPromise(posts) {
 	// collect image data from all posts into a single flattened array of payloads
-	let skipCount = 0;
+	let existingCount = 0;
 	let delay = 0;
 	const payloads = posts.flatMap(post => {
 		const postPath = shared.buildPostPath(post);
@@ -128,7 +125,7 @@ async function writeImageFilesPromise(posts) {
 			const destinationPath = path.join(imagesDir, filename);
 			if (checkFile(destinationPath)) {
 				// already exists, don't need to save again
-				skipCount++;
+				existingCount++;
 				return [];
 			} else {
 				const payload = {
@@ -144,11 +141,8 @@ async function writeImageFilesPromise(posts) {
 		});
 	});
 
-	const remainingCount = payloads.length;
-	if (remainingCount + skipCount === 0) {
-		console.log('\nNo images to download and save...');
-	} else {
-		console.log(`\nDownloading and saving ${remainingCount} images (${skipCount} already exist)...`);
+	logSavingMessage('images', existingCount, payloads.length);
+	if (payloads.length > 0) {
 		await processPayloadsPromise(payloads, loadImageFilePromise);
 	}
 }
@@ -180,6 +174,19 @@ async function loadImageFilePromise(imageUrl) {
 
 function checkFile(path) {
 	return fs.existsSync(path);
+}
+
+function logSavingMessage(things, existingCount, remainingCount) {
+	shared.logHeading(`Saving ${things}`);
+	if (existingCount + remainingCount === 0) {
+		console.log(`No ${things} to save.`);
+	} else if (existingCount === 0) {
+		console.log(`${remainingCount} ${things} to save.`);
+	} else if (remainingCount === 0) {
+		console.log(`All ${existingCount} ${things} already saved.`);
+	} else {
+		console.log(`${existingCount} ${things} already saved, ${remainingCount} remaining.`);
+	}
 }
 
 function logPayloadResult(payload, errorMessage) {

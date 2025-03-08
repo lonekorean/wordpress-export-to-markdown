@@ -24,7 +24,7 @@ export async function getConfig() {
 
 	let wizardAnswers;
 	if (commandLineAnswers.wizard) {
-		console.log('\nStarting wizard...');
+		shared.logHeading('Starting wizard');
 
 		// run wizard for questions with prompts that were not answered via the command line
 		const wizardQuestions = questions.load().filter((question) => {
@@ -32,7 +32,7 @@ export async function getConfig() {
 		});
 		wizardAnswers = await getWizardAnswers(wizardQuestions, commandLineAnswers);
 	} else {
-		console.log('\nSkipping wizard...');
+		shared.logHeading('Skipping wizard');
 	}
 
 	Object.assign(shared.config, commandLineAnswers, wizardAnswers);

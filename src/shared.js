@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import path from 'path';
 
 // simple data store, populated via intake, used everywhere
@@ -9,6 +10,10 @@ export function camelCase(str) {
 
 export function getSlugWithFallback(post) {
 	return post.slug ? post.slug : 'id-' + post.id;
+}
+
+export function logHeading(text) {
+	console.log(`\n${chalk.cyan(text + '...')}`);
 }
 
 export function buildPostPath(post, overrideConfig) {

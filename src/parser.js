@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import fs from 'fs';
 import * as luxon from 'luxon';
 import * as data from './data.js';
@@ -6,7 +7,7 @@ import * as shared from './shared.js';
 import * as translator from './translator.js';
 
 export async function parseFilePromise() {
-	console.log('\nParsing...');
+	shared.logHeading('Parsing');
 	const content = await fs.promises.readFile(shared.config.input, 'utf8');
 	const rssData = await data.load(content);
 	const allPostData = rssData.child('channel').children('item');
@@ -197,4 +198,3 @@ function populateFrontmatter(posts) {
 function isAbsoluteUrl(url) {
 	return (/^https?:\/\//i).test(url);
 }
-
