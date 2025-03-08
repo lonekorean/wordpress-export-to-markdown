@@ -31,7 +31,7 @@ export async function parseFilePromise() {
 
 function getPostTypes(allPostData) {
 	// search export file for all post types minus some specific types we don't want
-	const postTypes = allPostData
+	const postTypes = [...new Set(allPostData // new Set() is used to dedupe array
 		.map((postData) => postData.childValue('post_type'))
 		.filter((postType) => ![
 			'attachment',
@@ -46,8 +46,14 @@ function getPostTypes(allPostData) {
 			'wp_navigation',
 			'wp_template',
 			'wp_template_part'
-		].includes(postType));
-	return [...new Set(postTypes)]; // remove duplicates
+		].includes(postType))
+	)];
+
+	// change order to "post", "page", then all custom post types (alphabetically)
+	prioritizePostType(postTypes, 'page');
+	prioritizePostType(postTypes, 'post');
+
+	return postTypes;
 }
 
 function getItemsOfType(allPostData, type) {
@@ -63,7 +69,13 @@ function collectPosts(allPostData, postTypes) {
 			.map(postData => buildPost(postData));
 
 		if (postsForType.length > 0) {
-			console.log(`${postsForType.length} posts of type "${postType}" found.`);
+			if (postType === 'post') {
+				console.log(`${postsForType.length} normal posts found.`);
+			} else if (postType === 'page') {
+				console.log(`${postsForType.length} pages found.`);
+			} else {
+				console.log(`${postsForType.length} custom "${postType}" posts found.`);
+			}
 		}
 
 		allPosts.push(...postsForType);
@@ -193,6 +205,14 @@ function populateFrontmatter(posts) {
 			post.frontmatter[alias ?? key] = frontmatterGetter(post);
 		});
 	});
+}
+
+function prioritizePostType(postTypes, postType) {
+	const index = postTypes.indexOf(postType);
+	if (index !== -1) {
+		postTypes.splice(index, 1);
+		postTypes.unshift(postType);
+	}
 }
 
 function isAbsoluteUrl(url) {
