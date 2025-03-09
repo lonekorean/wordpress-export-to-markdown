@@ -18,13 +18,13 @@ function initTurndownService() {
 
 	// preserve embedded tweets
 	turndownService.addRule('tweet', {
-		filter: node => node.nodeName === 'BLOCKQUOTE' && node.getAttribute('class') === 'twitter-tweet',
+		filter: (node) => node.nodeName === 'BLOCKQUOTE' && node.getAttribute('class') === 'twitter-tweet',
 		replacement: (content, node) => '\n\n' + node.outerHTML
 	});
 
 	// preserve embedded codepens
 	turndownService.addRule('codepen', {
-		filter: node => {
+		filter: (node) => {
 			// codepen embed snippets have changed over the years
 			// but this series of checks should find the commonalities
 			return (
@@ -95,7 +95,7 @@ function initTurndownService() {
 
 	// convert <pre> into a code block with language when appropriate
 	turndownService.addRule('pre', {
-		filter: node => {
+		filter: (node) => {
 			// a <pre> with <code> inside will already render nicely, so don't interfere
 			return node.nodeName === 'PRE' && !node.querySelector('code');
 		},

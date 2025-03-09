@@ -57,16 +57,16 @@ function getPostTypes(allPostData) {
 }
 
 function getItemsOfType(allPostData, type) {
-	return allPostData.filter(item => item.childValue('post_type') === type);
+	return allPostData.filter((item) => item.childValue('post_type') === type);
 }
 
 function collectPosts(allPostData, postTypes) {
 	let allPosts = [];
-	postTypes.forEach(postType => {
+	postTypes.forEach((postType) => {
 		const postsForType = getItemsOfType(allPostData, postType)
-			.filter(postData => postData.childValue('status') !== 'trash')
-			.filter(postData => !(postType === 'page' && postData.childValue('post_name') === 'sample-page'))
-			.map(postData => buildPost(postData));
+			.filter((postData) => postData.childValue('status') !== 'trash')
+			.filter((postData) => !(postType === 'page' && postData.childValue('post_name') === 'sample-page'))
+			.map((postData) => buildPost(postData));
 
 		if (postsForType.length > 0) {
 			if (postType === 'post') {
@@ -120,11 +120,11 @@ function getPostMetaValue(data, key) {
 function collectAttachedImages(allPostData) {
 	const images = getItemsOfType(allPostData, 'attachment')
 		// filter to certain image file types
-		.filter(attachment => {
+		.filter((attachment) => {
 			const url = attachment.childValue('attachment_url');
 			return url && (/\.(gif|jpe?g|png|webp)$/i).test(url);
 		})
-		.map(attachment => ({
+		.map((attachment) => ({
 			id: attachment.childValue('post_id'),
 			postId: attachment.optionalChildValue('post_parent') ?? 'nope', // may not exist (cover image in a squarespace export, for example)
 			url: attachment.childValue('attachment_url')
@@ -136,8 +136,8 @@ function collectAttachedImages(allPostData) {
 
 function collectScrapedImages(allPostData, postTypes) {
 	const images = [];
-	postTypes.forEach(postType => {
-		getItemsOfType(allPostData, postType).forEach(postData => {
+	postTypes.forEach((postType) => {
+		getItemsOfType(allPostData, postType).forEach((postData) => {
 			const postId = postData.childValue('post_id');
 			
 			const postContent = postData.childValue('encoded');
@@ -169,8 +169,8 @@ function collectScrapedImages(allPostData, postTypes) {
 }
 
 function mergeImagesIntoPosts(images, posts) {
-	images.forEach(image => {
-		posts.forEach(post => {
+	images.forEach((image) => {
+		posts.forEach((post) => {
 			let shouldAttach = false;
 
 			// this image was uploaded as an attachment to this post
@@ -192,9 +192,9 @@ function mergeImagesIntoPosts(images, posts) {
 }
 
 function populateFrontmatter(posts) {
-	posts.forEach(post => {
+	posts.forEach((post) => {
 		post.frontmatter = {};
-		shared.config.frontmatterFields.forEach(field => {
+		shared.config.frontmatterFields.forEach((field) => {
 			const [key, alias] = field.split(':');
 
 			let frontmatterGetter = frontmatter[key];

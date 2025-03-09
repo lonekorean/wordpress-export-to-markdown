@@ -13,7 +13,7 @@ export async function writeFilesPromise(posts) {
 }
 
 async function processPayloadsPromise(payloads, loadFunc) {
-	const promises = payloads.map(payload => new Promise((resolve, reject) => {
+	const promises = payloads.map((payload) => new Promise((resolve, reject) => {
 		setTimeout(async () => {
 			try {
 				const data = await loadFunc(payload.item);
@@ -28,7 +28,7 @@ async function processPayloadsPromise(payloads, loadFunc) {
 	}));
 
 	const results = await Promise.allSettled(promises);
-	const failedCount = results.filter(result => result.status === 'rejected').length;
+	const failedCount = results.filter((result) => result.status === 'rejected').length;
 	if (failedCount === 0) {
 		console.log('Done, got them all!');
 	} else {
@@ -45,7 +45,7 @@ async function writeMarkdownFilesPromise(posts) {
 	// package up posts into payloads
 	let existingCount = 0;
 	let delay = 0;
-	const payloads = posts.flatMap(post => {
+	const payloads = posts.flatMap((post) => {
 		const destinationPath = shared.buildPostPath(post);
 		if (checkFile(destinationPath)) {
 			// already exists, don't need to save again
@@ -117,10 +117,10 @@ async function writeImageFilesPromise(posts) {
 	// collect image data from all posts into a single flattened array of payloads
 	let existingCount = 0;
 	let delay = 0;
-	const payloads = posts.flatMap(post => {
+	const payloads = posts.flatMap((post) => {
 		const postPath = shared.buildPostPath(post);
 		const imagesDir = path.join(path.dirname(postPath), 'images');
-		return post.imageUrls.flatMap(imageUrl => {
+		return post.imageUrls.flatMap((imageUrl) => {
 			const filename = shared.getFilenameFromUrl(imageUrl);
 			const destinationPath = path.join(imagesDir, filename);
 			if (checkFile(destinationPath)) {
