@@ -1,150 +1,118 @@
 # wordpress-export-to-markdown
 
-Converts a WordPress export file into Markdown files that are compatible with static site generators ([Eleventy](https://www.11ty.dev/), [Gatsby](https://www.gatsbyjs.com/), [Hugo](https://gohugo.io/), etc.).
-
-Each post is saved as a separate Markdown file with frontmatter. Images are downloaded and saved.
+Converts a WordPress export XML file into Markdown files. This makes it easy to migrate from WordPress to a static site generator ([Eleventy](https://www.11ty.dev/), [Gatsby](https://www.gatsbyjs.com/), [Hugo](https://gohugo.io/), etc.).
 
 ![wordpress-export-to-markdown running in a terminal](https://user-images.githubusercontent.com/1245573/72686026-3aa04280-3abe-11ea-92c1-d756a24657dd.gif)
+
+## Features
+
+- Saves each post as a separate Markdown file with frontmatter.
+- Also saves drafts, pages, and custom post types, if you have any.
+- Downloads images and updates references to them.
+- User-friendly wizard guides you through the process.
+- Lots of command line options for configuration, if needed.
 
 ## Quick Start
 
 You'll need:
-- [Node.js](https://nodejs.org/) installed
-- Your [WordPress export file](https://wordpress.org/support/article/tools-export-screen/) (be sure to export "All content").
 
-To make things easier, you can rename your WordPress export file to `export.xml` and drop it into the same directory that you run this script from.
+- [Node.js](https://nodejs.org/) installed.
+- Your [WordPress export file](https://wordpress.org/support/article/tools-export-screen/). Be sure to export "All Content".
 
-You can run this script immediately in your terminal with `npx`:
+Then run this in your terminal:
 
 ```
 npx wordpress-export-to-markdown
 ```
 
-Or you can clone this repo, then from within the repo's directory, install and run:
+## Options
 
-```
-npm install && node index.js
-```
+The script will start with a wizard to ask you a few questions.
 
-Either way, the script will start a wizard to configure your options. Answer the questions and off you go!
-
-## Command Line
-
-Options can also be configured via the command line. The wizard will skip asking about any such options. For example, the following will give you [Jekyll](https://jekyllrb.com/)-style output in terms of folder structure and filenames.
-
-Using `npx`:
+Optionally, you can provide answers to any of these questions via command line arguments, in which case the wizard will skip asking those questions. Here's an example:
 
 ```
 npx wordpress-export-to-markdown --post-folders=false --prefix-date=true
 ```
 
-Using a locally cloned repo:
+The questions, and their command line arguments, are given below.
 
-```
-node index.js --post-folders=false --prefix-date=true
-```
+### Path to WordPress export file? (`--input`)
 
-The wizard will still ask you about any options not specified on the command line. To skip the wizard entirely and use default values for unspecified options, add `--wizard=false`.
+The path to your [WordPress export file](https://wordpress.org/documentation/article/tools-export-screen/). Default is `export.xml`.
 
-## Options
+To make things easier, you can rename your WordPress export file to `export.xml` and drop it into the same directory that you run the script from.
 
-These are the questions asked by the wizard. Command line arguments, along with their default values, are also being provided here if you want to use them.
+### Put each post into its own folder? (`--post-folders`)
 
-### Path to WordPress export file?
+Whether or not a separate folder is created for each post's Markdown file (and images). Default is `true`.
 
-**Command line:** `--input=export.xml`
+| Value | Description |
+| --- | --- |
+| `true` | A folder is created for each post, with an `index.md` file and `/images` folder within. The post slug is used to name the folder. |
+| `false` | The post slug is used to name each post's Markdown file. These files are all saved in the same folder. All images are saved in a shared `/images` folder. |
 
-The path to your WordPress export file. To make things easier, you can rename your WordPress export file to `export.xml` and drop it into the same directory that you run this script from.
+### Add date prefix to posts? (`--prefix-date`)
 
-### Path to output folder?
+Whether or not the post date is prepended when naming a post's folder or file. Default is `false`.
 
-**Command line:** `--output=output`
+| Value | Description |
+| --- | --- |
+| `true` | Prepend the date, in the format `<year>-<month>-<day>`. Nothing will be prepended if there is no date (for example, an undated draft post). |
+| `false` | Don't prepend the date. |
 
-The path to the output directory where Markdown and image files will be saved. If it does not exist, it will be created.
+### Organize posts into date folders? (`--date-folders`)
 
-### Create year folders?
+If and how output is organized into folders based on date. Default is `none`.
 
-**Command line:** `--year-folders=false`
+| Value | Description |
+| --- | --- |
+| `year` | Output is organized into folders by year. This won't happen for posts with no date (for example, an undated draft post). |
+| `year‑month` | Output is organized into folders by year, then into nested folders by month. Again, for posts with no date, this won't happen. |
+| `none` | No date folders are created. |
 
-Whether or not to organize output files into folders by year.
+### Save images? (`--save-images`)
 
-### Create month folders?
+Which images you want to download and save. Default is `all`.
 
-**Command line:** `--month-folders=false`
+| Value | Description |
+| --- | --- |
+| `attached` | Save images attached to posts. Generally speaking, these are images that were uploaded by using **Add Media** or **Set Featured Image** in WordPress. |
+| `scraped` | Save images scraped from `<img>` tags in post body content. The `<img>` tags are updated to point to where the images are saved. |
+| `all` | Save all images, essentially `attached` and `scraped` together. |
+| `none` | Don't save any images. |
 
-Whether or not to organize output files into folders by month. You'll probably want to combine this with `--year-folders` to organize files by year then month.
+## Advanced Options
 
-### Create a folder for each post?
+These are not included in the wizard, so you'll need to set them on the command line.
 
-**Command line:** `--post-folders=true`
+### Path to output folder? (`--output`)
 
-Whether or not to save files and images into post folders.
+The path to the output folder where files will be saved. It'll be created if it doesn't exist. Default is `output`.
 
-If `true`, the post slug is used for the folder name and the post's Markdown file is named `index.md`. Each post folder will have its own `/images` folder.
+Existing files in the output folder won't be overwritten. Furthermore, existing images won't be downloaded again. This essentially lets you resume progress by restarting the script, if it was previously terminated early.
 
-    /first-post
-        /images
-            potato.png
-        index.md
-    /second-post
-        /images
-            carrot.jpg
-            celery.jpg
-        index.md
+To start clean, delete the output folder.
 
-If `false`, the post slug is used to name the post's Markdown file. These files will be side-by-side and images will go into a shared `/images` folder.
+### Frontmatter fields? (`--frontmatter-fields`)
 
-    /images
-        carrot.jpg
-        celery.jpg
-        potato.png
-    first-post.md
-    second-post.md
+Comma separated list of the frontmatter fields to include in Markdown files. Order is preserved. If a post doesn't have a value for a frontmatter field, it is left off. Default is `title,date,categories,tags,coverImage,draft`.
 
-Either way, this can be combined with with `--year-folders` and `--month-folders`, in which case the above output will be organized under the appropriate year and month folders.
+Available frontmatter fields are: `author`, `categories`, `coverImage`, `date`, `draft`, `excerpt`, `id`, `slug`, `tags`, `title`, `type`.
 
-### Prefix post folders/files with date?
+You can rename a frontmatter field by appending `:` followed by the alias to use. For example, `date:created` will rename `date` to `created`.
 
-**Command line:** `--prefix-date=false`
+### Delay between image file requests? (`--request-delay`)
 
-Whether or not to prepend the post date to the post slug when naming a post's folder or file.
+### Delay between writing markdown files? (`--write-delay`)
 
-If `--post-folders` is `true`, this affects the folder.
+### Timezone to apply to date? (`--timezone`)
 
-    /2019-10-14-first-post
-        index.md
-    /2019-10-23-second-post
-        index.md
+### Include time with frontmatter date? (`--include-time`)
 
-If `--post-folders` is `false`, this affects the file.
+### Frontmatter date format string? (`--date-format`)
 
-    2019-10-14-first-post.md
-    2019-10-23-second-post.md
+### Wrap frontmatter date in quotes? (`--quote-date`)
 
-### Save images attached to posts?
+### Use strict SSL? (`--strict-ssl`)
 
-**Command line:** `--save-attached-images=true`
-
-Whether or not to download and save images attached to posts. Generally speaking, these are images that were uploaded by using **Add Media** or **Set Featured Image** in WordPress. Images are saved into `/images`.
-
-### Save images scraped from post body content?
-
-**Command line:** `--save-scraped-images=true`
-
-Whether or not to download and save images scraped from `<img>` tags in post body content. Images are saved into `/images`. The `<img>` tags are updated to point to where the images are saved.
-
-### Include custom post types and pages?
-
-**Command line:** `--include-other-types=false`
-
-Some WordPress sites make use of a `"page"` post type and/or custom post types. Set this to `true` to include these post types in the output. Posts will be organized into post type folders.
-
-## Customizing Frontmatter and Other Advanced Settings
-
-You can edit [settings.js](https://github.com/lonekorean/wordpress-export-to-markdown/blob/master/src/settings.js) to configure advanced settings beyond the options above. This includes things like customizing frontmatter, date formatting, throttling image downloads, and more.
-
-You'll need to run the script locally (not using `npx`) to edit these advanced settings.
-
-## Contributing
-
-Please read the [contribution guidelines](https://github.com/lonekorean/wordpress-export-to-markdown/blob/master/CONTRIBUTING.md).

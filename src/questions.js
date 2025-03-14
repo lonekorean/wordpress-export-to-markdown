@@ -90,7 +90,7 @@ export function load() {
 					value: 'scraped'
 				},
 				{
-					name: 'Both',
+					name: 'All Images',
 					value: 'all'
 				},
 				{
