@@ -37,110 +37,184 @@ npx wordpress-export-to-markdown --post-folders=false --prefix-date=true
 
 The questions, and their command line arguments, are given below.
 
-### Path to WordPress export file? (`--input`)
+### Path to WordPress export file?
 
-The path to your [WordPress export file](https://wordpress.org/documentation/article/tools-export-screen/). Default is `export.xml`.
+```
+--input=export.xml
+```
 
-To make things easier, you can rename your WordPress export file to `export.xml` and drop it into the same directory that you run the script from.
+The path to your [WordPress export file](https://wordpress.org/documentation/article/tools-export-screen/). To make things easier, you can rename your WordPress export file to `export.xml` and drop it into the same directory that you run the script from.
 
-### Put each post into its own folder? (`--post-folders`)
+**Allowed values:**
 
-Whether or not to create a separate folder for each post's Markdown file (and images). Default is `true`.
+- A path to a file that exists.
 
-| Value | Description |
-| --- | --- |
-| `true` | A folder is created for each post, with an `index.md` file and `/images` folder within. The post slug is used to name the folder. |
-| `false` | The post slug is used to name each post's Markdown file. These files are all saved in the same folder. All images are saved in a shared `/images` folder. |
+### Put each post into its own folder?
 
-### Add date prefix to posts? (`--prefix-date`)
+```
+--post-folders=true
+```
 
-Whether or not to prepend the post date when naming a post's folder or file. Default is `false`.
+Whether or not to create a separate folder for each post's Markdown file (and images).
 
-| Value | Description |
-| --- | --- |
-| `true` | Prepend the date, in the format `<year>-<month>-<day>`. Nothing will be prepended if there is no date (for example, an undated draft post). |
-| `false` | Don't prepend the date. |
+**Allowed values:**
 
-### Organize posts into date folders? (`--date-folders`)
+- `true` - A folder is created for each post, with an `index.md` file and `/images` folder within. The post slug is used to name the folder.
+- `false` - The post slug is used to name each post's Markdown file. These files are all saved in the same folder. All images are saved in a shared `/images` folder.
 
-If and how output is organized into folders based on date. Default is `none`.
+### Add date prefix to posts?
 
-| Value | Description |
-| --- | --- |
-| `year` | Output is organized into folders by year. This won't happen for posts with no date (for example, an undated draft post). |
-| `year‑month` | Output is organized into folders by year, then into nested folders by month. Again, for posts with no date, this won't happen. |
-| `none` | No date folders are created. |
+```
+--prefix-date=false
+```
 
-### Save images? (`--save-images`)
+Whether or not to prepend the post date when naming a post's folder or file.
 
-Which images you want to download and save. Default is `all`.
+**Allowed values:**
 
-| Value | Description |
-| --- | --- |
-| `attached` | Save images attached to posts. Generally speaking, these are images that were uploaded by using **Add Media** or **Set Featured Image** in WordPress. |
-| `scraped` | Save images scraped from `<img>` tags in post body content. The `<img>` tags are updated to point to where the images are saved. |
-| `all` | Save all images, essentially the results of `attached` and `scraped` combined. |
-| `none` | Don't save any images. |
+- `true` - Prepend the date, in the format `<year>-<month>-<day>`. Nothing will be prepended if there is no date (for example, an undated draft post).
+- `false` - Don't prepend the date.
+
+### Organize posts into date folders?
+
+```
+--date-folders=none
+```
+
+If and how output is organized into folders based on date.
+
+**Allowed values:**
+
+- `year` - Output is organized into folders by year. This won't happen for posts with no date (for example, an undated draft post).
+- `year‑month` - Output is organized into folders by year, then into nested folders by month. Again, for posts with no date, this won't happen.
+- `none` - No date folders are created.
+
+### Save images?
+
+```
+--save-images=all
+```
+
+Which images you want to download and save.
+
+**Allowed values:**
+
+- `attached` - Save images attached to posts. Generally speaking, these are images that were uploaded by using **Add Media** or **Set Featured Image** in WordPress.
+- `scraped` - Save images scraped from `<img>` tags in post body content. The `<img>` tags are updated to point to where the images are saved.
+- `all` - Save all images, essentially the results of `attached` and `scraped` combined.
+- `none` - Don't save any images.
 
 ## Advanced Options
 
 These are not included in the wizard, so you'll need to set them on the command line.
 
-### Path to output folder? (`--output`)
+### Path to output folder?
 
-The path to the output folder where files will be saved. It'll be created if it doesn't exist. Default is `output`.
+```
+--output=output
+```
 
-Existing files in the output folder won't be overwritten. Furthermore, existing images won't be downloaded again. This lets you resume progress by restarting the script, if it was previously terminated early. To start clean, delete the output folder.
+The path to the output folder where files will be saved. It'll be created if it doesn't exist. Existing files in the output folder won't be overwritten and won't be downloaded again. This lets you resume progress by restarting the script, if it was previously terminated early. To start clean, delete the output folder.
 
-### Frontmatter fields? (`--frontmatter-fields`)
+**Allowed values:**
 
-Comma separated list of the frontmatter fields to include in Markdown files. Order is preserved. If a post doesn't have a value for a field, it is left off. Default is `title,date,categories,tags,coverImage,draft`.
+- A valid folder path.
 
-Available fields are: `author`, `categories`, `coverImage`, `date`, `draft`, `excerpt`, `id`, `slug`, `tags`, `title`, `type`. You can rename a field by appending `:` followed by the alias to use. For example, `date:created` will rename `date` to `created`.
+### Frontmatter fields?
 
-### Delay between image file requests? (`--request-delay`)
+```
+--frontmatter-fields=title,date,categories,tags,coverImage,draft
+```
 
-Time (in milliseconds) to wait between requesting image files. Default is `500`.
+Comma separated list of the frontmatter fields to include in Markdown files. Order is preserved. If a post doesn't have a value for a field, it is left off.
 
-Increasing this might help if you see timeouts or server errors.
+**Allowed values:**
 
-### Delay between writing markdown files? (`--write-delay`)
+- A comma separated list with any of the following: `author`, `categories`, `coverImage`, `date`, `draft`, `excerpt`, `id`, `slug`, `tags`, `title`, `type`. You can rename a field by appending `:` followed by the alias to use. For example, `date:created` will rename `date` to `created`.
 
-Time (in milliseconds) to wait between saving Markdown files. Default is `10`.
+### Delay between image file requests?
 
-Increasing this might help if your file system becomes overloaded.
+```
+--request-delay=500
+```
 
-### Timezone to apply to date? (`--timezone`)
+Time (in milliseconds) to wait between requesting image files. Increasing this might help if you see timeouts or server errors.
 
-The timezone applied to post dates, as [specified here](https://moment.github.io/luxon/#/zones?id=specifying-a-zone). Default is `utc`.
+**Allowed values:**
 
-### Include time with frontmatter date? (`--include-time`)
+- Any positive integer.
 
-Whether or not time should be included with the date in frontmatter. Default is `false`.
+### Delay between writing markdown files?
 
-| Value | Description |
-| --- | --- |
-| `true` | Time is included using an ISO 8601-compliant format. For example, `2020-12-25T11:20:35.000Z`. |
-| `false` | Time is not included. For example, `2020-12-25`. |
+```
+--write-delay=10
+```
 
-### Frontmatter date format string? (`--date-format`)
+Time (in milliseconds) to wait between saving Markdown files. Increasing this might help if your file system becomes overloaded.
 
-A custom formatting string to apply to frontmatter dates, using [these tokens](https://moment.github.io/luxon/#/parsing?id=table-of-tokens). If set, takes precedence over `--include-time`. Default is an empty string, which falls back to the basic `<year>-<month>-<day>` format.
+**Allowed values:**
 
-### Wrap frontmatter date in quotes? (`--quote-date`)
+- Any positive integer.
 
-Whether or not to put double quotes around the date when writing it to frontmatter. Default is `false`.
+### Timezone to apply to date?
 
-| Value | Description |
-| --- | --- |
-| `true` | Adds double quotes around the date. This technically turns the date into a string value. |
-| `false` | Doesn't add double quotes. |
+```
+--timezone=utc
+```
 
-### Use strict SSL? (`--strict-ssl`)
+The timezone applied to post dates.
 
-Whether or not to use strict SSL when downloading images. Default is `true`.
+**Allowed values:**
 
-| Value | Description |
-| --- | --- |
-| `true` | Use strict SSL. This is the safer option. |
-| `false` | Don't use strict SSL. This will let you avoid the "self-signed certificate" error when working with a self-signed server. Just make sure you know what you're doing. |
+- A valid timezone, as [specified here](https://moment.github.io/luxon/#/zones?id=specifying-a-zone).
+
+### Include time with frontmatter date?
+
+```
+--include-time=false
+```
+
+Whether or not time should be included with the date in frontmatter.
+
+**Allowed values:**
+
+- `true` - Time is included using an ISO 8601-compliant format. For example, `2020-12-25T11:20:35.000Z`.
+- `false` - Time is not included. For example, `2020-12-25`.
+
+### Frontmatter date format string?
+
+```
+--date-format=""
+```
+
+A custom formatting string to apply to frontmatter dates. Takes precedence over `--include-time`. An empty string (the default) is ignored.
+
+**Allowed values:**
+
+- A custom formatting string that uses [these tokens](https://moment.github.io/luxon/#/parsing?id=table-of-tokens).
+
+### Wrap frontmatter date in quotes?
+
+```
+--quote-date=false
+```
+
+Whether or not to put double quotes around the date when writing it to frontmatter.
+
+**Allowed values:**
+
+- `true` - Adds double quotes around the date. This technically turns the date into a string value.
+- `false` - Doesn't add double quotes.
+
+### Use strict SSL?
+
+```
+--strict-ssl=true
+```
+
+Whether or not to use strict SSL when downloading images.
+
+**Allowed values:**
+
+- `true` - Use strict SSL. This is the safer option.
+- `false` - Don't use strict SSL. This will let you avoid the "self-signed certificate" error when working with a self-signed server. Just make sure you know what you're doing.
