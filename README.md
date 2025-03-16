@@ -4,15 +4,6 @@ Converts a WordPress export XML file into Markdown files. This makes it easy to 
 
 ![wordpress-export-to-markdown running in a terminal](https://user-images.githubusercontent.com/1245573/72686026-3aa04280-3abe-11ea-92c1-d756a24657dd.gif)
 
-## Table of Contents
-
-- [Features](#features)
-- [Quick Start](#quick-start)
-- [Options](#options)
-- [Advanced Options](#advanced-options)
-- [Local Development](#local-development)
-- [Contributing](#contributing)
-
 ## Features
 
 - Saves each post as a separate Markdown file with frontmatter.
