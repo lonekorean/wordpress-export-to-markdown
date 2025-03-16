@@ -5,12 +5,6 @@ export function load() {
 	// questions with a prompt are included in the wizard (if not set on the command line)
 	return [
 		{
-			name: 'wizard',
-			type: 'boolean',
-			description: 'Use wizard',
-			default: true
-		},
-		{
 			name: 'input',
 			type: 'file-path',
 			description: 'Path to WordPress export file',
@@ -90,7 +84,7 @@ export function load() {
 					value: 'scraped'
 				},
 				{
-					name: 'Both',
+					name: 'All Images',
 					value: 'all'
 				},
 				{
@@ -99,6 +93,12 @@ export function load() {
 				}
 			],
 			prompt: inquirer.select
+		},
+		{
+			name: 'wizard',
+			type: 'boolean',
+			description: 'Use wizard',
+			default: true
 		},
 		{
 			name: 'output',
