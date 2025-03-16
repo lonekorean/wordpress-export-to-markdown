@@ -188,7 +188,7 @@ The timezone applied to post dates.
 
 Allowed values:
 
-- A valid timezone, as [specified here](https://moment.github.io/luxon/#/zones?id=specifying-a-zone).
+- Any valid timezone as [specified here](https://moment.github.io/luxon/#/zones?id=specifying-a-zone).
 
 ### Include time with frontmatter date?
 
