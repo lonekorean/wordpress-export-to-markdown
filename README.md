@@ -4,6 +4,15 @@ Converts a WordPress export XML file into Markdown files. This makes it easy to 
 
 ![wordpress-export-to-markdown running in a terminal](https://user-images.githubusercontent.com/1245573/72686026-3aa04280-3abe-11ea-92c1-d756a24657dd.gif)
 
+## Table of Contents
+
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [Options](#options)
+- [Advanced Options](#advanced-options)
+- [Local Development](#local-development)
+- [Contributing](#contributing)
+
 ## Features
 
 - Saves each post as a separate Markdown file with frontmatter.
@@ -35,7 +44,7 @@ Optionally, you can provide answers to any of these questions via command line a
 npx wordpress-export-to-markdown --post-folders=false --prefix-date=true
 ```
 
-The questions, and their command line arguments, are given below.
+The questions are given below, including a snippet for each one showing its command line argument set to its default value.
 
 ### Path to WordPress export file?
 
@@ -43,11 +52,11 @@ The questions, and their command line arguments, are given below.
 --input=export.xml
 ```
 
-The path to your [WordPress export file](https://wordpress.org/documentation/article/tools-export-screen/). To make things easier, you can rename your WordPress export file to `export.xml` and drop it into the same directory that you run the script from.
+The path to your [WordPress export file](https://wordpress.org/documentation/article/tools-export-screen/). To make things easier, you can rename it to `export.xml` and drop it into the same directory that you run the script from.
 
-**Allowed values:**
+Allowed values:
 
-- A path to a file that exists.
+- Any path to a file that exists.
 
 ### Put each post into its own folder?
 
@@ -57,7 +66,7 @@ The path to your [WordPress export file](https://wordpress.org/documentation/art
 
 Whether or not to create a separate folder for each post's Markdown file (and images).
 
-**Allowed values:**
+Allowed values:
 
 - `true` - A folder is created for each post, with an `index.md` file and `/images` folder within. The post slug is used to name the folder.
 - `false` - The post slug is used to name each post's Markdown file. These files are all saved in the same folder. All images are saved in a shared `/images` folder.
@@ -70,7 +79,7 @@ Whether or not to create a separate folder for each post's Markdown file (and im
 
 Whether or not to prepend the post date when naming a post's folder or file.
 
-**Allowed values:**
+Allowed values:
 
 - `true` - Prepend the date, in the format `<year>-<month>-<day>`. Nothing will be prepended if there is no date (for example, an undated draft post).
 - `false` - Don't prepend the date.
@@ -83,7 +92,7 @@ Whether or not to prepend the post date when naming a post's folder or file.
 
 If and how output is organized into folders based on date.
 
-**Allowed values:**
+Allowed values:
 
 - `year` - Output is organized into folders by year. This won't happen for posts with no date (for example, an undated draft post).
 - `year‑month` - Output is organized into folders by year, then into nested folders by month. Again, for posts with no date, this won't happen.
@@ -97,7 +106,7 @@ If and how output is organized into folders based on date.
 
 Which images you want to download and save.
 
-**Allowed values:**
+Allowed values:
 
 - `attached` - Save images attached to posts. Generally speaking, these are images that were uploaded by using **Add Media** or **Set Featured Image** in WordPress.
 - `scraped` - Save images scraped from `<img>` tags in post body content. The `<img>` tags are updated to point to where the images are saved.
@@ -108,17 +117,30 @@ Which images you want to download and save.
 
 These are not included in the wizard, so you'll need to set them on the command line.
 
+### Use wizard?
+
+```
+--wizard=true
+```
+
+Whether or not to use the wizard.
+
+Allowed values:
+
+- `true` - The script will start with a wizard to ask five questions (the ones from the [Options](#options) section) minus any that were answered on the command line.
+- `false` - Skip wizard. Options set via command line are taken, while the rest have their default values used.
+
 ### Path to output folder?
 
 ```
 --output=output
 ```
 
-The path to the output folder where files will be saved. It'll be created if it doesn't exist. Existing files in the output folder won't be overwritten and won't be downloaded again. This lets you resume progress by restarting the script, if it was previously terminated early. To start clean, delete the output folder.
+The path to the output folder where files will be saved. It'll be created if it doesn't exist. Existing files there won't be overwritten and won't be downloaded again. This lets you resume progress by restarting the script, if it was previously terminated early. To start clean, delete the output folder.
 
-**Allowed values:**
+Allowed values:
 
-- A valid folder path.
+- Any valid folder path.
 
 ### Frontmatter fields?
 
@@ -128,9 +150,9 @@ The path to the output folder where files will be saved. It'll be created if it 
 
 Comma separated list of the frontmatter fields to include in Markdown files. Order is preserved. If a post doesn't have a value for a field, it is left off.
 
-**Allowed values:**
+Allowed values:
 
-- A comma separated list with any of the following: `author`, `categories`, `coverImage`, `date`, `draft`, `excerpt`, `id`, `slug`, `tags`, `title`, `type`. You can rename a field by appending `:` followed by the alias to use. For example, `date:created` will rename `date` to `created`.
+- A comma separated list with any of the following: `author`, `categories`, `coverImage`, `date`, `draft`, `excerpt`, `id`, `slug`, `tags`, `title`, `type`. You can rename a field by appending `:` and the alias to use. For example, `date:created` will rename `date` to `created`.
 
 ### Delay between image file requests?
 
@@ -140,7 +162,7 @@ Comma separated list of the frontmatter fields to include in Markdown files. Ord
 
 Time (in milliseconds) to wait between requesting image files. Increasing this might help if you see timeouts or server errors.
 
-**Allowed values:**
+Allowed values:
 
 - Any positive integer.
 
@@ -152,7 +174,7 @@ Time (in milliseconds) to wait between requesting image files. Increasing this m
 
 Time (in milliseconds) to wait between saving Markdown files. Increasing this might help if your file system becomes overloaded.
 
-**Allowed values:**
+Allowed values:
 
 - Any positive integer.
 
@@ -164,7 +186,7 @@ Time (in milliseconds) to wait between saving Markdown files. Increasing this mi
 
 The timezone applied to post dates.
 
-**Allowed values:**
+Allowed values:
 
 - A valid timezone, as [specified here](https://moment.github.io/luxon/#/zones?id=specifying-a-zone).
 
@@ -176,7 +198,7 @@ The timezone applied to post dates.
 
 Whether or not time should be included with the date in frontmatter.
 
-**Allowed values:**
+Allowed values:
 
 - `true` - Time is included using an ISO 8601-compliant format. For example, `2020-12-25T11:20:35.000Z`.
 - `false` - Time is not included. For example, `2020-12-25`.
@@ -187,11 +209,11 @@ Whether or not time should be included with the date in frontmatter.
 --date-format=""
 ```
 
-A custom formatting string to apply to frontmatter dates. Takes precedence over `--include-time`. An empty string (the default) is ignored.
+A custom formatting string to apply to frontmatter dates. If set, takes precedence over `--include-time`. An empty string (the default) is ignored, resulting in the basic `<year>-<month>-<day>` format.
 
-**Allowed values:**
+Allowed values:
 
-- A custom formatting string that uses [these tokens](https://moment.github.io/luxon/#/parsing?id=table-of-tokens).
+- Any valid custom formatting string. See [this table of tokens](https://moment.github.io/luxon/#/parsing?id=table-of-tokens).
 
 ### Wrap frontmatter date in quotes?
 
@@ -201,9 +223,9 @@ A custom formatting string to apply to frontmatter dates. Takes precedence over 
 
 Whether or not to put double quotes around the date when writing it to frontmatter.
 
-**Allowed values:**
+Allowed values:
 
-- `true` - Adds double quotes around the date. This technically turns the date into a string value.
+- `true` - Adds double quotes. This technically turns the date into a string value.
 - `false` - Doesn't add double quotes.
 
 ### Use strict SSL?
@@ -214,7 +236,21 @@ Whether or not to put double quotes around the date when writing it to frontmatt
 
 Whether or not to use strict SSL when downloading images.
 
-**Allowed values:**
+Allowed values:
 
 - `true` - Use strict SSL. This is the safer option.
 - `false` - Don't use strict SSL. This will let you avoid the "self-signed certificate" error when working with a self-signed server. Just make sure you know what you're doing.
+
+## Local Development
+
+You can install and run this script locally if you want to tinker with it:
+
+1. `git clone` this repo.
+2. `cd` into the repo directory.
+3. Run `npm install`.
+
+Now instead of running `npx wordpress-export-to-markdown` you can run `node app`. They both take all the same command line arguments in the same way.
+
+## Contributing
+
+Please read the [contribution guidelines](https://github.com/lonekorean/wordpress-export-to-markdown/blob/master/.github/CONTRIBUTING.md).
