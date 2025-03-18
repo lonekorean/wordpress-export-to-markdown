@@ -2,7 +2,7 @@
 
 Converts a WordPress export XML file into Markdown files. This makes it easy to migrate from WordPress to a static site generator ([Eleventy](https://www.11ty.dev/), [Gatsby](https://www.gatsbyjs.com/), [Hugo](https://gohugo.io/), etc.).
 
-![wordpress-export-to-markdown running in a terminal](https://user-images.githubusercontent.com/1245573/72686026-3aa04280-3abe-11ea-92c1-d756a24657dd.gif)
+![wordpress-export-to-markdown running in a terminal](https://github.com/user-attachments/assets/7ac1aa07-b6ee-46f4-ab49-291c1c45f350)
 
 ## Features
 
