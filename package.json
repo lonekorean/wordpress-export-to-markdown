@@ -1,6 +1,6 @@
 {
 	"name": "wordpress-export-to-markdown",
-	"version": "2.4.2",
+	"version": "3.0.0",
 	"description": "Converts a WordPress export XML file into Markdown files.",
 	"main": "app.js",
 	"repository": "https://github.com/lonekorean/wordpress-export-to-markdown.git",
