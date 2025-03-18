@@ -19,7 +19,7 @@
 	"type": "module",
 	"dependencies": {
 		"@guyplusplus/turndown-plugin-gfm": "^1.0.7",
-		"@inquirer/prompts": "^7.3.2",
+		"@inquirer/prompts": "^7.4.0",
 		"axios": "^1.8.2",
 		"chalk": "^5.4.1",
 		"commander": "^13.1.0",
