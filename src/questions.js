@@ -122,7 +122,7 @@ export function load() {
 			name: 'write-delay',
 			type: 'integer',
 			description: 'Delay between writing markdown files',
-			default: 10
+			default: 25
 		},
 		{
 			name: 'timezone',
