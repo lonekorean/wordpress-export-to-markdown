@@ -1,36 +1,34 @@
-const axios = require('axios');
-const chalk = require('chalk');
-const fs = require('fs');
-const http = require('http');
-const https = require('https');
-const luxon = require('luxon');
-const path = require('path');
+import axios from 'axios';
+import chalk from 'chalk';
+import fs from 'fs';
+import http from 'http';
+import https from 'https';
+import * as luxon from 'luxon';
+import path from 'path';
+import * as shared from './shared.js';
 
-const shared = require('./shared');
-const settings = require('./settings');
-
-async function writeFilesPromise(posts, config) {
-	await writeMarkdownFilesPromise(posts, config);
-	await writeImageFilesPromise(posts, config);
+export async function writeFilesPromise(posts) {
+	await writeMarkdownFilesPromise(posts);
+	await writeImageFilesPromise(posts);
 }
 
 async function processPayloadsPromise(payloads, loadFunc) {
-	const promises = payloads.map(payload => new Promise((resolve, reject) => {
+	const promises = payloads.map((payload) => new Promise((resolve, reject) => {
 		setTimeout(async () => {
 			try {
 				const data = await loadFunc(payload.item);
 				await writeFile(payload.destinationPath, data);
-				console.log(chalk.green('[OK]') + ' ' + payload.name);
+				logPayloadResult(payload);
 				resolve();
 			} catch (ex) {
-				console.log(chalk.red('[FAILED]') + ' ' + payload.name + ' ' + chalk.red('(' + ex.toString() + ')'));
+				logPayloadResult(payload, ex.message);
 				reject();
 			}
 		}, payload.delay);
 	}));
 
 	const results = await Promise.allSettled(promises);
-	const failedCount = results.filter(result => result.status === 'rejected').length;
+	const failedCount = results.filter((result) => result.status === 'rejected').length;
 	if (failedCount === 0) {
 		console.log('Done, got them all!');
 	} else {
@@ -43,33 +41,31 @@ async function writeFile(destinationPath, data) {
 	await fs.promises.writeFile(destinationPath, data);
 }
 
-async function writeMarkdownFilesPromise(posts, config) {
+async function writeMarkdownFilesPromise(posts) {
 	// package up posts into payloads
-	let skipCount = 0;
+	let existingCount = 0;
 	let delay = 0;
-	const payloads = posts.flatMap(post => {
-		const destinationPath = getPostPath(post, config);
+	const payloads = posts.flatMap((post) => {
+		const destinationPath = shared.buildPostPath(post);
 		if (checkFile(destinationPath)) {
 			// already exists, don't need to save again
-			skipCount++;
+			existingCount++;
 			return [];
 		} else {
 			const payload = {
 				item: post,
-				name: (config.includeOtherTypes ? post.meta.type + ' - ' : '') + post.meta.slug,
+				type: post.type,
+				name: shared.getSlugWithFallback(post),
 				destinationPath,
 				delay
 			};
-			delay += settings.markdown_file_write_delay;
+			delay += shared.config.writeDelay;
 			return [payload];
 		}
 	});
 
-	const remainingCount = payloads.length;
-	if (remainingCount + skipCount === 0) {
-		console.log('\nNo posts to save...');
-	} else {
-		console.log(`\nSaving ${remainingCount} posts (${skipCount} already exist)...`);
+	logSavingMessage('posts', existingCount, payloads.length);
+	if (payloads.length > 0) {
 		await processPayloadsPromise(payloads, loadMarkdownFilePromise);
 	}
 }
@@ -84,9 +80,25 @@ async function loadMarkdownFilePromise(post) {
 				// array of one or more strings
 				outputValue = value.reduce((list, item) => `${list}\n  - "${item}"`, '');
 			}
+		} else if (Number.isInteger(value)) {
+			// output unquoted
+			outputValue = value.toString();
+		} else if (value instanceof luxon.DateTime) {
+			if (shared.config.dateFormat) {
+				outputValue = value.toFormat(shared.config.dateFormat);
+			} else {
+				outputValue = shared.config.includeTime ? value.toISO() : value.toISODate();
+			}
+
+			if (shared.config.quoteDate) {
+				outputValue = `"${outputValue}"`;
+			}
+		} else if (typeof value === 'boolean') {
+			// output unquoted
+			outputValue = value.toString();
 		} else {
 			// single string value
-			const escapedValue = (value || '').replace(/"/g, '\\"');
+			const escapedValue = (value ?? '').replace(/"/g, '\\"');
 			if (escapedValue.length > 0) {
 				outputValue = `"${escapedValue}"`;
 			}
@@ -101,38 +113,36 @@ async function loadMarkdownFilePromise(post) {
 	return output;
 }
 
-async function writeImageFilesPromise(posts, config) {
+async function writeImageFilesPromise(posts) {
 	// collect image data from all posts into a single flattened array of payloads
-	let skipCount = 0;
+	let existingCount = 0;
 	let delay = 0;
-	const payloads = posts.flatMap(post => {
-		const postPath = getPostPath(post, config);
+	const payloads = posts.flatMap((post) => {
+		const postPath = shared.buildPostPath(post);
 		const imagesDir = path.join(path.dirname(postPath), 'images');
-		return post.meta.imageUrls.flatMap(imageUrl => {
+		return post.imageUrls.flatMap((imageUrl) => {
 			const filename = shared.getFilenameFromUrl(imageUrl);
 			const destinationPath = path.join(imagesDir, filename);
 			if (checkFile(destinationPath)) {
 				// already exists, don't need to save again
-				skipCount++;
+				existingCount++;
 				return [];
 			} else {
 				const payload = {
 					item: imageUrl,
+					type: 'image',
 					name: filename,
 					destinationPath,
 					delay
 				};
-				delay += settings.image_file_request_delay;
+				delay += shared.config.requestDelay;
 				return [payload];
 			}
 		});
 	});
 
-	const remainingCount = payloads.length;
-	if (remainingCount + skipCount === 0) {
-		console.log('\nNo images to download and save...');
-	} else {
-		console.log(`\nDownloading and saving ${remainingCount} images (${skipCount} already exist)...`);
+	logSavingMessage('images', existingCount, payloads.length);
+	if (payloads.length > 0) {
 		await processPayloadsPromise(payloads, loadImageFilePromise);
 	}
 }
@@ -141,7 +151,7 @@ async function loadImageFilePromise(imageUrl) {
 	// only encode the URL if it doesn't already have encoded characters
 	const url = (/%[\da-f]{2}/i).test(imageUrl) ? imageUrl : encodeURI(imageUrl);
 
-	const config = {
+	const requestConfig = {
 		method: 'get',
 		url,
 		headers: {
@@ -150,70 +160,44 @@ async function loadImageFilePromise(imageUrl) {
 		responseType: 'arraybuffer'
 	};
 
-	if (!settings.strict_ssl) {
+	if (!shared.config.strictSsl) {
 		// custom agents to disable SSL errors (adding both http and https, just in case)
-		config.httpAgent = new http.Agent({ rejectUnauthorized: false });
-		config.httpsAgent = new https.Agent({ rejectUnauthorized: false });
+		requestConfig.httpAgent = new http.Agent({ rejectUnauthorized: false });
+		requestConfig.httpsAgent = new https.Agent({ rejectUnauthorized: false });
 	}
 
-	let buffer;
-	try {
-		const response = await axios(config);
-		buffer = Buffer.from(response.data, 'binary');
-	} catch (ex) {
-		if (ex.response) {
-			// request was made, but server responded with an error status code
-			throw 'StatusCodeError: ' + ex.response.status;
-		} else {
-			// something else went wrong, rethrow
-			throw ex;
-		}
-	}
+	const response = await axios(requestConfig);
+	const buffer = Buffer.from(response.data, 'binary');
+
 	return buffer;
-}
-
-function getPostPath(post, config) {
-	let dt;
-	if (settings.custom_date_formatting) {
-		dt = luxon.DateTime.fromFormat(post.frontmatter.date, settings.custom_date_formatting);
-	} else {
-		dt = luxon.DateTime.fromISO(post.frontmatter.date);
-	}
-
-	// start with base output dir
-	const pathSegments = [config.output];
-
-	// create segment for post type if we're dealing with more than just "post"
-	if (config.includeOtherTypes) {
-		pathSegments.push(post.meta.type);
-	}
-
-	if (config.yearFolders) {
-		pathSegments.push(dt.toFormat('yyyy'));
-	}
-
-	if (config.monthFolders) {
-		pathSegments.push(dt.toFormat('LL'));
-	}
-
-	// create slug fragment, possibly date prefixed
-	let slugFragment = post.meta.slug;
-	if (config.prefixDate) {
-		slugFragment = dt.toFormat('yyyy-LL-dd') + '-' + slugFragment;
-	}
-
-	// use slug fragment as folder or filename as specified
-	if (config.postFolders) {
-		pathSegments.push(slugFragment, 'index.md');
-	} else {
-		pathSegments.push(slugFragment + '.md');
-	}
-
-	return path.join(...pathSegments);
 }
 
 function checkFile(path) {
 	return fs.existsSync(path);
 }
 
-exports.writeFilesPromise = writeFilesPromise;
+function logSavingMessage(things, existingCount, remainingCount) {
+	shared.logHeading(`Saving ${things}`);
+	if (existingCount + remainingCount === 0) {
+		console.log(`No ${things} to save.`);
+	} else if (existingCount === 0) {
+		console.log(`${remainingCount} ${things} to save.`);
+	} else if (remainingCount === 0) {
+		console.log(`All ${existingCount} ${things} already saved.`);
+	} else {
+		console.log(`${existingCount} ${things} already saved, ${remainingCount} remaining.`);
+	}
+}
+
+function logPayloadResult(payload, errorMessage) {
+	const messageBits = [
+		errorMessage ? chalk.red('✗') : chalk.green('✓'),
+		chalk.gray(`[${payload.type}]`),
+		payload.name
+	];
+	if (errorMessage) {
+		messageBits.push(chalk.red(`(${errorMessage})`));
+	}
+
+	console.log(messageBits.join(' '));
+}

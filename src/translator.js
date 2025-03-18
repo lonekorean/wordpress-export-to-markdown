@@ -1,5 +1,9 @@
-const turndown = require('turndown');
-const turndownPluginGfm = require('turndown-plugin-gfm');
+import turndownPluginGfm from '@guyplusplus/turndown-plugin-gfm';
+import turndown from 'turndown';
+import * as shared from './shared.js';
+
+// init single reusable turndown service object upon import
+const turndownService = initTurndownService();
 
 function initTurndownService() {
 	const turndownService = new turndown({
@@ -10,15 +14,17 @@ function initTurndownService() {
 
 	turndownService.use(turndownPluginGfm.tables);
 
+	turndownService.remove(['style']); // <style> contents get dumped as plain text, would rather remove
+
 	// preserve embedded tweets
 	turndownService.addRule('tweet', {
-		filter: node => node.nodeName === 'BLOCKQUOTE' && node.getAttribute('class') === 'twitter-tweet',
+		filter: (node) => node.nodeName === 'BLOCKQUOTE' && node.getAttribute('class') === 'twitter-tweet',
 		replacement: (content, node) => '\n\n' + node.outerHTML
 	});
 
 	// preserve embedded codepens
 	turndownService.addRule('codepen', {
-		filter: node => {
+		filter: (node) => {
 			// codepen embed snippets have changed over the years
 			// but this series of checks should find the commonalities
 			return (
@@ -28,6 +34,14 @@ function initTurndownService() {
 			);
 		},
 		replacement: (content, node) => '\n\n' + node.outerHTML
+	});
+
+	// <div> within <a> can cause extra whitespace that wreck markdown links, so this removes them
+	turndownService.addRule('a', {
+		filter: 'a',
+		replacement: (content) => {
+			return content.replace(/<\/?div[^>]*>/gi, '');
+		}
 	});
 
 	// preserve embedded scripts (for tweets, codepens, gists, etc.)
@@ -73,7 +87,7 @@ function initTurndownService() {
 	// preserve <figcaption>
 	turndownService.addRule('figcaption', {
 		filter: 'figcaption',
-		replacement: (content, node) => {
+		replacement: (content) => {
 			// extra newlines are necessary for markdown and HTML to render correctly together
 			return '\n\n<figcaption>\n\n' + content + '\n\n</figcaption>\n\n';
 		}
@@ -81,12 +95,12 @@ function initTurndownService() {
 
 	// convert <pre> into a code block with language when appropriate
 	turndownService.addRule('pre', {
-		filter: node => {
+		filter: (node) => {
 			// a <pre> with <code> inside will already render nicely, so don't interfere
 			return node.nodeName === 'PRE' && !node.querySelector('code');
 		},
 		replacement: (content, node) => {
-			const language = node.getAttribute('data-wetm-language') || '';
+			const language = node.getAttribute('data-wetm-language') ?? '';
 			return '\n\n```' + language + '\n' + node.textContent + '\n```\n\n';
 		}
 	});
@@ -94,18 +108,16 @@ function initTurndownService() {
 	return turndownService;
 }
 
-function getPostContent(postData, turndownService, config) {
-	let content = postData.encoded[0];
-
+export function getPostContent(content) {
 	// insert an empty div element between double line breaks
 	// this nifty trick causes turndown to keep adjacent paragraphs separated
 	// without mucking up content inside of other elements (like <code> blocks)
 	content = content.replace(/(\r?\n){2}/g, '\n<div></div>\n');
 
-	if (config.saveScrapedImages) {
+	if (shared.config.saveImages === 'scraped' || shared.config.saveImages === 'all') {
 		// writeImageFile() will save all content images to a relative /images
 		// folder so update references in post content to match
-		content = content.replace(/(<img[^>]*src=").*?([^/"]+\.(?:gif|jpe?g|png|webp))("[^>]*>)/gi, '$1images/$2$3');
+		content = content.replace(/(<img(?=\s)[^>]+?(?<=\s)src=")[^"]*?([^/"]+)("[^>]*>)/gi, '$1images/$2$3');
 	}
 
 	// preserve "more" separator, max one per post, optionally with custom label
@@ -122,8 +134,8 @@ function getPostContent(postData, turndownService, config) {
 	// clean up extra spaces in list items
 	content = content.replace(/(-|\d+\.) +/g, '$1 ');
 
+	// collapse excessive newlines (can happen with a lot of <div>)
+	content = content.replace(/(\r?\n){3,}/g, '\n\n');
+
 	return content;
 }
-
-exports.initTurndownService = initTurndownService;
-exports.getPostContent = getPostContent;
