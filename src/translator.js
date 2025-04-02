@@ -37,12 +37,12 @@ function initTurndownService() {
 	});
 
 	// <div> within <a> can cause extra whitespace that wreck markdown links, so this removes them
-	// turndownService.addRule('a', {
-	// 	filter: 'a',
-	// 	replacement: (content) => {
-	// 		return content.replace(/<\/?div[^>]*>/gi, '');
-	// 	}
-	// });
+	turndownService.addRule('div', {
+		filter: (node) => {
+			return node.nodeName === 'DIV' && node.closest('a') !== null;
+		},
+		replacement: (content) => content
+	});
 
 	// preserve embedded scripts (for tweets, codepens, gists, etc.)
 	turndownService.addRule('script', {
@@ -79,7 +79,7 @@ function initTurndownService() {
 				return result.replace('\n\n\n\n', '\n\n'); // collapse quadruple newlines
 			} else {
 				// does not contain <figcaption>, do not preserve
-				return content;
+				return '\n' + content + '\n';
 			}
 		}
 	});
