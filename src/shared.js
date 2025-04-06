@@ -73,6 +73,14 @@ export function buildPostPath(post, overrideConfig) {
 
 export function getFilenameFromUrl(url) {
 	let filename = url.split('/').slice(-1)[0];
+	
+	// Remove query parameters and hash fragments from filename
+	filename = filename.split('?')[0].split('#')[0];
+	
+	// Replace any other invalid Windows filename characters
+	const invalidChars = /[<>:"\/\\|?*]/g;
+	filename = filename.replace(invalidChars, '_');
+	
 	try {
 		filename = decodeURIComponent(filename)
 	} catch (ex) {
