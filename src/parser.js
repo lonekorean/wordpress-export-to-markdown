@@ -122,7 +122,7 @@ function collectAttachedImages(allPostData) {
 		// filter to certain image file types
 		.filter((attachment) => {
 			const url = attachment.childValue('attachment_url');
-			return url && (/\.(gif|jpe?g|png|webp)$/i).test(url);
+			return url && (/\.(gif|jpe?g|png|webp)(\?|$)/i).test(url);
 		})
 		.map((attachment) => ({
 			id: attachment.childValue('post_id'),
