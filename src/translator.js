@@ -128,6 +128,13 @@ export function getPostContent(content) {
 	// <pre> block, save it to a data attribute so the "pre" rule can use it
 	content = content.replace(/(<!-- wp:.+? \{"language":"(.+?)"\} -->\r?\n<pre )/g, '$1data-wetm-language="$2" ');
 
+	// convert [code] blocks with optional language to <code>
+	const codeRegex = /\[code(\s+language\s*=\s*"(?<lang>[^"]+)")?.*?\](?<src>.+?)\[\/code\]/gs;
+	content = content.replace(codeRegex, (match, _, lang, src) => {
+		const language = lang || 'none';
+		return `<div><pre><code class="language-${language}">${src.trim()}</code></pre></div>`;
+	});
+	
 	// use turndown to convert HTML to Markdown
 	content = turndownService.turndown(content);
 
