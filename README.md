@@ -145,6 +145,61 @@ Allowed values:
 
 - A comma separated list with any of the following: `author`, `categories`, `coverImage`, `date`, `draft`, `excerpt`, `id`, `slug`, `tags`, `title`, `type`. You can rename a field by appending `:` and the alias to use. For example, `date:created` will rename `date` to `created`.
 
+### Frontmatter meta
+
+```
+--frontmatter-meta=rank_math_seo_score:seo_score,rank_math_contentai_score
+```
+
+Comma separated list of the WP post meta values to include in the frontmatter of Markdown files. Serialized PHP arrays get unserialized and converted to corresponding YAML structures.
+
+### Append WP post meta to Content
+
+```
+--append-meta=staff_sidebar:sidebar
+```
+
+Extract listed WP post meta and append it to content using MDC component syntax.
+
+e.g.
+```
+::sidebar
+WP meta content from 'staff_sidebar' post meta key converted to markdown
+::
+```
+
+### Specific content types
+
+```
+--post-types=post,page
+```
+
+Comma separated list of the content types to include in Markdown files. Leave empty to include all default content types.
+
+Allowed values:
+
+- A comma separated list: `post`, `page`, etc.
+
+### Exclude specific content types
+
+```
+--exclude-post-types=nf_sub,et_pb_layout,acf-post-type,acf-field,acf-field-group,rm_content_editor,rank_math_schema
+```
+
+Comma separated list of the content types to exclude from Markdown files. Leave empty to include all default content types.
+
+### Strip shortcodes
+
+```
+--strip-shortcodes=true
+```
+
+Strip shortcodes from content converting the content therein into simple <div> tags.
+
+Allowed values:
+
+- `true` or `false`.
+
 ### Delay between image file requests?
 
 ```

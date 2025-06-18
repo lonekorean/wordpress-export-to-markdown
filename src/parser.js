@@ -5,6 +5,7 @@ import * as data from './data.js';
 import * as frontmatter from './frontmatter.js';
 import * as shared from './shared.js';
 import * as translator from './translator.js';
+import { unserialize } from 'php-serialize'
 
 export async function parseFilePromise() {
 	shared.logHeading('Parsing');
@@ -12,7 +13,20 @@ export async function parseFilePromise() {
 	const rssData = await data.load(content);
 	const allPostData = rssData.child('channel').children('item');
 
-	const postTypes = getPostTypes(allPostData);
+	let postTypes = getPostTypes(allPostData);
+
+	if (shared.config.postTypes?.length) {
+		postTypes = postTypes.filter((postType) =>
+			shared.config.postTypes.includes(postType)
+		);
+	}
+
+	if (shared.config.excludePostTypes?.length) {
+		postTypes = postTypes.filter((postType) =>
+			! shared.config.postTypes.includes(postType)
+		);
+	}
+
 	const posts = collectPosts(allPostData, postTypes);
 
 	const images = [];
@@ -102,7 +116,18 @@ function buildPost(data) {
 
 		// these are possibly set later in mergeImagesIntoPosts()
 		coverImage: undefined,
-		imageUrls: []
+		imageUrls: [],
+
+		metaContent: Object.fromEntries(
+  		shared.config.appendMeta.map((field) => {
+        const [key, alias] = field.split(':');
+        const value = getPostMetaValue(data, key);
+        if (value !== undefined && value !== null && value !== '') {
+          // treat the value
+          return [alias ?? key, translator.getPostContent(value)];
+        }
+      }).filter(x => x)
+		)
 	};
 }
 
@@ -114,7 +139,22 @@ function getPostDate(data) {
 function getPostMetaValue(data, key) {
 	const metas = data.children('postmeta');
 	const meta = metas.find((meta) => meta.childValue('meta_key') === key);
-	return meta ? meta.childValue('meta_value') : undefined;
+
+	const raw = meta ? meta.childValue('meta_value') : undefined;
+
+	// If it looks like a PHP-serialized array/object, deserialize it
+  if (typeof raw === 'string' && /^a:\d+:/.test(raw.trim())) {
+    try {
+      // Note: you must have installed `php-serialize`
+      const parsed = unserialize(raw)
+      return parsed
+    } catch (e) {
+      // fallback to the raw string if unserialization fails
+      console.log(`Failed to unserialize meta value for key "${key}": ${raw}`);
+    }
+  }
+
+	return raw;
 }
 
 function collectAttachedImages(allPostData) {
@@ -139,7 +179,7 @@ function collectScrapedImages(allPostData, postTypes) {
 	postTypes.forEach((postType) => {
 		getItemsOfType(allPostData, postType).forEach((postData) => {
 			const postId = postData.childValue('post_id');
-			
+
 			const postContent = postData.childValue('encoded');
 			const scrapedUrls = [...postContent.matchAll(/<img(?=\s)[^>]+?(?<=\s)src="(.+?)"[^>]*>/gi)].map((match) => match[1]);
 			scrapedUrls.forEach((scrapedUrl) => {
@@ -204,6 +244,16 @@ function populateFrontmatter(posts) {
 
 			post.frontmatter[alias ?? key] = frontmatterGetter(post);
 		});
+
+
+		// Handling for meta fields
+    shared.config.frontmatterMeta.forEach((field) => {
+      const [key, alias] = field.split(':');
+      const value = getPostMetaValue(post.data, key);
+      if (value !== undefined && value !== null && value !== '') {
+        post.frontmatter[alias ?? key] = value;
+      }
+    });
 	});
 }
 

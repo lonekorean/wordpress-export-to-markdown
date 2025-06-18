@@ -96,6 +96,18 @@ async function loadMarkdownFilePromise(post) {
 		} else if (typeof value === 'boolean') {
 			// output unquoted
 			outputValue = value.toString();
+		} else if (value !== null && typeof value === 'object') {
+			// Nested objects → YAML mappings
+			outputValue = ""
+			for (const [subKey, subVal] of Object.entries(value)) {
+			  outputValue += `\n  ${subKey}: ${subVal}`
+			}
+		} else if (typeof value === 'string' && value.includes('\n')) {
+			// Multi-line strings → literal block
+			// outputValue = `${key}: |\n`
+			value.split('\n').forEach(line => {
+				outputValue += `  ${line}\n`
+			})
 		} else {
 			// single string value
 			const escapedValue = (value ?? '').replace(/"/g, '\\"');
@@ -110,6 +122,12 @@ async function loadMarkdownFilePromise(post) {
 	});
 
 	output += `---\n\n${post.content}\n`;
+
+	// for each post.metaContent object attribute, append to output
+	Object.entries(post.metaContent).forEach(([key, value]) => {
+		output += `\n\n::${key}\n${value}\n::\n`;
+	});
+
 	return output;
 }
 
