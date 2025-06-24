@@ -113,6 +113,62 @@ export function load() {
 			default: 'title,date,categories,tags,coverImage,draft'
 		},
 		{
+			name: 'frontmatter-meta',
+			type: 'list',
+			description: 'Meta fields to add to frontmatter',
+			// e.g. 'rank_math_seo_score,rank_math_contentai_score'
+			default: []
+		},
+		{
+			name: 'append-meta',
+			type: 'list',
+			description: 'Meta fields to apend to the content as MDC components',
+			default: []
+		},
+    {
+      name: 'strip-shortcodes',
+      type: 'boolean',
+      description: 'Strip shortcodes from content',
+      default: false
+    },
+    {
+      name: 'polylang',
+      type: 'boolean',
+      description: 'Process Polylang translation sets',
+      default: false
+    },
+    {
+      name: 'polylang-default-language',
+      type: 'string',
+      description: 'Polylang translation set to process',
+      default: 'en'
+    },
+		{
+			name: 'post-types',
+			type: 'list',
+			description: 'Post types to convert (empty for all)',
+			default: []
+		},
+		{
+			name: 'exclude-post-types',
+			type: 'list',
+			description: 'Post types to convert (empty for all)',
+			default: []
+		},
+    {
+      name: 'include-categories',
+      type: 'list',
+      description: 'Only export posts in these category slugs (domain="category")',
+      // e.g. 'news,resources,updates'
+      default: [],
+    },
+    {
+      name: 'exclude-categories',
+      type: 'list',
+      description: 'Exclude posts in these categories',
+      default: [],
+    },
+		{
 			name: 'request-delay',
 			type: 'integer',
 			description: 'Delay between image file requests',

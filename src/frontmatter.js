@@ -22,6 +22,11 @@ export function date(post) {
 	return post.date;
 }
 
+export function status(post) {
+	// status of the post, previously parsed and decoded
+	return post.data.childValue('status');
+}
+
 export function draft(post) {
 	// boolean representing the previously parsed draft status, only included when true
 	return post.isDraft ? true : undefined;
@@ -34,6 +39,11 @@ export function excerpt(post) {
 	return encoded ? encoded.replace(/[\r\n]+/gm, ' ') : undefined;
 }
 
+export function language(post) {
+	// language code, previously parsed and decoded
+	return post.polylang?.language || shared.config.polylangDefaultLanguage;
+}
+
 export function id(post) {
 	// previously parsed as a string, converted to integer here
 	return parseInt(post.id);
@@ -42,6 +52,20 @@ export function id(post) {
 export function slug(post) {
 	// previously parsed and decoded
 	return post.slug;
+}
+
+export function link(post) {
+	// previously parsed and decoded
+	if (post.link) {
+		try {
+			const url = new URL(post.link);
+			return url.pathname; // Extracts the path portion of the URL
+		} catch (error) {
+			// If post.link is not a valid URL, return it as is
+			return post.link;
+		}
+	}
+	return post.link;
 }
 
 export function tags(post) {

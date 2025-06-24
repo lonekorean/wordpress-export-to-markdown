@@ -145,6 +145,91 @@ Allowed values:
 
 - A comma separated list with any of the following: `author`, `categories`, `coverImage`, `date`, `draft`, `excerpt`, `id`, `slug`, `tags`, `title`, `type`. You can rename a field by appending `:` and the alias to use. For example, `date:created` will rename `date` to `created`.
 
+### Frontmatter meta
+
+```
+--frontmatter-meta=rank_math_seo_score:seo.score,title:seo.title,rank_math_contentai_score
+```
+
+Comma separated list of the WP post meta values to include in the frontmatter of Markdown files. Serialized PHP arrays get unserialized and converted to corresponding YAML structures. Dotted notation for nested frontmatter placement is supported with the example above reuslting in the following output:
+
+```yaml
+---
+seo:
+  score: 90
+  title: SEO Title
+rank_math_contentai_score: 85
+---
+```
+
+### Append WP post meta to Content
+
+```
+--append-meta=staff_sidebar:sidebar
+```
+
+Extract listed WP post meta and append it to content using MDC component syntax.
+
+e.g.
+```
+::sidebar
+WP meta content from 'staff_sidebar' post meta key converted to markdown
+::
+```
+
+### Specific content types
+
+```
+--post-types=post,page
+```
+
+Comma separated list of the content types to include in Markdown files. Leave empty to include all default content types.
+
+Allowed values:
+
+- A comma separated list: `post`, `page`, etc.
+
+### Exclude specific content types
+
+```
+--exclude-post-types=nf_sub,et_pb_layout,acf-post-type,acf-field,acf-field-group,rm_content_editor,rank_math_schema
+```
+
+Comma separated list of the content types to exclude from Markdown files. Leave empty to include all default content types.
+
+### Specific categories
+
+```
+--include-categories=news,resources
+--exclude-categories=updates
+```
+
+Include or exclude content from specific categories based on those slugs.
+
+### Strip shortcodes
+
+```
+--strip-shortcodes=true
+```
+
+Strip shortcodes from content converting the content therein into simple <div> tags.
+
+Allowed values:
+
+- `true` or `false`.
+
+### Polylang translation sets support
+
+```
+--polylang=true
+```
+
+Include translations of posts in Markdown files. Translation sets will be produced with locale suffixes. E.g. `index.en.md` and `index.fr.md` for English- and French-language versions of the content.
+
+Allowed values:
+
+- `true` or `false`.
+
 ### Delay between image file requests?
 
 ```

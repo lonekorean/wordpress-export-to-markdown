@@ -108,8 +108,39 @@ function initTurndownService() {
 	return turndownService;
 }
 
+/**
+ * Convert any WordPress shortcode into a <div> wrapper,
+ * strip out self-closing shortcodes entirely.
+ */
+function simplifyAllShortcodes(content) {
+  // 1) Capture:
+  //    1st group = the tag name ([foo] or [/foo])
+  //    2nd group = any attributes (optional)
+  //    3rd group = a trailing slash (if self-closing)
+  const pattern = /\[\/?([A-Za-z0-9_]+)([^\]]*?)(\/)?\]/g;
+
+  return content.replace(pattern, (fullMatch, tagName, attrs, selfClosing) => {
+    // 2) If it’s self-closing (matched that 3rd capture), drop it
+    if (selfClosing) {
+      return '';
+    }
+
+    // 3) Otherwise decide opening vs closing:
+    const isClosing = fullMatch.startsWith('[/' + tagName);
+
+    // 4) Replace with <div> or </div>
+    return isClosing
+      ? `</div>`
+      : `<div class="${tagName}">`;
+  });
+}
+
 export function getPostContent(content) {
-	// insert an empty div element between double line breaks
+	if (shared.config.stripShortcodes) {
+		content = simplifyAllShortcodes(content);
+	}
+
+  // insert an empty div element between double line breaks
 	// this nifty trick causes turndown to keep adjacent paragraphs separated
 	// without mucking up content inside of other elements (like <code> blocks)
 	content = content.replace(/(\r?\n){2}/g, '\n<div></div>\n');
