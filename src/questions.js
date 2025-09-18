@@ -107,6 +107,18 @@ export function load() {
 			default: 'output'
 		},
 		{
+		    name: 'append-language-to-slug',
+		    type: 'boolean',
+		    description: 'Append language code to slug to prevent overwrites (WPML)',
+		    default: true
+		},
+		{
+		    name: 'default-language',
+		    type: 'string',
+		    description: 'Default language code when URL has no language prefix (e.g. de, en, it, fr, es)',
+		    default: 'de'
+		},
+		{
 			name: 'frontmatter-fields',
 			type: 'list',
 			description: 'Frontmatter fields',

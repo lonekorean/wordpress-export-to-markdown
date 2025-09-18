@@ -61,6 +61,11 @@ export function buildPostPath(post, overrideConfig) {
 		slug = post.date.toFormat('yyyy-LL-dd') + '-' + slug;
 	}
 
+	// Append language suffix to prevent WPML collisions
+	if ((pathConfig.appendLanguageToSlug ?? true) && post.lang) {
+		slug = slug + '-' + post.lang;
+	}
+
 	// use slug as folder or filename as specified
 	if (pathConfig.postFolders) {
 		pathSegments.push(slug, 'index.md');

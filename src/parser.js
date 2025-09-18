@@ -85,6 +85,7 @@ function collectPosts(allPostData, postTypes) {
 }
 
 function buildPost(data) {
+	const lang = getLanguageCode(data);
 	return {
 		// full raw post data
 		data,
@@ -96,6 +97,7 @@ function buildPost(data) {
 		type: data.childValue('post_type'),
 		id: data.childValue('post_id'),
 		isDraft: data.childValue('status') === 'draft',
+		lang: lang,
 		slug: decodeURIComponent(data.childValue('post_name')),
 		date: getPostDate(data),
 		coverImageId: getPostMetaValue(data, '_thumbnail_id'),
@@ -104,6 +106,23 @@ function buildPost(data) {
 		coverImage: undefined,
 		imageUrls: []
 	};
+}
+
+function getLanguageCode(data) {
+  // aus https://domain.tld/en/blog/slug/ -> "en"
+  try {
+    const link = data.childValue('link');
+    if (link) {
+      const url = new URL(link);
+      const parts = url.pathname.split('/').filter((p) => p.length > 0);
+      const first = parts.length > 0 ? parts[0].toLowerCase() : undefined;
+      if (first && /^[a-z]{2}(-[a-z]{2})?$/.test(first)) {
+        return first.split('-')[0]; // normalisiert auf 2 Buchstaben
+      }
+    }
+  } catch (e) { /* ignore */ }
+  // Fallback, falls keine Sprachkennung in der URL steckt
+  return (shared.config.defaultLanguage || 'de').toLowerCase();
 }
 
 function getPostDate(data) {

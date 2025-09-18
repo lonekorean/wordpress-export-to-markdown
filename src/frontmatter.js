@@ -61,3 +61,7 @@ export function type(post) {
 	// previously parsed but not decoded, can be "post", "page", or other custom types
 	return post.type;
 }
+
+export function lang(post) {
+  return post.lang;
+}

@@ -136,14 +136,14 @@ Allowed values:
 ### Frontmatter fields?
 
 ```
---frontmatter-fields=title,date,categories,tags,coverImage,draft
+--frontmatter-fields=title,date,categories,tags,coverImage,lang,draft
 ```
 
 Comma separated list of the frontmatter fields to include in Markdown files. Order is preserved. If a post doesn't have a value for a field, it is left off.
 
 Allowed values:
 
-- A comma separated list with any of the following: `author`, `categories`, `coverImage`, `date`, `draft`, `excerpt`, `id`, `slug`, `tags`, `title`, `type`. You can rename a field by appending `:` and the alias to use. For example, `date:created` will rename `date` to `created`.
+- A comma separated list with any of the following: `author`, `categories`, `coverImage`, `date`, `draft`, `excerpt`, `id`, `lang`, `slug`, `tags`, `title`, `type`. You can rename a field by appending `:` and the alias to use. For example, `date:created` will rename `date` to `created`.
 
 ### Delay between image file requests?
 
@@ -231,6 +231,31 @@ Allowed values:
 
 - `true` - Use strict SSL. This is the safer option.
 - `false` - Don't use strict SSL. This will let you avoid the "self-signed certificate" error when working with a self-signed server. Just make sure you know what you're doing.
+
+### Append language code to slug?
+
+```
+--append-language-to-slug=true
+```
+
+Append a 2-letter language code (detected from the post URL) to each post slug to prevent filename or folder collisions on multilingual sites (e.g., WPML, Polylang). Regional variants like `en-us` are normalized to `en`. Applied to both file names and per-post folders.
+
+Allowed values:
+
+- `true` - Append the detected language code to the slug. Example: `2025-05-01-post` becomes `2025-05-01-post-en`.
+- `false` - Do not append a language code. Restores the previous behavior and may overwrite files when multiple languages share the same slug.
+
+### Default language?
+
+```
+--default-language=en
+```
+
+Fallback language code to use when the post URL does not contain a language prefix. The value is normalized to lowercase and used for the slug (if `--append-language-to-slug=true`) and the optional `lang` frontmatter field.
+
+Allowed values:
+
+- Any 2-letter ISO 639-1 code, for example: `en`, `de`, `it`, `fr`, `es`.
 
 ## Local Development
 
