@@ -62,7 +62,6 @@ export function type(post) {
 	return post.type;
 }
 
-
 export function meta(post) {
 	return post.meta;
 }
