@@ -14,6 +14,7 @@ export async function writeFilesPromise(posts) {
 }
 
 async function writeJSONFile(posts) {
+	shared.logHeading(`Saving posts data as 'posts.json'`);
 	const jsonData = JSON.stringify(posts, undefined, 4);
 	const filename = shared.getOutputPath("posts.json");
 	writeFile(filename, jsonData);

@@ -90,16 +90,16 @@ function buildPost(data) {
 		data,
 
 		// body content converted to markdown
-		content: translator.getPostContent(data.childValue("encoded")),
+		content: translator.getPostContent(data.childValue('encoded')),
 
 		// particularly useful values for all sorts of things
-		type: data.childValue("post_type"),
-		id: data.childValue("post_id"),
-		isDraft: data.childValue("status") === "draft",
-		slug: decodeURIComponent(data.childValue("post_name")),
+		type: data.childValue('post_type'),
+		id: data.childValue('post_id'),
+		isDraft: data.childValue('status') === 'draft',
+		slug: decodeURIComponent(data.childValue('post_name')),
 		date: getPostDate(data),
 		meta: getPostMeta(data),
-		coverImageId: getPostMetaValue(data, "_thumbnail_id"),
+		coverImageId: getPostMetaValue(data, '_thumbnail_id'),
 
 		// these are possibly set later in mergeImagesIntoPosts()
 		coverImage: undefined,
@@ -113,7 +113,7 @@ function getPostDate(data) {
 }
 
 function getPostMeta(data) {
-	const metas = data.children('postmeta');
+	const metas = data.children("postmeta");
 	let result = metas.reduce((acc, item) => {
 		const meta_key = item.childValue("meta_key");
 		const meta_value = item.childValue("meta_value");
