@@ -8,8 +8,15 @@ import path from 'path';
 import * as shared from './shared.js';
 
 export async function writeFilesPromise(posts) {
+	await writeJSONFile(posts);
 	await writeMarkdownFilesPromise(posts);
 	await writeImageFilesPromise(posts);
+}
+
+async function writeJSONFile(posts) {
+	const jsonData = JSON.stringify(posts);
+	const filename = shared.getOutputPath("posts.json");
+	writeFile(filename, jsonData);
 }
 
 async function processPayloadsPromise(payloads, loadFunc) {

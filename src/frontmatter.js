@@ -61,3 +61,8 @@ export function type(post) {
 	// previously parsed but not decoded, can be "post", "page", or other custom types
 	return post.type;
 }
+
+
+export function meta(post) {
+	return post.meta;
+}

@@ -25,6 +25,9 @@ import * as writer from './src/writer.js';
 	// parse data from XML and do Markdown translations
 	const posts = await parser.parseFilePromise()
 
+	console.log(posts);
+	
+
 	// write files and download images
 	await writer.writeFilesPromise(posts);
 
@@ -36,3 +39,4 @@ import * as writer from './src/writer.js';
 	console.log('\nSomething went wrong, execution halted early.');
 	console.error(ex);
 });
+
