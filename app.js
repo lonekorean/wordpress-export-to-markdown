@@ -25,9 +25,6 @@ import * as writer from './src/writer.js';
 	// parse data from XML and do Markdown translations
 	const posts = await parser.parseFilePromise()
 
-	console.log(posts);
-	
-
 	// write files and download images
 	await writer.writeFilesPromise(posts);
 

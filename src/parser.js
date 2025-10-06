@@ -86,25 +86,25 @@ function collectPosts(allPostData, postTypes) {
 
 function buildPost(data) {
 	return {
-        // full raw post data
-        data,
+		// full raw post data
+		data,
 
-        // body content converted to markdown
-        content: translator.getPostContent(data.childValue("encoded")),
+		// body content converted to markdown
+		content: translator.getPostContent(data.childValue("encoded")),
 
-        // particularly useful values for all sorts of things
-        type: data.childValue("post_type"),
-        id: data.childValue("post_id"),
-        isDraft: data.childValue("status") === "draft",
-        slug: decodeURIComponent(data.childValue("post_name")),
-        date: getPostDate(data),
-        meta: getPostMeta(data),
-        coverImageId: getPostMetaValue(data, "_thumbnail_id"),
+		// particularly useful values for all sorts of things
+		type: data.childValue("post_type"),
+		id: data.childValue("post_id"),
+		isDraft: data.childValue("status") === "draft",
+		slug: decodeURIComponent(data.childValue("post_name")),
+		date: getPostDate(data),
+		meta: getPostMeta(data),
+		coverImageId: getPostMetaValue(data, "_thumbnail_id"),
 
-        // these are possibly set later in mergeImagesIntoPosts()
-        coverImage: undefined,
-        imageUrls: [],
-    };
+		// these are possibly set later in mergeImagesIntoPosts()
+		coverImage: undefined,
+		imageUrls: [],
+	};
 }
 
 function getPostDate(data) {
@@ -115,16 +115,16 @@ function getPostDate(data) {
 function getPostMeta(data) {
 	const metas = data.children('postmeta');
 	let result = metas.reduce((acc, item) => {
-        const meta_key = item.childValue("meta_key");
-        const meta_value = item.childValue("meta_value");
-        // console.log("meta_key", meta_key);
-        // console.log("meta_value", meta_value);
-        // only add if meta_key is not starting with '_' as this seem to be internal field-names.
-        if (!meta_key.startsWith("_")) {
-            acc[meta_key] = meta_value;
-        }
-        return acc;
-    }, {});
+		const meta_key = item.childValue("meta_key");
+		const meta_value = item.childValue("meta_value");
+		// console.log("meta_key", meta_key);
+		// console.log("meta_value", meta_value);
+		// only add if meta_key is not starting with '_' as this seem to be internal field-names.
+		if (!meta_key.startsWith("_")) {
+			acc[meta_key] = meta_value;
+		}
+		return acc;
+	}, {});
 	return result;
 }
 
@@ -223,11 +223,16 @@ function populateFrontmatter(posts) {
 				const mainObj = frontmatterGetter(post);
 				frontmatterValue = mainObj[subKey];
 				if (!frontmatterValue) {
-                    throw `Could not find a frontmatter value for subKey "${subKey}".`;
-                }
-            } else {
+					// throw `Could not find a frontmatter value for subKey "${subKey}".`;
+					console.log(
+						`Could not find subKey "${subKey}" in postmeta. Ignoring.`
+					);
+				} else {
+					post.frontmatter[alias ?? key] = frontmatterValue;
+				}
+			} else {
+				post.frontmatter[alias ?? key] = frontmatterValue;
 			}
-			post.frontmatter[alias ?? key] = frontmatterValue;
 		});
 	});
 }

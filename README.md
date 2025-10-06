@@ -143,7 +143,13 @@ Comma separated list of the frontmatter fields to include in Markdown files. Ord
 
 Allowed values:
 
-- A comma separated list with any of the following: `author`, `categories`, `coverImage`, `date`, `draft`, `excerpt`, `id`, `slug`, `tags`, `title`, `type`. You can rename a field by appending `:` and the alias to use. For example, `date:created` will rename `date` to `created`.
+- A comma separated list with any of the following: `author`, `categories`, `coverImage`, `date`, `draft`, `excerpt`, `id`, `slug`, `tags`, `title`, `type`, `meta`. 
+    - You can rename a field by appending `:` and the alias to use. For example, `date:created` will rename `date` to `created`.
+    - `meta`: use *dot-notation* as following to access any available post-**meta** fields:
+        ```bash
+        npx wordpress-export-to-markdown  --frontmatter-fields "title,date,categories,tags,coverImage,draft,meta.YOUR_CUSTOM_FIELDNAME:maybeAliased"
+        ```
+        if the field is not available it is ignored.
 
 ### Delay between image file requests?
 

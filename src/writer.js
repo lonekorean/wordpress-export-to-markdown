@@ -14,7 +14,7 @@ export async function writeFilesPromise(posts) {
 }
 
 async function writeJSONFile(posts) {
-	const jsonData = JSON.stringify(posts);
+	const jsonData = JSON.stringify(posts, undefined, 4);
 	const filename = shared.getOutputPath("posts.json");
 	writeFile(filename, jsonData);
 }
