@@ -48,6 +48,24 @@ export function load() {
 			prompt: inquirer.select
 		},
 		{
+			name: 'use-id',
+			type: 'boolean',
+			description: 'Use post ID instead of slug when naming files or folders',
+			default: false,
+			choices: [
+				{
+					name: 'Yes',
+					value: true
+				},
+				{
+					name: 'No',
+					value: false
+				}
+			],
+			isPathQuestion: true,
+			prompt: inquirer.select
+		},
+		{
 			name: 'date-folders',
 			type: 'choice',
 			description: 'Organize posts into date folders',
