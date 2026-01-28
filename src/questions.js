@@ -70,6 +70,13 @@ export function load() {
 			prompt: inquirer.select
 		},
 		{
+			name: 'truncate-filenames',
+			type: 'integer',
+			description: 'Maximum length for filenames (0 for no limit)',
+			default: 20,
+			prompt: inquirer.input
+		},
+		{
 			name: 'save-images',
 			type: 'choice',
 			description: 'Save images',
