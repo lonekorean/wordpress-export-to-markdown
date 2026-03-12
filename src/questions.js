@@ -113,6 +113,40 @@ export function load() {
 			default: 'title,date,categories,tags,coverImage,draft'
 		},
 		{
+			name: 'include-custom-taxonomies',
+			type: 'boolean',
+			description: 'Include custom taxonomies in post frontmatter',
+			default: true,
+			choices: [
+				{
+					name: 'Yes',
+					value: true
+				},
+				{
+					name: 'No',
+					value: false
+				}
+			],
+			prompt: inquirer.select
+		},
+		{
+			name: 'save-taxonomy-data',
+			type: 'boolean',
+			description: 'Save taxonomy data to JSON files (categories, tags, and custom taxonomies if enabled)',
+			default: true,
+			choices: [
+				{
+					name: 'Yes',
+					value: true
+				},
+				{
+					name: 'No',
+					value: false
+				}
+			],
+			prompt: inquirer.select
+		},
+		{
 			name: 'request-delay',
 			type: 'integer',
 			description: 'Delay between image file requests',

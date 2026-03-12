@@ -10,7 +10,9 @@ import * as shared from './shared.js';
 export async function writeFilesPromise(posts, taxonomies) {
 	await writeMarkdownFilesPromise(posts);
 	await writeImageFilesPromise(posts);
-	await writeTaxonomyFilesPromise(taxonomies);
+	if (shared.config.saveTaxonomyData) {
+		await writeTaxonomyFilesPromise(taxonomies);
+	}
 }
 
 async function processPayloadsPromise(payloads, loadFunc) {
@@ -193,7 +195,14 @@ function logSavingMessage(things, existingCount, remainingCount) {
 async function writeTaxonomyFilesPromise(taxonomies) {
 	shared.logHeading('Saving taxonomy data');
 
-	const entries = Object.entries(taxonomies);
+	const builtInTaxonomies = ['category', 'post_tag'];
+	const filteredTaxonomies = Object.fromEntries(
+		Object.entries(taxonomies).filter(([name]) =>
+			builtInTaxonomies.includes(name) || shared.config.includeCustomTaxonomies
+		)
+	);
+
+	const entries = Object.entries(filteredTaxonomies);
 	if (entries.length === 0) {
 		console.log('No taxonomy data to save.');
 		return;

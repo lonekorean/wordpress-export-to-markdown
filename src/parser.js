@@ -224,15 +224,17 @@ function populateFrontmatter(posts) {
 		});
 
 		// inject custom taxonomy slugs into frontmatter, each taxonomy as its own field
-		Object.entries(post.customTaxonomies).forEach(([domain, slugs]) => {
-			if (slugs.length > 0) {
-				if (Object.hasOwn(post.frontmatter, domain)) {
-					console.warn(`⚠️  Skipping custom taxonomy '${domain}' on post '${post.slug}' because it conflicts with an existing frontmatter field.`);
-					return;
+		if (shared.config.includeCustomTaxonomies) {
+			Object.entries(post.customTaxonomies).forEach(([domain, slugs]) => {
+				if (slugs.length > 0) {
+					if (Object.hasOwn(post.frontmatter, domain)) {
+						console.warn(`⚠️  Skipping custom taxonomy '${domain}' on post '${post.slug}' because it conflicts with an existing frontmatter field.`);
+						return;
+					}
+					post.frontmatter[domain] = slugs;
 				}
-				post.frontmatter[domain] = slugs;
-			}
-		});
+			});
+		}
 	});
 }
 
