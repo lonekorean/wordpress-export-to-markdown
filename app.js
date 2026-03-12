@@ -23,10 +23,10 @@ import * as writer from './src/writer.js';
 	await intake.getConfig();
 
 	// parse data from XML and do Markdown translations
-	const posts = await parser.parseFilePromise()
+	const { posts, taxonomies } = await parser.parseFilePromise()
 
 	// write files and download images
-	await writer.writeFilesPromise(posts);
+	await writer.writeFilesPromise(posts, taxonomies);
 
 	// happy goodbye
 	console.log('\nAll done!');
