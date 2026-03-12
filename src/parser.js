@@ -236,29 +236,34 @@ function populateFrontmatter(posts) {
 	});
 }
 
+function buildTaxonomyEntry({ slug, name, parent, description }) {
+	const entry = { slug, name };
+	if (parent) entry.parent = parent;
+	if (description) entry.description = description;
+	return entry;
+}
+
 function collectTaxonomyMetadata(channel) {
 	const taxonomies = {};
 
 	// channel-level <wp:category> elements (stripped to 'category')
 	const wpCategories = channel.children('category');
 	if (wpCategories.length > 0) {
-		taxonomies.category = wpCategories.map((cat) => ({
-			termId: parseInt(cat.optionalChildValue('term_id')),
+		taxonomies.category = wpCategories.map((cat) => buildTaxonomyEntry({
 			slug: cat.optionalChildValue('category_nicename'),
 			name: cat.optionalChildValue('cat_name'),
-			parent: cat.optionalChildValue('category_parent') || null,
-			description: cat.optionalChildValue('category_description') || null
+			parent: cat.optionalChildValue('category_parent'),
+			description: cat.optionalChildValue('category_description')
 		}));
 	}
 
 	// channel-level <wp:tag> elements (stripped to 'tag')
 	const wpTags = channel.children('tag');
 	if (wpTags.length > 0) {
-		taxonomies.post_tag = wpTags.map((tag) => ({
-			termId: parseInt(tag.optionalChildValue('term_id')),
+		taxonomies.post_tag = wpTags.map((tag) => buildTaxonomyEntry({
 			slug: tag.optionalChildValue('tag_slug'),
 			name: tag.optionalChildValue('tag_name'),
-			description: tag.optionalChildValue('tag_description') || null
+			description: tag.optionalChildValue('tag_description')
 		}));
 	}
 
@@ -272,13 +277,12 @@ function collectTaxonomyMetadata(channel) {
 		if (!taxonomies[taxonomy]) {
 			taxonomies[taxonomy] = [];
 		}
-		taxonomies[taxonomy].push({
-			termId: parseInt(term.optionalChildValue('term_id')),
+		taxonomies[taxonomy].push(buildTaxonomyEntry({
 			slug: term.optionalChildValue('term_slug'),
 			name: term.optionalChildValue('term_name'),
-			parent: term.optionalChildValue('term_parent') || null,
-			description: term.optionalChildValue('term_description') || null
-		});
+			parent: term.optionalChildValue('term_parent'),
+			description: term.optionalChildValue('term_description')
+		}));
 	});
 
 	return taxonomies;
