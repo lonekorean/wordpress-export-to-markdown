@@ -226,7 +226,7 @@ function populateFrontmatter(posts) {
 		// inject custom taxonomy slugs into frontmatter, each taxonomy as its own field
 		Object.entries(post.customTaxonomies).forEach(([domain, slugs]) => {
 			if (slugs.length > 0) {
-				if (post.frontmatter.hasOwnProperty(domain)) {
+				if (Object.hasOwn(post.frontmatter, domain)) {
 					console.warn(`⚠️  Skipping custom taxonomy '${domain}' on post '${post.slug}' because it conflicts with an existing frontmatter field.`);
 					return;
 				}
