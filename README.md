@@ -9,6 +9,7 @@ Converts a WordPress export XML file into Markdown files. This makes it easy to 
 - Saves each post as a separate Markdown file with frontmatter.
 - Also saves drafts, pages, and custom post types, if you have any.
 - Downloads images and updates references to them.
+- Exports comments to Markdown (optional).
 - User-friendly wizard guides you through the process.
 - Lots of command line options for configuration, if needed.
 
@@ -103,6 +104,19 @@ Allowed values:
 - `scraped` - Save images scraped from `<img>` tags in post body content. The `<img>` tags are updated to point to where the images are saved.
 - `all` - Save all images, essentially the results of `attached` and `scraped` combined.
 - `none` - Don't save any images.
+
+### Export comments?
+
+```
+--save-comments=false
+```
+
+Whether or not to export comments to the end of each post's Markdown file.
+
+Allowed values:
+
+- `true` - Comments are appended to each post in Markdown format with author name and date.
+- `false` - Comments are not exported.
 
 ## Advanced Options
 
