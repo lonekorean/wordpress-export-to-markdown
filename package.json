@@ -14,17 +14,17 @@
 	"author": "Will Boyd <will@codersblock.com> (https://codersblock.com)",
 	"license": "MIT",
 	"engines": {
-		"node": ">= 20.5.0"
+		"node": ">= 20.12.2"
 	},
 	"type": "module",
 	"dependencies": {
 		"@guyplusplus/turndown-plugin-gfm": "^1.0.7",
-		"@inquirer/prompts": "^7.4.0",
-		"axios": "^1.8.2",
-		"chalk": "^5.4.1",
-		"commander": "^13.1.0",
-		"luxon": "^3.5.0",
-		"turndown": "^7.2.0",
+		"@inquirer/prompts": "^8.4.3",
+		"axios": "^1.16.0",
+		"chalk": "^5.6.2",
+		"commander": "^14.0.3",
+		"luxon": "^3.7.2",
+		"turndown": "^7.2.4",
 		"xml2js": "^0.6.2"
 	},
 	"bin": {
