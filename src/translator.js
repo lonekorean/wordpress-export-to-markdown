@@ -114,13 +114,8 @@ export function getPostContent(content) {
 	// without mucking up content inside of other elements (like <code> blocks)
 	content = content.replace(/(\r?\n){2}/g, '\n<div></div>\n');
 
-	// Detect Windows Registry keys and technical logs in <strong> or <span> tags
-	// and wrap them in <pre> tags so Turndown converts them to code blocks
-	content = content.replace(/<(strong|span)[^>]*>\s*(HKLM|HKCU|HKEY_[A-Z_]+|Event ID\s*:)[^<]+<\/\1>/gi, '<pre>$&</pre>');
-
 	// Strip out completely invalid links like href="///" that cause SSG builds (like Hugo) to crash
 	content = content.replace(/<a[^>]*href="\/\/\/".*?>(.*?)<\/a>/g, '$1');
-
 
 	if (shared.config.saveImages === 'scraped' || shared.config.saveImages === 'all') {
 		// writeImageFile() will save all content images to a relative /images
