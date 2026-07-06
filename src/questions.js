@@ -95,6 +95,23 @@ export function load() {
 			prompt: inquirer.select
 		},
 		{
+			name: 'save-comments',
+			type: 'boolean',
+			description: 'Export comments',
+			default: false,
+			choices: [
+				{
+					name: 'Yes',
+					value: true
+				},
+				{
+					name: 'No',
+					value: false
+				}
+			],
+			prompt: inquirer.select
+		},
+		{
 			name: 'wizard',
 			type: 'boolean',
 			description: 'Use wizard',

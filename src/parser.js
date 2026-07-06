@@ -15,6 +15,10 @@ export async function parseFilePromise() {
 	const postTypes = getPostTypes(allPostData);
 	const posts = collectPosts(allPostData, postTypes);
 
+	if (shared.config.saveComments) {
+		collectComments(allPostData, posts);
+	}
+
 	const images = [];
 	if (shared.config.saveImages === 'attached' || shared.config.saveImages === 'all') {
 		images.push(...collectAttachedImages(allPostData));
@@ -102,7 +106,10 @@ function buildPost(data) {
 
 		// these are possibly set later in mergeImagesIntoPosts()
 		coverImage: undefined,
-		imageUrls: []
+		imageUrls: [],
+
+		// comments are collected separately
+		comments: []
 	};
 }
 
@@ -217,4 +224,37 @@ function prioritizePostType(postTypes, postType) {
 
 function isAbsoluteUrl(url) {
 	return (/^https?:\/\//i).test(url);
+}
+
+function collectComments(allPostData, posts) {
+	let commentCount = 0;
+	allPostData.forEach((postData) => {
+		const postId = postData.childValue('post_id');
+		const comments = postData.children('comment');
+		
+		if (comments.length > 0) {
+			const post = posts.find((p) => p.id === postId);
+			if (post) {
+				post.comments = comments
+					.filter((comment) => comment.childValue('comment_approved') === '1')
+					.map((comment) => ({
+						id: comment.childValue('comment_id'),
+						author: comment.childValue('comment_author'),
+						date: getCommentDate(comment),
+						content: translator.getPostContent(comment.childValue('comment_content'))
+					}));
+				commentCount += post.comments.length;
+			}
+		}
+	});
+	
+	if (commentCount > 0) {
+		console.log(`${commentCount} comments found.`);
+	}
+}
+
+function getCommentDate(data) {
+	const dateStr = data.childValue('comment_date');
+	const date = luxon.DateTime.fromFormat(dateStr, 'yyyy-MM-dd HH:mm:ss', { zone: shared.config.timezone });
+	return date.isValid ? date : undefined;
 }

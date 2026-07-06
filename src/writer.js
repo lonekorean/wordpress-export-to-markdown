@@ -110,6 +110,24 @@ async function loadMarkdownFilePromise(post) {
 	});
 
 	output += `---\n\n${post.content}\n`;
+
+	// append comments if enabled and comments exist
+	if (shared.config.saveComments && post.comments && post.comments.length > 0) {
+		output += formatComments(post.comments);
+	}
+
+	return output;
+}
+
+function formatComments(comments) {
+	let output = '\n---\n\n';
+	
+	comments.forEach((comment) => {
+		const dateStr = comment.date ? comment.date.toFormat('yyyy-MM-dd HH:mm') : 'Unknown date';
+		output += `**${comment.author}** - ${dateStr}\n`;
+		output += `${comment.content}\n\n`;
+	});
+	
 	return output;
 }
 
