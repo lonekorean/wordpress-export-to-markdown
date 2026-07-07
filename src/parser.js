@@ -84,13 +84,34 @@ function collectPosts(allPostData, postTypes) {
 	return allPosts;
 }
 
+function getFootnotes(data) {
+	const footnote = getPostMetaValue(data, 'footnotes');
+	if (footnote && typeof footnote === 'string' && footnote.trim().length > 0) {
+		const footnotesArray = JSON.parse(footnote);
+		if (footnotesArray.length === 0) {
+			return ''
+		}
+		const footnoteContent = [];
+		footnotesArray.forEach((footnote) => {
+			footnoteContent.push(
+				`[^${footnote.id}]: ${ translator.getPostContent(footnote.content)}`
+			);
+		})
+		return `\n\n${footnoteContent.join(`\n\n`)}`
+	}
+	return '';
+}
+
 function buildPost(data) {
+	let content = translator.getPostContent(data.childValue('encoded'));
+	content = `${content} ${getFootnotes(data)}`;
+
 	return {
 		// full raw post data
 		data,
 
 		// body content converted to markdown
-		content: translator.getPostContent(data.childValue('encoded')),
+		content,
 
 		// particularly useful values for all sorts of things
 		type: data.childValue('post_type'),
@@ -139,7 +160,7 @@ function collectScrapedImages(allPostData, postTypes) {
 	postTypes.forEach((postType) => {
 		getItemsOfType(allPostData, postType).forEach((postData) => {
 			const postId = postData.childValue('post_id');
-			
+
 			const postContent = postData.childValue('encoded');
 			const scrapedUrls = [...postContent.matchAll(/<img(?=\s)[^>]+?(?<=\s)src="(.+?)"[^>]*>/gi)].map((match) => match[1]);
 			scrapedUrls.forEach((scrapedUrl) => {

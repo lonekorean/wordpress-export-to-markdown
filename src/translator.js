@@ -105,6 +105,15 @@ function initTurndownService() {
 		}
 	});
 
+	turndownService.addRule('sup', {
+		filter: ['sup'],
+		replacement: function (content) {
+			const regex = /\[(\d+)\]\(#(.*?)\)/g;
+			const result = content.replace(regex, '[^$2]')
+			return '<sup>' + result + '</sup>'
+		}
+	})
+
 	return turndownService;
 }
 
