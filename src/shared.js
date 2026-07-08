@@ -44,12 +44,14 @@ export function buildPostPath(post, overrideConfig) {
 
 	// add folders for date year/month as appropriate
 	if (post.date) {
-		if (pathConfig.dateFolders === 'year' || pathConfig.dateFolders === 'year-month') {
+		if (pathConfig.dateFolders === 'year' || pathConfig.dateFolders === 'year-month' || pathConfig.dateFolders === 'year-month-day') {
 			pathSegments.push(post.date.toFormat('yyyy'));
 		}
-
-		if (pathConfig.dateFolders === 'year-month') {
+		if (pathConfig.dateFolders === 'year-month' || pathConfig.dateFolders === 'year-month-day') {
 			pathSegments.push(post.date.toFormat('LL'));
+		}
+		if (pathConfig.dateFolders === 'year-month-day') {
+			pathSegments.push(post.date.toFormat('dd'));
 		}
 	}
 

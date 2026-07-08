@@ -62,6 +62,10 @@ export function load() {
 					value: 'year-month'
 				},
 				{
+					name: 'Year, month and day folders',
+					value: 'year-month-day'
+				},
+				{
 					name: 'No',
 					value: 'none'
 				}

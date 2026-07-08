@@ -81,12 +81,13 @@ Allowed values:
 --date-folders=none
 ```
 
-If and how output is organized into folders based on date.
+If and how output is organized into folders based on date.  This won't happen for posts with no date (for example, an undated draft post).
 
 Allowed values:
 
-- `year` - Output is organized into folders by year. This won't happen for posts with no date (for example, an undated draft post).
-- `year‑month` - Output is organized into folders by year, then into nested folders by month. Again, for posts with no date, this won't happen.
+- `year` - Output is organized into folders by year. 
+- `year‑month` - Output is organized into folders by year, then into nested folders by month.
+- `year‑month‑day` - Output is organized into folders by year, then nested by month, then nested by the day of the month.
 - `none` - No date folders are created.
 
 ### Save images?
