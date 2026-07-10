@@ -55,6 +55,10 @@ export function buildPostPath(post, overrideConfig) {
 
 	// get slug with fallback
 	let slug = getSlugWithFallback(post);
+	// use ID instead of slug if specified
+	if (pathConfig.useId) {
+		slug = post.id.toString();
+	}
 
 	// prepend date to slug as appropriate
 	if (pathConfig.prefixDate && post.date) {

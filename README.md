@@ -75,6 +75,20 @@ Allowed values:
 - `true` - Prepend the date, in the format `<year>-<month>-<day>`. Nothing will be prepended if there is no date (for example, an undated draft post).
 - `false` - Don't prepend the date.
 
+### Use post ID instead of slug?
+
+```
+--use-id=true
+```
+
+Whether to use the post ID instead of the post slug when naming post folders or files.  
+
+Note that if the slug is included in the frontmatter, some site generators (such as Hugo) will still use it when generating *their* paths, so you may wish to exclude `slug` from the frontmatter, or rename it to something else using the `--frontmatter-fields` option, for example::
+
+```
+--frontmatter-fields=title,date,id,slug:wpSlug
+```
+
 ### Organize posts into date folders?
 
 ```
