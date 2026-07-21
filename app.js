@@ -36,3 +36,4 @@ import * as writer from './src/writer.js';
 	console.log('\nSomething went wrong, execution halted early.');
 	console.error(ex);
 });
+

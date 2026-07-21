@@ -71,6 +71,10 @@ export function buildPostPath(post, overrideConfig) {
 	return path.join(...pathSegments);
 }
 
+export function getOutputPath(filename) {
+	return path.join(config.output, filename);
+}
+
 export function getFilenameFromUrl(url) {
 	let filename = url.split('/').slice(-1)[0];
 	

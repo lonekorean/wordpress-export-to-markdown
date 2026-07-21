@@ -98,17 +98,34 @@ function buildPost(data) {
 		isDraft: data.childValue('status') === 'draft',
 		slug: decodeURIComponent(data.childValue('post_name')),
 		date: getPostDate(data),
+		meta: getPostMeta(data),
 		coverImageId: getPostMetaValue(data, '_thumbnail_id'),
 
 		// these are possibly set later in mergeImagesIntoPosts()
 		coverImage: undefined,
-		imageUrls: []
+		imageUrls: [],
 	};
 }
 
 function getPostDate(data) {
 	const date = luxon.DateTime.fromRFC2822(data.childValue('pubDate'), { zone: shared.config.timezone });
 	return date.isValid ? date : undefined;
+}
+
+function getPostMeta(data) {
+	const metas = data.children("postmeta");
+	let result = metas.reduce((acc, item) => {
+		const meta_key = item.childValue("meta_key");
+		const meta_value = item.childValue("meta_value");
+		// console.log("meta_key", meta_key);
+		// console.log("meta_value", meta_value);
+		// only add if meta_key is not starting with '_' as this seem to be internal field-names.
+		if (!meta_key.startsWith("_")) {
+			acc[meta_key] = meta_value;
+		}
+		return acc;
+	}, {});
+	return result;
 }
 
 function getPostMetaValue(data, key) {
@@ -196,13 +213,26 @@ function populateFrontmatter(posts) {
 		post.frontmatter = {};
 		shared.config.frontmatterFields.forEach((field) => {
 			const [key, alias] = field.split(':');
-
-			let frontmatterGetter = frontmatter[key];
+			const [frontmatterGetterKey, subKey] = key.split('.')
+			let frontmatterGetter = frontmatter[frontmatterGetterKey];
 			if (!frontmatterGetter) {
-				throw `Could not find a frontmatter getter named "${key}".`;
+				throw `Could not find a frontmatter getter named "${frontmatterGetterKey}".`;
 			}
-
-			post.frontmatter[alias ?? key] = frontmatterGetter(post);
+			let frontmatterValue = frontmatterGetter(post);
+			if (subKey) {
+				const mainObj = frontmatterGetter(post);
+				frontmatterValue = mainObj[subKey];
+				if (!frontmatterValue) {
+					// throw `Could not find a frontmatter value for subKey "${subKey}".`;
+					console.log(
+						`Could not find subKey "${subKey}" in postmeta. Ignoring.`
+					);
+				} else {
+					post.frontmatter[alias ?? key] = frontmatterValue;
+				}
+			} else {
+				post.frontmatter[alias ?? key] = frontmatterValue;
+			}
 		});
 	});
 }
