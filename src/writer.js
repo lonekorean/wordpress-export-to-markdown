@@ -7,9 +7,12 @@ import * as luxon from 'luxon';
 import path from 'path';
 import * as shared from './shared.js';
 
-export async function writeFilesPromise(posts) {
+export async function writeFilesPromise(posts, taxonomies) {
 	await writeMarkdownFilesPromise(posts);
 	await writeImageFilesPromise(posts);
+	if (shared.config.saveTaxonomyData) {
+		await writeTaxonomyFilesPromise(taxonomies);
+	}
 }
 
 async function processPayloadsPromise(payloads, loadFunc) {
@@ -186,6 +189,31 @@ function logSavingMessage(things, existingCount, remainingCount) {
 		console.log(`All ${existingCount} ${things} already saved.`);
 	} else {
 		console.log(`${existingCount} ${things} already saved, ${remainingCount} remaining.`);
+	}
+}
+
+async function writeTaxonomyFilesPromise(taxonomies) {
+	shared.logHeading('Saving taxonomy data');
+
+	const builtInTaxonomies = ['category', 'post_tag'];
+	const filteredTaxonomies = Object.fromEntries(
+		Object.entries(taxonomies).filter(([name]) =>
+			builtInTaxonomies.includes(name) || shared.config.includeCustomTaxonomies
+		)
+	);
+
+	const entries = Object.entries(filteredTaxonomies);
+	if (entries.length === 0) {
+		console.log('No taxonomy data to save.');
+		return;
+	}
+
+	const taxonomyDir = path.join(shared.config.output, 'taxonomies');
+	for (const [taxonomyName, terms] of entries) {
+		const filePath = path.join(taxonomyDir, `${taxonomyName}.json`);
+		const content = JSON.stringify(terms, null, '\t');
+		await writeFile(filePath, content);
+		console.log(`${chalk.green('✓')} ${chalk.gray('[taxonomy]')} ${taxonomyName}.json (${terms.length} terms)`);
 	}
 }
 

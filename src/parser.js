@@ -10,7 +10,10 @@ export async function parseFilePromise() {
 	shared.logHeading('Parsing');
 	const content = await fs.promises.readFile(shared.config.input, 'utf8');
 	const rssData = await data.load(content);
-	const allPostData = rssData.child('channel').children('item');
+	const channel = rssData.child('channel');
+	const allPostData = channel.children('item');
+
+	const taxonomies = collectTaxonomyMetadata(channel);
 
 	const postTypes = getPostTypes(allPostData);
 	const posts = collectPosts(allPostData, postTypes);
@@ -26,7 +29,7 @@ export async function parseFilePromise() {
 	mergeImagesIntoPosts(images, posts);
 	populateFrontmatter(posts);
 
-	return posts;
+	return { posts, taxonomies };
 }
 
 function getPostTypes(allPostData) {
@@ -85,6 +88,18 @@ function collectPosts(allPostData, postTypes) {
 }
 
 function buildPost(data) {
+	// collect custom taxonomy term slugs keyed by taxonomy slug
+	const customTaxonomies = {};
+	data.children('category')
+		.filter((cat) => cat.attribute('domain') !== 'category' && cat.attribute('domain') !== 'post_tag')
+		.forEach((cat) => {
+			const domain = cat.attribute('domain');
+			if (!customTaxonomies[domain]) {
+				customTaxonomies[domain] = [];
+			}
+			customTaxonomies[domain].push(decodeURIComponent(cat.attribute('nicename')));
+		});
+
 	return {
 		// full raw post data
 		data,
@@ -102,7 +117,10 @@ function buildPost(data) {
 
 		// these are possibly set later in mergeImagesIntoPosts()
 		coverImage: undefined,
-		imageUrls: []
+		imageUrls: [],
+
+		// custom taxonomy terms keyed by taxonomy slug
+		customTaxonomies
 	};
 }
 
@@ -204,7 +222,72 @@ function populateFrontmatter(posts) {
 
 			post.frontmatter[alias ?? key] = frontmatterGetter(post);
 		});
+
+		// inject custom taxonomy slugs into frontmatter, each taxonomy as its own field
+		if (shared.config.includeCustomTaxonomies) {
+			Object.entries(post.customTaxonomies).forEach(([domain, slugs]) => {
+				if (slugs.length > 0) {
+					if (Object.hasOwn(post.frontmatter, domain)) {
+						console.warn(`⚠️  Skipping custom taxonomy '${domain}' on post '${post.slug}' because it conflicts with an existing frontmatter field.`);
+						return;
+					}
+					post.frontmatter[domain] = slugs;
+				}
+			});
+		}
 	});
+}
+
+function buildTaxonomyEntry({ slug, name, parent, description }) {
+	const entry = { slug, name };
+	if (parent) entry.parent = parent;
+	if (description) entry.description = description;
+	return entry;
+}
+
+function collectTaxonomyMetadata(channel) {
+	const taxonomies = {};
+
+	// channel-level <wp:category> elements (stripped to 'category')
+	const wpCategories = channel.children('category');
+	if (wpCategories.length > 0) {
+		taxonomies.category = wpCategories.map((cat) => buildTaxonomyEntry({
+			slug: cat.optionalChildValue('category_nicename'),
+			name: cat.optionalChildValue('cat_name'),
+			parent: cat.optionalChildValue('category_parent'),
+			description: cat.optionalChildValue('category_description')
+		}));
+	}
+
+	// channel-level <wp:tag> elements (stripped to 'tag')
+	const wpTags = channel.children('tag');
+	if (wpTags.length > 0) {
+		taxonomies.post_tag = wpTags.map((tag) => buildTaxonomyEntry({
+			slug: tag.optionalChildValue('tag_slug'),
+			name: tag.optionalChildValue('tag_name'),
+			description: tag.optionalChildValue('tag_description')
+		}));
+	}
+
+	// channel-level <wp:term> elements (stripped to 'term') — custom taxonomies
+	const wpTerms = channel.children('term');
+	wpTerms.forEach((term) => {
+		const taxonomy = term.optionalChildValue('term_taxonomy');
+		if (!taxonomy || taxonomy === 'category' || taxonomy === 'post_tag') {
+			return;
+		}
+		if (!taxonomies[taxonomy]) {
+			taxonomies[taxonomy] = [];
+		}
+		taxonomies[taxonomy].push(buildTaxonomyEntry({
+			slug: term.optionalChildValue('term_slug'),
+			name: term.optionalChildValue('term_name'),
+			parent: term.optionalChildValue('term_parent'),
+			description: term.optionalChildValue('term_description')
+		}));
+	});
+
+	return taxonomies;
 }
 
 function prioritizePostType(postTypes, postType) {
