@@ -136,7 +136,7 @@ Allowed values:
 ### Frontmatter fields?
 
 ```
---frontmatter-fields=title,date,categories,tags,coverImage,draft
+--frontmatter-fields="title,date,categories,tags,coverImage,draft"
 ```
 
 Comma separated list of the frontmatter fields to include in Markdown files. Order is preserved. If a post doesn't have a value for a field, it is left off.
