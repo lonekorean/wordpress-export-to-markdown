@@ -89,6 +89,19 @@ Allowed values:
 - `year‑month` - Output is organized into folders by year, then into nested folders by month. Again, for posts with no date, this won't happen.
 - `none` - No date folders are created.
 
+### Truncate Filenames
+
+```
+--truncate-filenames=20
+```
+
+Maximum length for filenames (0 for no limit)
+
+Allowed values:
+
+- Any positive integer.
+
+
 ### Save images?
 
 ```

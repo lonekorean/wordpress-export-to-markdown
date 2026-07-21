@@ -56,6 +56,11 @@ export function buildPostPath(post, overrideConfig) {
 	// get slug with fallback
 	let slug = getSlugWithFallback(post);
 
+	// truncate slug if appropriate
+	if (pathConfig.truncateFilenames && pathConfig.truncateFilenames > 0) {
+		slug = slug.substring(0, pathConfig.truncateFilenames);
+	}
+
 	// prepend date to slug as appropriate
 	if (pathConfig.prefixDate && post.date) {
 		slug = post.date.toFormat('yyyy-LL-dd') + '-' + slug;
