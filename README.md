@@ -9,6 +9,7 @@ Converts a WordPress export XML file into Markdown files. This makes it easy to 
 - Saves each post as a separate Markdown file with frontmatter.
 - Also saves drafts, pages, and custom post types, if you have any.
 - Downloads images and updates references to them.
+- Can include SEO metadata (title, description, focus keyword) from Yoast SEO and Rank Math in frontmatter.
 - User-friendly wizard guides you through the process.
 - Lots of command line options for configuration, if needed.
 
@@ -104,6 +105,21 @@ Allowed values:
 - `all` - Save all images, essentially the results of `attached` and `scraped` combined.
 - `none` - Don't save any images.
 
+### Include SEO metadata from an SEO plugin?
+
+```
+--seo-plugin=none
+```
+
+Whether to include SEO metadata from [Yoast SEO](https://yoast.com/) or [Rank Math](https://rankmath.com/) in frontmatter. When a plugin is chosen, the fields `seoTitle`, `seoDescription` and `seoKeyword` are added to your frontmatter fields (unless you already listed them yourself).
+
+Allowed values:
+
+- `none` - Don't add SEO fields automatically. You can still list them in `--frontmatter-fields`, in which case Rank Math is tried first, then Yoast SEO.
+- `auto` - Reads Rank Math first, then falls back to Yoast SEO.
+- `rankmath` - Reads `rank_math_title`, `rank_math_description` and `rank_math_focus_keyword`.
+- `yoast` - Reads `_yoast_wpseo_title`, `_yoast_wpseo_metadesc` and `_yoast_wpseo_focuskw`.
+
 ## Advanced Options
 
 These are not included in the wizard, so you'll need to set them on the command line.
@@ -118,7 +134,6 @@ Whether or not to use the wizard.
 
 Allowed values:
 
-- `true` - The script will start with a wizard to ask five questions (the ones from the [Options](#options) section) minus any that were answered on the command line.
 - `false` - Skip wizard. Options set via command line are taken, while the rest have their default values used.
 
 ### Path to output folder?
@@ -143,7 +158,16 @@ Comma separated list of the frontmatter fields to include in Markdown files. Ord
 
 Allowed values:
 
-- A comma separated list with any of the following: `author`, `categories`, `coverImage`, `date`, `draft`, `excerpt`, `id`, `slug`, `tags`, `title`, `type`. You can rename a field by appending `:` and the alias to use. For example, `date:created` will rename `date` to `created`.
+- A comma separated list with any of the following: `author`, `categories`, `coverImage`, `date`, `draft`, `excerpt`, `id`, `seoDescription`, `seoKeyword`, `seoTitle`, `slug`, `tags`, `title`, `type`. You can rename a field by appending `:` and the alias to use. For example, `date:created` will rename `date` to `created`.
+- The `seo*` fields come from Yoast SEO or Rank Math, see [Include SEO metadata from an SEO plugin?](#include-seo-metadata-from-an-seo-plugin). If you choose a plugin there, all four are added for you. To pick specific ones or rename them, list them yourself, for example `--frontmatter-fields=title,date,seoTitle:metaTitle,seoDescription:metaDescription`.
+
+### Replace SEO template variables?
+
+```
+--seo-resolve-variables=true
+```
+
+Whether to replace template variables in the `seoTitle` and `seoDescription` fields, such as `%%sitename%%`, `%%sep%%`, `%%page%%` (Yoast) and `%currentyear%`, `%title%` (Rank Math). Unknown variables are left as is.
 
 ### Delay between image file requests?
 
