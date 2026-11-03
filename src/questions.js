@@ -95,6 +95,31 @@ export function load() {
 			prompt: inquirer.select
 		},
 		{
+			name: 'seo-plugin',
+			type: 'choice',
+			description: 'Include SEO metadata from an SEO plugin',
+			default: 'none',
+			choices: [
+				{
+					name: 'No',
+					value: 'none'
+				},
+				{
+					name: 'Auto-detect (Rank Math, then Yoast SEO)',
+					value: 'auto'
+				},
+				{
+					name: 'Rank Math',
+					value: 'rankmath'
+				},
+				{
+					name: 'Yoast SEO',
+					value: 'yoast'
+				}
+			],
+			prompt: inquirer.select
+		},
+		{
 			name: 'wizard',
 			type: 'boolean',
 			description: 'Use wizard',
@@ -111,6 +136,12 @@ export function load() {
 			type: 'list',
 			description: 'Frontmatter fields',
 			default: 'title,date,categories,tags,coverImage,draft'
+		},
+		{
+			name: 'seo-resolve-variables',
+			type: 'boolean',
+			description: 'Replace SEO template variables like %%sitename%% in SEO fields',
+			default: true
 		},
 		{
 			name: 'request-delay',

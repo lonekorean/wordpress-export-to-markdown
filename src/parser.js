@@ -6,6 +6,27 @@ import * as frontmatter from './frontmatter.js';
 import * as shared from './shared.js';
 import * as translator from './translator.js';
 
+// post meta keys used by each SEO plugin
+const SEO_META_KEYS = {
+	rankmath: {
+		title: 'rank_math_title',
+		description: 'rank_math_description',
+		keyword: 'rank_math_focus_keyword',
+	},
+	yoast: {
+		title: '_yoast_wpseo_title',
+		description: '_yoast_wpseo_metadesc',
+		keyword: '_yoast_wpseo_focuskw',
+	}
+};
+
+// frontmatter getters for SEO fields
+const seoGetters = {
+	seoTitle: (post, siteTitle) => resolveSeoVariables(getSeoValue(post, 'title'), post, siteTitle),
+	seoDescription: (post, siteTitle) => resolveSeoVariables(getSeoValue(post, 'description'), post, siteTitle),
+	seoKeyword: (post) => getSeoValue(post, 'keyword')
+};
+
 export async function parseFilePromise() {
 	shared.logHeading('Parsing');
 	const content = await fs.promises.readFile(shared.config.input, 'utf8');
@@ -24,7 +45,7 @@ export async function parseFilePromise() {
 	}
 
 	mergeImagesIntoPosts(images, posts);
-	populateFrontmatter(posts);
+	populateFrontmatter(posts, rssData.child('channel').optionalChildValue('title'));
 
 	return posts;
 }
@@ -117,6 +138,47 @@ function getPostMetaValue(data, key) {
 	return meta ? meta.childValue('meta_value') : undefined;
 }
 
+function getSeoValue(post, field) {
+	// when no plugin is chosen (or auto), Rank Math wins, then Yoast
+	const plugins = ['none', 'auto'].includes(shared.config.seoPlugin) ? ['rankmath', 'yoast'] : [shared.config.seoPlugin];
+	for (const plugin of plugins) {
+		const value = getPostMetaValue(post.data, SEO_META_KEYS[plugin][field])?.trim();
+		if (value) {
+			return value;
+		}
+	}
+	return undefined;
+}
+
+// replaces common Yoast (%%var%%) and Rank Math (%var%) template variables
+function resolveSeoVariables(value, post, siteTitle) {
+	if (!value || !shared.config.seoResolveVariables) {
+		return value;
+	}
+
+	const now = luxon.DateTime.now();
+	const vars = {
+		title: post.data.childValue('title'),
+		sitename: siteTitle ?? '',
+		sitetitle: siteTitle ?? '',
+		sep: '-',
+		page: '',
+		currentyear: now.toFormat('yyyy'),
+		currentmonth: now.setLocale('en').toFormat('LLLL'),
+		currentday: now.toFormat('d'),
+		year: post.date?.toFormat('yyyy') ?? '',
+		date: post.date?.toISODate() ?? ''
+	};
+
+	return value
+		.replace(/%%(\w+)%%|%(\w+)%/g, (match, yoastVar, rankMathVar) => {
+			const name = (yoastVar ?? rankMathVar).toLowerCase();
+			return name in vars ? vars[name] : match;
+		})
+		.replace(/\s{2,}/g, ' ')
+		.trim();
+}
+
 function collectAttachedImages(allPostData) {
 	const images = getItemsOfType(allPostData, 'attachment')
 		// filter to certain image file types
@@ -191,18 +253,18 @@ function mergeImagesIntoPosts(images, posts) {
 	});
 }
 
-function populateFrontmatter(posts) {
+function populateFrontmatter(posts, siteTitle) {
 	posts.forEach((post) => {
 		post.frontmatter = {};
 		shared.config.frontmatterFields.forEach((field) => {
 			const [key, alias] = field.split(':');
 
-			let frontmatterGetter = frontmatter[key];
+			let frontmatterGetter = frontmatter[key] ?? seoGetters[key];
 			if (!frontmatterGetter) {
 				throw `Could not find a frontmatter getter named "${key}".`;
 			}
 
-			post.frontmatter[alias ?? key] = frontmatterGetter(post);
+			post.frontmatter[alias ?? key] = frontmatterGetter(post, siteTitle);
 		});
 	});
 }

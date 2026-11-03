@@ -36,6 +36,20 @@ export async function getConfig() {
 	}
 
 	Object.assign(shared.config, commandLineAnswers, wizardAnswers);
+	addSeoFrontmatterFields();
+}
+
+// when an SEO plugin is chosen, include its fields unless the user already listed them (aliases included)
+function addSeoFrontmatterFields() {
+	if (shared.config.seoPlugin === 'none') {
+		return;
+	}
+
+	['seoTitle', 'seoDescription', 'seoKeyword'].forEach((field) => {
+		if (!shared.config.frontmatterFields.some((listed) => listed.split(':')[0] === field)) {
+			shared.config.frontmatterFields.push(field);
+		}
+	});
 }
 
 function getCommandLineAnswers(questions) {
